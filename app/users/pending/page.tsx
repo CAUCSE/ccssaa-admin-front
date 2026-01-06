@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { UserFilter } from "@/components/user/UserFilter"
 import { UserTable } from "@/components/user/UserTable"
 import { useUsers } from "@/hooks/useUsers"
 import type { UserListParams, UserStatus } from "@/types/user"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export default function PendingUsersPage() {
+function PendingUsersPageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState<string>("")
@@ -76,6 +77,24 @@ export default function PendingUsersPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function PendingUsersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <PendingUsersPageContent />
+    </Suspense>
   )
 }
 

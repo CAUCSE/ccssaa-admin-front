@@ -1,23 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { UserFilter } from "@/components/user/UserFilter"
 import { UserTable } from "@/components/user/UserTable"
 import { useUsers } from "@/hooks/useUsers"
 import type { UserListParams, UserStatus } from "@/types/user"
+import { Skeleton } from "@/components/ui/skeleton"
 
-/**
- * 회원 목록 페이지
- * 전체 회원을 조회하고 관리할 수 있는 페이지입니다.
- * 
- * 기능:
- * - 회원 검색 (학번/이름, 학과, 상태)
- * - 회원 목록 표시 및 정렬
- * - 페이지네이션
- * - 회원 상세 페이지로 이동
- */
-export default function UsersPage() {
+function UsersPageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState<string>("")
@@ -85,5 +76,33 @@ export default function UsersPage() {
         />
       )}
     </div>
+  )
+}
+
+/**
+ * 회원 목록 페이지
+ * 전체 회원을 조회하고 관리할 수 있는 페이지입니다.
+ * 
+ * 기능:
+ * - 회원 검색 (학번/이름, 학과, 상태)
+ * - 회원 목록 표시 및 정렬
+ * - 페이지네이션
+ * - 회원 상세 페이지로 이동
+ */
+export default function UsersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <UsersPageContent />
+    </Suspense>
   )
 }

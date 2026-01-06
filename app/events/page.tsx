@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { useEvents } from "@/hooks/useEvents"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,7 +27,7 @@ import { Search, ArrowRight } from "lucide-react"
 import type { EventListParams, EventStatus } from "@/types/event"
 import { useRouter } from "next/navigation"
 
-export default function EventsPage() {
+function EventsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
@@ -307,6 +308,24 @@ export default function EventsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <EventsPageContent />
+    </Suspense>
   )
 }
 

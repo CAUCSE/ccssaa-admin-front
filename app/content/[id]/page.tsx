@@ -30,6 +30,7 @@ export default function PostDetailPage() {
 
   // TODO: 실제 권한 체크 로직으로 교체
   const currentUserRole: "MASTER" | "STUDENT_COUNCIL" | "ALUMNI_COUNCIL" = "MASTER" // 임시로 MASTER로 설정
+  // @ts-expect-error - TODO: 실제 권한 체크 로직으로 교체 시 제거
   const isStudentCouncil = currentUserRole === "STUDENT_COUNCIL"
 
   const handleHide = () => {

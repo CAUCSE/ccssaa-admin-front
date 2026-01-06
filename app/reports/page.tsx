@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { ReportFilter } from "@/components/report/ReportFilter"
 import { ReportTable } from "@/components/report/ReportTable"
 import { useReports } from "@/hooks/useReports"
 import type { ReportListParams, ReportTargetType, ReportStatus } from "@/types/report"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export default function ReportsPage() {
+function ReportsPageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
 
@@ -61,6 +62,24 @@ export default function ReportsPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <ReportsPageContent />
+    </Suspense>
   )
 }
 

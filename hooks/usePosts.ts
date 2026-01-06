@@ -62,7 +62,7 @@ export function useTogglePostPin() {
   return useMutation({
     mutationFn: ({ postId, isPinned }: { postId: number; isPinned: boolean }) =>
       postApi.togglePostPin(postId, isPinned),
-    onSuccess: (_, { postId }) => {
+    onSuccess: (_, { postId, isPinned }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] })
       queryClient.invalidateQueries({ queryKey: ["admin-post", postId] })
       toast.success(isPinned ? "게시글이 고정되었습니다." : "게시글 고정이 해제되었습니다.")

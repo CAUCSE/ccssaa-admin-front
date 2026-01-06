@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { PostFilter } from "@/components/content/PostFilter"
 import { PostTable } from "@/components/content/PostTable"
 import { usePosts } from "@/hooks/usePosts"
 import type { PostListParams } from "@/types/post"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export default function ContentPage() {
+function ContentPageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
 
@@ -61,6 +62,24 @@ export default function ContentPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function ContentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <ContentPageContent />
+    </Suspense>
   )
 }
 

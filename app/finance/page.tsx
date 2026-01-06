@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { FinanceFilter } from "@/components/finance/FinanceFilter"
 import { FinanceTable } from "@/components/finance/FinanceTable"
 import { useFinanceRecords } from "@/hooks/useFinance"
 import type { FinanceListParams, PaymentStatus } from "@/types/finance"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export default function FinancePage() {
+function FinancePageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
 
@@ -62,5 +63,23 @@ export default function FinancePage() {
         />
       )}
     </div>
+  )
+}
+
+export default function FinancePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      }
+    >
+      <FinancePageContent />
+    </Suspense>
   )
 }
