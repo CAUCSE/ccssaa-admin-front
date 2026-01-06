@@ -29,7 +29,7 @@ export default function PostDetailPage() {
   }>({ open: false, action: null })
 
   // TODO: 실제 권한 체크 로직으로 교체
-  const currentUserRole = "MASTER" // 임시로 MASTER로 설정
+  const currentUserRole: "MASTER" | "STUDENT_COUNCIL" | "ALUMNI_COUNCIL" = "MASTER" // 임시로 MASTER로 설정
   const isStudentCouncil = currentUserRole === "STUDENT_COUNCIL"
 
   const handleHide = () => {
