@@ -45,8 +45,7 @@ export default function DashboardPage() {
   const router = useRouter()
 
   // TODO: 실제 역할 정보를 가져와야 함 (현재는 Master로 가정)
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  const userRole = "MASTER" as "MASTER" | "STUDENT_COUNCIL" | "ALUMNI_COUNCIL"
+  const userRole: "MASTER" | "STUDENT_COUNCIL" | "ALUMNI_COUNCIL" = "MASTER"
 
   if (error) {
     return (
