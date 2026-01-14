@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import { useState } from "react"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { AlertDialogRoot, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 export default function LockerDetailPage() {
   const params = useParams()
@@ -220,7 +220,7 @@ export default function LockerDetailPage() {
       </FormDialog>
 
       {/* 회수 확인 모달 */}
-      <AlertDialog open={isReleaseDialogOpen} onOpenChange={setIsReleaseDialogOpen}>
+      <AlertDialogRoot open={isReleaseDialogOpen} onOpenChange={setIsReleaseDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>사물함 회수 확인</AlertDialogTitle>
@@ -238,7 +238,7 @@ export default function LockerDetailPage() {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialogRoot>
     </div>
   )
 }
