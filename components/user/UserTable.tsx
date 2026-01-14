@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { USER_STATUS_CONFIG } from "@/lib/constants"
+import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserSummary } from "@/types/user"
 import { ChevronUp, ChevronDown, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -187,7 +187,7 @@ export function UserTable({
           </TableHeader>
           <TableBody>
             {data.map((user, index) => {
-              const statusConfig = USER_STATUS_CONFIG[user.status]
+              const statusBadge = getStatusBadge(user.status)
               return (
                 <TableRow
                   key={user.id}
@@ -203,8 +203,8 @@ export function UserTable({
                   <TableCell className="text-left">{user.name}</TableCell>
                   <TableCell className="text-left">{user.department}</TableCell>
                   <TableCell className="text-center">
-                    <Badge className={statusConfig.className}>
-                      {statusConfig.label}
+                    <Badge variant={statusBadge.variant}>
+                      {statusBadge.label}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">

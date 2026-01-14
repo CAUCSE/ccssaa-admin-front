@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { USER_STATUS_CONFIG } from "@/lib/constants"
+import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserDetail } from "@/types/user"
 
 interface UserProfileCardProps {
@@ -10,7 +10,7 @@ interface UserProfileCardProps {
 }
 
 export function UserProfileCard({ user }: UserProfileCardProps) {
-  const statusConfig = USER_STATUS_CONFIG[user.status]
+  const statusBadge = getStatusBadge(user.status)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -38,8 +38,8 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-1">상태</p>
-            <Badge className={statusConfig.className}>
-              {statusConfig.label}
+            <Badge variant={statusBadge.variant}>
+              {statusBadge.label}
             </Badge>
           </div>
           <div>
