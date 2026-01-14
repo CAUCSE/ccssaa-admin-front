@@ -13,7 +13,6 @@ const pageTitles: Record<string, string> = {
   "/users": "회원 관리",
   "/users/pending": "가입 승인 대기",
   "/users/reported": "신고된 회원",
-  "/finance": "재정 관리",
   "/content": "게시판 관리",
   "/content/boards": "게시판 관리",
   "/reports": "신고 관리",
@@ -51,7 +50,6 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "회원 관리", href: "/users" },
     { label: "신고된 회원", href: "/users/reported" },
   ],
-  "/finance": [{ label: "재정 관리", href: "/finance" }],
   "/content": [{ label: "게시판 관리", href: "/content" }],
   "/content/boards": [
     { label: "게시판 관리", href: "/content" },

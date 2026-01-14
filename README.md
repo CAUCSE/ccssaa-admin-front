@@ -46,7 +46,6 @@ app/
     [id]/            # 회원 상세
     pending/         # 가입 승인 대기
     reported/        # 신고된 회원
-  finance/            # 재정 관리
   content/            # 게시판 관리
     [id]/            # 게시글 상세
     boards/          # 게시판 관리
@@ -63,7 +62,6 @@ components/
   user/               # 회원 관리 컴포넌트
   content/            # 게시판 관리 컴포넌트
   report/             # 신고 관리 컴포넌트
-  finance/            # 재정 관리 컴포넌트
   ui/                 # shadcn/ui 컴포넌트
 
 lib/
@@ -73,7 +71,6 @@ lib/
     posts.ts
     reports.ts
     events.ts
-    finance.ts
     settings.ts
   mock/               # Mock API 데이터
   utils/              # 유틸리티 함수
@@ -118,12 +115,7 @@ types/                # TypeScript 타입 정의
 - 경조사 상세 (증빙 서류, 계좌 정보)
 - 경조사 승인/거부
 
-### 6. 재정 관리
-- 학생회비 납부 내역
-- 기간/유저별 필터
-- 납부 상태 관리
-
-### 7. 시스템 설정
+### 6. 시스템 설정
 - 권한 및 역할 관리 (Master 전용)
 - 디자인/배너 관리
 
@@ -145,7 +137,6 @@ types/                # TypeScript 타입 정의
 - `GET /api/v1/admin/reports/{id}` - 신고 상세
 - `GET /api/v1/admin/events` - 경조사 목록
 - `GET /api/v1/admin/events/{id}` - 경조사 상세
-- `GET /api/v1/admin/finance` - 재정 내역
 
 ## 개발 상태
 
@@ -158,7 +149,6 @@ types/                # TypeScript 타입 정의
 - ✅ 게시판 관리
 - ✅ 신고 관리
 - ✅ 경조사 관리
-- ✅ 재정 관리
 - ✅ 시스템 설정
 
 ### 향후 개선 사항

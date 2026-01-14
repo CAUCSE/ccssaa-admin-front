@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   Users,
-  DollarSign,
   FileText,
   Settings,
   ChevronRight,
@@ -30,28 +29,28 @@ const getSidebarItems = (
   pendingReports: number | undefined
 ): SidebarItem[] => [
   {
-    title: "Dashboard",
+    title: "대시보드",
     href: "/dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
-    title: "Users",
+    title: "회원 관리",
     href: "/users",
     icon: <Users className="h-5 w-5" />,
     children: [
       {
-        title: "All",
+        title: "전체",
         href: "/users",
         icon: <ChevronRight className="h-4 w-4" />,
       },
       {
-        title: "Pending",
+        title: "승인 대기",
         href: "/users/pending",
         icon: <ChevronRight className="h-4 w-4" />,
         badge: pendingApprovals,
       },
       {
-        title: "Reported",
+        title: "신고된 회원",
         href: "/users/reported",
         icon: <ChevronRight className="h-4 w-4" />,
         badge: pendingReports,
@@ -59,50 +58,45 @@ const getSidebarItems = (
     ],
   },
   {
-    title: "Finance",
-    href: "/finance",
-    icon: <DollarSign className="h-5 w-5" />,
-  },
-  {
-    title: "Content",
+    title: "게시판 관리",
     href: "/content",
     icon: <FileText className="h-5 w-5" />,
     children: [
       {
-        title: "Posts",
+        title: "게시글",
         href: "/content",
         icon: <ChevronRight className="h-4 w-4" />,
       },
       {
-        title: "Boards",
+        title: "게시판",
         href: "/content/boards",
         icon: <ChevronRight className="h-4 w-4" />,
       },
     ],
   },
   {
-    title: "Reports",
+    title: "신고 관리",
     href: "/reports",
     icon: <AlertTriangle className="h-5 w-5" />,
     badge: pendingReports,
   },
   {
-    title: "Events",
+    title: "경조사",
     href: "/events",
     icon: <Calendar className="h-5 w-5" />,
   },
   {
-    title: "Settings",
+    title: "시스템 설정",
     href: "/settings",
     icon: <Settings className="h-5 w-5" />,
     children: [
       {
-        title: "Roles",
+        title: "권한 및 역할",
         href: "/settings/roles",
         icon: <ChevronRight className="h-4 w-4" />,
       },
       {
-        title: "Design",
+        title: "디자인/배너",
         href: "/settings/design",
         icon: <ChevronRight className="h-4 w-4" />,
       },
