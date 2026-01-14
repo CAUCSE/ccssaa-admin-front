@@ -12,6 +12,8 @@ import {
   X,
   AlertTriangle,
   Calendar,
+  Lock,
+  CalendarDays,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useDashboard } from "@/hooks/useDashboard"
@@ -84,6 +86,16 @@ const getSidebarItems = (
     title: "경조사",
     href: "/events",
     icon: <Calendar className="h-5 w-5" />,
+  },
+  {
+    title: "사물함 관리",
+    href: "/lockers",
+    icon: <Lock className="h-5 w-5" />,
+  },
+  {
+    title: "캘린더 관리",
+    href: "/calendar",
+    icon: <CalendarDays className="h-5 w-5" />,
   },
   {
     title: "시스템 설정",

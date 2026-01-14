@@ -282,50 +282,50 @@
   - [ ] `LOCKER_MANAGEMENT` 권한 검증 (RBAC 기반)
   - [ ] 권한 없을 시 접근 차단
 
-- [ ] **검색 및 필터 영역**
-  - [ ] 사물함 번호 검색
-  - [ ] 상태 필터 (AVAILABLE, OCCUPIED)
-  - [ ] 사용자 검색 (현재 사용자, 이전 사용자)
+- [x] **검색 및 필터 영역**
+  - [x] 사물함 번호 검색
+  - [x] 상태 필터 (AVAILABLE, OCCUPIED)
+  - [x] 사용자 검색 (현재 사용자, 이전 사용자)
 
-- [ ] **데이터 테이블**
-  - [ ] 컬럼: 번호, 현재 사용자, 이전 사용자, 상태(Badge), 배정일, 액션
-  - [ ] 상태 뱃지: AVAILABLE=Green, OCCUPIED=Gray
-  - [ ] 행 클릭 시 상세 정보 표시
+- [x] **데이터 테이블**
+  - [x] 컬럼: 번호, 현재 사용자, 이전 사용자, 상태(Badge), 배정일, 액션
+  - [x] 상태 뱃지: AVAILABLE=Green, OCCUPIED=Gray
+  - [x] 행 클릭 시 상세 정보 표시
 
-- [ ] **관리자 액션 버튼**
-  - [ ] 수동 직접 배정 (특정 유저를 특정 번호에 강제 배정)
-  - [ ] 개별 회수 (선택한 사물함만 회수)
-  - [ ] 일괄 회수 (모든 OCCUPIED 사물함 회수 + 일괄 알림 발송)
+- [x] **관리자 액션 버튼**
+  - [x] 수동 직접 배정 (특정 유저를 특정 번호에 강제 배정)
+  - [x] 개별 회수 (선택한 사물함만 회수)
+  - [x] 일괄 회수 (모든 OCCUPIED 사물함 회수 + 일괄 알림 발송)
 
-- [ ] **신청 기간 설정**
-  - [ ] 신청 시작일/종료일 설정 (`start_at`, `end_at`)
-  - [ ] 설정 시 캘린더에 자동 동기화 (Auto-Sync)
+- [x] **신청 기간 설정**
+  - [x] 신청 시작일/종료일 설정 (`start_at`, `end_at`)
+  - [x] 설정 시 캘린더에 자동 동기화 (Auto-Sync)
 
-- [ ] **API 연동**
-  - [ ] 사물함 목록 조회 API
-  - [ ] 사물함 상세 조회 API
-  - [ ] 수동 배정 API
-  - [ ] 개별 회수 API
-  - [ ] 일괄 회수 API
-  - [ ] 신청 기간 설정 API
+- [x] **API 연동**
+  - [x] 사물함 목록 조회 API
+  - [x] 사물함 상세 조회 API
+  - [x] 수동 배정 API
+  - [x] 개별 회수 API
+  - [x] 일괄 회수 API
+  - [x] 신청 기간 설정 API
 
 ### 7.2. 사물함 상세/관리 페이지 (`app/lockers/[id]/page.tsx`)
 
-- [ ] **정보 영역**
-  - [ ] 사물함 번호
-  - [ ] 현재 상태 (AVAILABLE/OCCUPIED)
-  - [ ] 현재 사용자 정보 (이름, 학번, 연락처)
-  - [ ] 이전 사용자 정보 (이름, 학번)
-  - [ ] 배정일/회수일
+- [x] **정보 영역**
+  - [x] 사물함 번호
+  - [x] 현재 상태 (AVAILABLE/OCCUPIED)
+  - [x] 현재 사용자 정보 (이름, 학번, 연락처)
+  - [x] 이전 사용자 정보 (이름, 학번)
+  - [x] 배정일/회수일
 
-- [ ] **관리자 액션**
-  - [ ] 수동 배정 (유저 선택 모달)
-  - [ ] 회수 (Confirm Modal)
+- [x] **관리자 액션**
+  - [x] 수동 배정 (유저 선택 모달)
+  - [x] 회수 (Confirm Modal)
 
-- [ ] **API 연동**
-  - [ ] 사물함 상세 조회 API
-  - [ ] 수동 배정 API
-  - [ ] 회수 API
+- [x] **API 연동**
+  - [x] 사물함 상세 조회 API
+  - [x] 수동 배정 API
+  - [x] 회수 API
 
 ---
 
@@ -337,57 +337,57 @@
   - [ ] `CALENDAR_MANAGEMENT` 권한 검증 (RBAC 기반)
   - [ ] 권한 없을 시 접근 차단
 
-- [ ] **검색 및 필터 영역**
-  - [ ] 날짜 범위 필터 (Date Picker)
-  - [ ] 스코프 필터 (ALL, STUDENT, ALUMNI)
-  - [ ] 액션 타입 필터 (Notice, Service, Link)
-  - [ ] 키워드 검색
+- [x] **검색 및 필터 영역**
+  - [x] 날짜 범위 필터 (Date Picker)
+  - [x] 스코프 필터 (ALL, STUDENT, ALUMNI)
+  - [x] 액션 타입 필터 (Notice, Service, Link)
+  - [x] 키워드 검색
 
-- [ ] **데이터 테이블**
-  - [ ] 컬럼: 일정명, 날짜, 스코프, 액션 타입, 생성일, 액션
-  - [ ] 스코프 뱃지: ALL=Blue, STUDENT=Green, ALUMNI=Orange
-  - [ ] 액션 타입 뱃지: Notice=Gray, Service=Blue, Link=Purple
+- [x] **데이터 테이블**
+  - [x] 컬럼: 일정명, 날짜, 스코프, 액션 타입, 생성일, 액션
+  - [x] 스코프 뱃지: ALL=Blue, STUDENT=Green, ALUMNI=Orange
+  - [x] 액션 타입 뱃지: Notice=Gray, Service=Blue, Link=Purple
 
-- [ ] **일정 생성 버튼**
-  - [ ] `[일정 등록]` 버튼 (Form Modal)
+- [x] **일정 생성 버튼**
+  - [x] `[일정 등록]` 버튼 (Form Modal)
 
-- [ ] **API 연동**
-  - [ ] 캘린더 목록 조회 API
-  - [ ] 일정 생성 API
-  - [ ] 일정 수정 API
-  - [ ] 일정 삭제 API
+- [x] **API 연동**
+  - [x] 캘린더 목록 조회 API
+  - [x] 일정 생성 API
+  - [x] 일정 수정 API
+  - [x] 일정 삭제 API
 
 ### 8.2. 일정 등록/수정 모달 (`components/calendar/CalendarFormDialog.tsx`)
 
-- [ ] **입력 필드**
-  - [ ] 일정명 (제목)
-  - [ ] 날짜/시간 (Date Picker)
-  - [ ] 설명 (Textarea)
-  - [ ] 스코프 선택 (ALL, STUDENT, ALUMNI)
-  - [ ] 액션 타입 선택 (Notice, Service, Link)
-  - [ ] 서비스 연결 (Service 타입일 경우) - 사물함 신청 페이지 등
-  - [ ] 외부 링크 (Link 타입일 경우) - URL 입력
-  - [ ] 알림 설정 체크박스
+- [x] **입력 필드**
+  - [x] 일정명 (제목)
+  - [x] 날짜/시간 (Date Picker)
+  - [x] 설명 (Textarea)
+  - [x] 스코프 선택 (ALL, STUDENT, ALUMNI)
+  - [x] 액션 타입 선택 (Notice, Service, Link)
+  - [x] 서비스 연결 (Service 타입일 경우) - 사물함 신청 페이지 등
+  - [x] 외부 링크 (Link 타입일 경우) - URL 입력
+  - [x] 알림 설정 체크박스
 
-- [ ] **API 연동**
-  - [ ] 일정 생성 API
-  - [ ] 일정 수정 API
+- [x] **API 연동**
+  - [x] 일정 생성 API
+  - [x] 일정 수정 API
 
 ### 8.3. 자동 동기화 로직
 
-- [ ] **사물함 신청 기간 동기화**
-  - [ ] 사물함 신청 기간 설정 시 자동 일정 생성/업데이트
-  - [ ] 사물함 신청 기간 변경 시 캘린더 일정 자동 업데이트
-  - [ ] 스코프: STUDENT (재학생 전용)
+- [x] **사물함 신청 기간 동기화**
+  - [x] 사물함 신청 기간 설정 시 자동 일정 생성/업데이트
+  - [x] 사물함 신청 기간 변경 시 캘린더 일정 자동 업데이트
+  - [x] 스코프: STUDENT (재학생 전용)
 
 - [ ] **경조사 일정 동기화** (선택적)
   - [ ] 경조사 승인 시 자동 일정 생성 (정책에 따라)
   - [ ] 스코프: ALUMNI (졸업생 전용)
 
-- [ ] **API 연동**
-  - [ ] 사물함 기간 변경 이벤트 감지
+- [x] **API 연동**
+  - [x] 사물함 기간 변경 이벤트 감지
   - [ ] 경조사 승인 이벤트 감지
-  - [ ] 자동 일정 생성 API
+  - [x] 자동 일정 생성 API
 
 ---
 
@@ -416,8 +416,8 @@
 - [x] `lib/api/posts.ts` - 게시글 API (게시판 관리 기능 추가)
   - [x] `lib/api/reports.ts` - 신고 관리 API
   - [x] `lib/api/events.ts` - 경조사 관리 API
-  - [ ] `lib/api/lockers.ts` - 사물함 관리 API
-  - [ ] `lib/api/calendar.ts` - 캘린더 관리 API
+  - [x] `lib/api/lockers.ts` - 사물함 관리 API
+  - [x] `lib/api/calendar.ts` - 캘린더 관리 API
   - [x] `lib/api/settings.ts` - 시스템 설정 API
 
 ### 10.2. React Query Hooks
@@ -427,8 +427,8 @@
 - [x] `hooks/usePosts.ts` - 게시글 데이터 (게시판 관리 Hook 추가)
   - [x] `hooks/useReports.ts` - 신고 데이터
   - [x] `hooks/useEvents.ts` - 경조사 데이터
-  - [ ] `hooks/useLockers.ts` - 사물함 데이터
-  - [ ] `hooks/useCalendar.ts` - 캘린더 데이터
+  - [x] `hooks/useLockers.ts` - 사물함 데이터
+  - [x] `hooks/useCalendar.ts` - 캘린더 데이터
   - [x] `hooks/useSettings.ts` - 시스템 설정 데이터
 
 ### 10.3. 타입 정의
@@ -438,8 +438,8 @@
 - [x] `types/post.ts` - 게시글 타입
   - [x] `types/report.ts` - 신고 타입 (새로 생성)
   - [x] `types/event.ts` - 경조사 타입 (새로 생성)
-  - [ ] `types/locker.ts` - 사물함 타입 (새로 생성)
-  - [ ] `types/calendar.ts` - 캘린더 타입 (새로 생성)
+  - [x] `types/locker.ts` - 사물함 타입 (새로 생성)
+  - [x] `types/calendar.ts` - 캘린더 타입 (새로 생성)
   - [x] `types/settings.ts` - 시스템 설정 타입 (새로 생성)
 
 ---
@@ -501,16 +501,14 @@
 ---
 
 **마지막 업데이트:** 2025-01-27
-**진행 상황:** 약 85% 완료 (사물함/캘린더 관리 추가로 진행률 조정)
+**진행 상황:** 약 95% 완료 (사물함/캘린더 관리 구현 완료)
 
 **최근 완료 사항:**
-- ✅ Sidebar Badge 표시 기능 (대기 인원 수, 미처리 신고 수)
-- ✅ 공통 ErrorMessage 컴포넌트 생성
-- ✅ useSearchParams() Suspense boundary 추가 (모든 관련 페이지)
-- ✅ TypeScript 빌드 오류 수정
-- ✅ Vercel 배포 설정 및 환경 변수 가이드
-- ✅ 코드 주석 추가 (주요 컴포넌트 및 페이지)
-- ✅ develop.md 업데이트 (배포 가이드, Suspense 패턴, 에러 처리)
+- ✅ 사물함 관리 구현 완료 (목록, 상세, 배정, 회수, 신청 기간 설정)
+- ✅ 캘린더 관리 구현 완료 (목록, 등록, 수정, 삭제, 필터링)
+- ✅ 사물함 신청 기간 설정 시 캘린더 자동 동기화 기능
+- ✅ Textarea, Checkbox UI 컴포넌트 추가
+- ✅ 사물함/캘린더 상태 뱃지 매핑 추가
 
 ## ✅ 완료된 주요 작업 요약
 
@@ -595,4 +593,11 @@
 - `app/settings/roles/page.tsx` - 권한 및 역할 관리 페이지
 - `app/settings/design/page.tsx` - 디자인/배너 관리 페이지
 - `components/ui/error-message.tsx` - 공통 에러 메시지 컴포넌트
+- `components/ui/textarea.tsx` - Textarea 컴포넌트
+- `components/ui/checkbox.tsx` - Checkbox 컴포넌트
+- `components/locker/LockerFilter.tsx` - 사물함 필터 컴포넌트
+- `components/locker/LockerTable.tsx` - 사물함 테이블 컴포넌트
+- `components/calendar/CalendarFilter.tsx` - 캘린더 필터 컴포넌트
+- `components/calendar/CalendarTable.tsx` - 캘린더 테이블 컴포넌트
+- `components/calendar/CalendarFormDialog.tsx` - 캘린더 일정 등록/수정 모달
 

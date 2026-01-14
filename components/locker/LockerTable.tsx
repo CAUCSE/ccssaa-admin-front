@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import type { Post } from "@/types/post"
+import type { Locker } from "@/types/locker"
 import { ArrowRight } from "lucide-react"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 
-interface PostTableProps {
-  data: Post[]
+interface LockerTableProps {
+  data: Locker[]
   currentPage: number
   totalPages: number
   totalElements: number
@@ -25,7 +25,11 @@ interface PostTableProps {
   isLoading?: boolean
 }
 
-export function PostTable({
+/**
+ * LockerTable 컴포넌트
+ * 사물함 목록을 테이블 형태로 표시하는 컴포넌트입니다.
+ */
+export function LockerTable({
   data,
   currentPage,
   totalPages,
@@ -33,38 +37,12 @@ export function PostTable({
   pageSize,
   onPageChange,
   isLoading,
-}: PostTableProps) {
+}: LockerTableProps) {
   const router = useRouter()
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
-  }
-
-  const getStatusBadgeVariant = (status: Post["status"]) => {
-    switch (status) {
-      case "PUBLIC":
-        return "success"
-      case "HIDDEN":
-        return "neutral"
-      case "DELETED":
-        return "danger"
-      default:
-        return "neutral"
-    }
-  }
-
-  const getStatusLabel = (status: Post["status"]) => {
-    switch (status) {
-      case "PUBLIC":
-        return "공개"
-      case "HIDDEN":
-        return "숨김"
-      case "DELETED":
-        return "삭제"
-      default:
-        return status
-    }
   }
 
   const startIndex = (currentPage - 1) * pageSize
@@ -76,19 +54,19 @@ export function PostTable({
           <Table>
             <TableHeader>
               <TableRow>
-                {Array.from({ length: 7 }).map((_, i) => (
+                {Array.from({ length: 6 }).map((_, i) => (
                   <TableHead key={i}>
-                    <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
                   </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from({ length: 10 }).map((_, i) => (
+              {Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 7 }).map((_, j) => (
+                  {Array.from({ length: 6 }).map((_, j) => (
                     <TableCell key={j}>
-                      <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                      <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -102,8 +80,10 @@ export function PostTable({
 
   if (data.length === 0) {
     return (
-      <div className="rounded-md border p-12 text-center">
-        <p className="text-muted-foreground">조회된 게시글이 없습니다.</p>
+      <div className="rounded-md border">
+        <div className="p-12 text-center text-gray-500">
+          사물함 데이터가 없습니다.
+        </div>
       </div>
     )
   }
@@ -114,52 +94,68 @@ export function PostTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center w-16">No</TableHead>
-              <TableHead className="text-center">게시판</TableHead>
-              <TableHead className="text-left">제목</TableHead>
-              <TableHead className="text-center">작성자</TableHead>
-              <TableHead className="text-center">작성일</TableHead>
-              <TableHead className="text-center">상태</TableHead>
-              <TableHead className="text-center">관리</TableHead>
+              <TableHead className="text-center w-[80px]">번호</TableHead>
+              <TableHead className="text-center">현재 사용자</TableHead>
+              <TableHead className="text-center">이전 사용자</TableHead>
+              <TableHead className="text-center w-[120px]">상태</TableHead>
+              <TableHead className="text-center w-[120px]">배정일</TableHead>
+              <TableHead className="text-center w-[100px]">관리</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((post, index) => (
-              <TableRow
-                key={post.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => router.push(`/content/${post.id}`)}
-              >
-                <TableCell className="text-center">
-                  {post.isPinned && "📌 "}
-                  {startIndex + index + 1}
-                </TableCell>
-                <TableCell className="text-center">{post.boardName}</TableCell>
-                <TableCell className="text-left">
-                  <span className="max-w-[300px] truncate block">
-                    {post.title}
-                  </span>
-                </TableCell>
-                <TableCell className="text-center">{post.author}</TableCell>
-                <TableCell className="text-center">
-                  {formatDate(post.createdAt)}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant={getStatusBadgeVariant(post.status)}>
-                    {getStatusLabel(post.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push(`/content/${post.id}`)}
-                  >
-                    상세보기 <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {data.map((locker) => {
+              const statusBadge = getStatusBadge(locker.status)
+              return (
+                <TableRow
+                  key={locker.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => router.push(`/lockers/${locker.id}`)}
+                >
+                  <TableCell className="text-center font-medium">
+                    {locker.number}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {locker.currentUserName && locker.currentUserStudentNo ? (
+                      <div>
+                        {locker.currentUserName} ({locker.currentUserStudentNo})
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {locker.previousUserName && locker.previousUserStudentNo ? (
+                      <div>
+                        {locker.previousUserName} ({locker.previousUserStudentNo})
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={statusBadge.variant}>
+                      {statusBadge.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {locker.assignedAt ? formatDate(locker.assignedAt) : "-"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/lockers/${locker.id}`)
+                      }}
+                    >
+                      상세보기
+                      <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </div>
@@ -215,4 +211,3 @@ export function PostTable({
     </div>
   )
 }
-

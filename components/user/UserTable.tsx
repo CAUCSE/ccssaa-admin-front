@@ -227,7 +227,7 @@ export function UserTable({
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="flex flex-col items-center justify-center gap-4">
         <div className="text-sm text-muted-foreground">
           총 {totalElements}명 중 {startIndex + 1}-{Math.min(startIndex + pageSize, totalElements)}명 표시
         </div>
