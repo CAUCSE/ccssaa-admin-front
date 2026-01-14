@@ -43,7 +43,7 @@ next-env.d.ts
 *~
 
 # Cursor
-.cursor/
+# .cursor/
 
 # OS
 .DS_Store
