@@ -83,15 +83,14 @@
 | v2 게시판 API | `lib/api/v2/boards.ts` — `getBoardsV2()` (GET), `createBoardV2(data)` (POST), `updateBoardV2(data)` (PUT), `updateBoardOrdersV2(boardIds)` (PATCH orders) |
 | v2 게시판 타입 | `types/board-v2.ts` — `BoardListItemV2`, `BoardCreateRequestV2`, `BoardReadScope`, `BoardWriteScope`, `BoardVisibility` |
 | Hook | `hooks/usePosts.ts` — `useBoardsV2()` (GET), `useCreateBoardV2()` (POST), `useUpdateBoardV2()` (PUT), `useUpdateBoardOrdersV2()` (PATCH orders) |
-| 화면 | `app/content/boards/page.tsx` — v2 리스트(displayOrder 정렬) + 정렬 수정(드래그&드롭) + 생성/수정 모달 |
+| 화면 | `app/content/boards/page.tsx` — v2 리스트(displayOrder 정렬) + 정렬 수정(드래그&드롭) + 생성 모달. 수정은 별도 페이지 `app/content/boards/[boardId]/edit/page.tsx` |
 
 ---
 
 ## 6. 화면 동작 (게시판 목록·생성·수정·정렬)
 
-- **목록:** `useBoardsV2()` — GET `/api/v2/admin/boards` (응답 `data.boards`). `displayOrder` 기준 정렬 후 테이블 컬럼: No, boardId, 게시판명, 설명, 익명 여부, 읽기 권한, 쓰기 권한, 알림 여부, 노출 여부, 관리(수정/삭제).
+- **목록:** `app/content/boards/page.tsx` — `useBoardsV2()` GET `/api/v2/admin/boards` (응답 `data.boards`). `displayOrder` 기준 정렬 후 테이블 컬럼: No, 게시판명, 설명, 익명 여부, 읽기 권한, 쓰기 권한, 알림 여부, 노출 여부, 관리(수정/삭제).
 - **정렬 수정:** 상단 `[정렬 수정]` 버튼 클릭 시 다이얼로그 오픈. 현재 `displayOrder` 순서대로 리스트 표시, 드래그&드롭으로 순서 변경 후 `[저장]` 시 PATCH `/api/v2/admin/boards/orders` 로 `boardIds` 배열 전달.
-- **게시판 생성 버튼:** v2 생성 모달 오픈. 제출 시 **POST** `/api/v2/admin/boards` (`createBoardV2`).
-- **v2 생성 모달 필드:** 게시판명, 설명, 관리자 ID(쉼표/줄바꿈 구분), 익명 여부(체크), 읽기 권한(Select), 쓰기 권한(Select), 알림 가능(체크), 노출 여부(Select).
-- **수정:** 수정 버튼 클릭 시 v2 수정 모달(동일 필드) 오픈. 제출 시 **PUT** `/api/v2/admin/boards` (`updateBoardV2`, `boardId` 필수).
-- **삭제:** 기존 삭제 확인 모달 유지.
+- **게시판 생성:** 상단 `[게시판 생성]` 클릭 시 v2 생성 모달 오픈. 제출 시 **POST** `/api/v2/admin/boards` (`createBoardV2`). 생성 모달 필드: 게시판명, 설명, 관리자 ID(쉼표/줄바꿈 구분), 익명 여부(체크), 읽기 권한(Select), 쓰기 권한(Select), 알림 가능(체크), 노출 여부(Select).
+- **수정:** 행의 `[수정]` 클릭 시 **별도 페이지** `/content/boards/[boardId]/edit` 로 이동. `app/content/boards/[boardId]/edit/page.tsx` 에서 동일 폼 필드로 편집 후 `[수정]` 제출 시 **PUT** `/api/v2/admin/boards` (`updateBoardV2`, `boardId` 필수). 성공 시 목록(`/content/boards`)으로 이동.
+- **삭제:** 행의 `[삭제]` 클릭 시 삭제 확인 모달 유지.

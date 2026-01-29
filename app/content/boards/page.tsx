@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import {
   useBoardsV2,
   useCreateBoardV2,
-  useUpdateBoardV2,
   useUpdateBoardOrdersV2,
   useDeleteBoard,
 } from "@/hooks/usePosts"
@@ -41,60 +41,17 @@ import {
 } from "@/components/ui/select"
 import { Plus, Pencil, Trash2, GripVertical } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import type {
-  BoardCreateRequestV2,
-  BoardListItemV2,
-  BoardReadScope,
-  BoardWriteScope,
-  BoardVisibility,
-} from "@/types/board-v2"
-
-/** BoardReadScope: ENROLLED 재학생, GRADUATED 졸업생, BOTH 모두 */
-const READ_SCOPES: { value: BoardReadScope; label: string }[] = [
-  { value: "BOTH", label: "모두" },
-  { value: "ENROLLED", label: "재학생" },
-  { value: "GRADUATED", label: "졸업생" },
-]
-
-/** BoardWriteScope: ALL_USER 일반 유저 작성 가능, ONLY_ADMIN 게시판 관리자만 작성 가능 */
-const WRITE_SCOPES: { value: BoardWriteScope; label: string }[] = [
-  { value: "ALL_USER", label: "일반 유저 작성 가능" },
-  { value: "ONLY_ADMIN", label: "게시판 관리자만 작성 가능" },
-]
-
-/** BoardVisibility: VISIBLE 보임, HIDDEN 안 보임 */
-const VISIBILITIES: { value: BoardVisibility; label: string }[] = [
-  { value: "VISIBLE", label: "보임" },
-  { value: "HIDDEN", label: "안 보임" },
-]
-
-function readScopeLabel(value: BoardReadScope): string {
-  return READ_SCOPES.find((o) => o.value === value)?.label ?? value
-}
-function writeScopeLabel(value: BoardWriteScope): string {
-  return WRITE_SCOPES.find((o) => o.value === value)?.label ?? value
-}
-function visibilityLabel(value: BoardVisibility): string {
-  return VISIBILITIES.find((o) => o.value === value)?.label ?? value
-}
-
-const defaultV2Form: Omit<BoardCreateRequestV2, "boardId"> = {
-  name: "",
-  description: "",
-  adminUserIds: [],
-  isAnonymous: false,
-  readScope: "BOTH",
-  writeScope: "ONLY_ADMIN",
-  isNotice: false,
-  visibility: "VISIBLE",
-}
-
-function parseAdminUserIds(value: string): string[] {
-  return value
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
+import type { BoardListItemV2, BoardReadScope, BoardWriteScope, BoardVisibility } from "@/types/board-v2"
+import {
+  defaultV2Form,
+  parseAdminUserIds,
+  readScopeLabel,
+  writeScopeLabel,
+  visibilityLabel,
+  READ_SCOPES,
+  WRITE_SCOPES,
+  VISIBILITIES,
+} from "@/lib/constants/board-v2-form"
 
 /** displayOrder 기준 정렬 */
 function sortByDisplayOrder(items: BoardListItemV2[]): BoardListItemV2[] {
@@ -107,12 +64,10 @@ export default function BoardsPage() {
   const { data: boardsRaw, isLoading } = useBoardsV2()
   const boards = boardsRaw ? sortByDisplayOrder(boardsRaw) : []
   const createBoardV2 = useCreateBoardV2()
-  const updateBoardV2 = useUpdateBoardV2()
   const updateBoardOrdersV2 = useUpdateBoardOrdersV2()
   const deleteBoard = useDeleteBoard()
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [orderDialogOpen, setOrderDialogOpen] = useState(false)
   const [orderBoardIds, setOrderBoardIds] = useState<string[]>([])
@@ -121,29 +76,11 @@ export default function BoardsPage() {
 
   const [formData, setFormData] = useState(defaultV2Form)
   const [adminUserIdsText, setAdminUserIdsText] = useState("")
-  const [editFormData, setEditFormData] = useState(defaultV2Form)
-  const [editAdminUserIdsText, setEditAdminUserIdsText] = useState("")
 
   const handleCreate = () => {
     setFormData(defaultV2Form)
     setAdminUserIdsText("")
     setCreateDialogOpen(true)
-  }
-
-  const handleEdit = (board: BoardListItemV2) => {
-    setSelectedBoard(board)
-    setEditFormData({
-      ...defaultV2Form,
-      name: board.name,
-      description: board.description,
-      isAnonymous: board.isAnonymous,
-      readScope: board.readScope,
-      writeScope: board.writeScope,
-      isNotice: board.isNotice,
-      visibility: board.visibility,
-    })
-    setEditAdminUserIdsText("")
-    setEditDialogOpen(true)
   }
 
   const handleDelete = (board: BoardListItemV2) => {
@@ -195,26 +132,6 @@ export default function BoardsPage() {
           setCreateDialogOpen(false)
           setFormData(defaultV2Form)
           setAdminUserIdsText("")
-        },
-      }
-    )
-  }
-
-  const handleEditSubmit = () => {
-    if (!selectedBoard) return
-    const adminUserIds = parseAdminUserIds(editAdminUserIdsText)
-    updateBoardV2.mutate(
-      {
-        ...editFormData,
-        boardId: selectedBoard.boardId,
-        adminUserIds,
-      },
-      {
-        onSuccess: () => {
-          setEditDialogOpen(false)
-          setSelectedBoard(null)
-          setEditFormData(defaultV2Form)
-          setEditAdminUserIdsText("")
         },
       }
     )
@@ -351,10 +268,12 @@ export default function BoardsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => handleEdit(board)}
+                            asChild
                             aria-label="수정"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Link href={`/content/boards/${board.boardId}/edit`}>
+                              <Pencil className="h-4 w-4" />
+                            </Link>
                           </Button>
                           <Button
                             variant="ghost"
@@ -485,132 +404,6 @@ export default function BoardsPage() {
               value={formData.visibility}
               onValueChange={(value: BoardVisibility) =>
                 setFormData({ ...formData, visibility: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {VISIBILITIES.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </FormDialog>
-
-      {/* 수정 모달 (v2 API: PUT /api/v2/admin/boards) */}
-      <FormDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        title="게시판 수정"
-        description="게시판 설정을 수정합니다. (v2 API)"
-        confirmText="수정"
-        onConfirm={handleEditSubmit}
-        isLoading={updateBoardV2.isPending}
-      >
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-          <div className="space-y-2">
-            <Label htmlFor="edit-name">게시판명 *</Label>
-            <Input
-              id="edit-name"
-              value={editFormData.name}
-              onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-              placeholder="게시판명을 입력하세요"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-description">설명 *</Label>
-            <Input
-              id="edit-description"
-              value={editFormData.description}
-              onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-              placeholder="게시판 설명을 입력하세요"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-adminUserIds">관리자 ID (UUID, 쉼표 또는 줄바꿈 구분)</Label>
-            <Textarea
-              id="edit-adminUserIds"
-              value={editAdminUserIdsText}
-              onChange={(e) => setEditAdminUserIdsText(e.target.value)}
-              placeholder="예: uuid1, uuid2"
-              className="min-h-[60px]"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="edit-isAnonymous"
-              checked={editFormData.isAnonymous}
-              onCheckedChange={(checked) =>
-                setEditFormData({ ...editFormData, isAnonymous: checked === true })
-              }
-            />
-            <Label htmlFor="edit-isAnonymous" className="cursor-pointer">
-              익명 게시판
-            </Label>
-          </div>
-          <div className="space-y-2">
-            <Label>읽기 권한</Label>
-            <Select
-              value={editFormData.readScope}
-              onValueChange={(value: BoardReadScope) =>
-                setEditFormData({ ...editFormData, readScope: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {READ_SCOPES.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>쓰기 권한</Label>
-            <Select
-              value={editFormData.writeScope}
-              onValueChange={(value: BoardWriteScope) =>
-                setEditFormData({ ...editFormData, writeScope: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {WRITE_SCOPES.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="edit-isNotice"
-              checked={editFormData.isNotice}
-              onCheckedChange={(checked) =>
-                setEditFormData({ ...editFormData, isNotice: checked === true })
-              }
-            />
-            <Label htmlFor="edit-isNotice" className="cursor-pointer">
-              알림 가능 게시판
-            </Label>
-          </div>
-          <div className="space-y-2">
-            <Label>노출 여부</Label>
-            <Select
-              value={editFormData.visibility}
-              onValueChange={(value: BoardVisibility) =>
-                setEditFormData({ ...editFormData, visibility: value })
               }
             >
               <SelectTrigger>
