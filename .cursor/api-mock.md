@@ -30,14 +30,16 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 ```
 lib/
   api/
+    auth.ts           # 인증 API (로그인, Mock/Real 분기)
     users.ts          # 회원 API (Mock/Real 분기)
     dashboard.ts      # 대시보드 API (Mock/Real 분기)
     posts.ts          # 게시글 API (향후 추가)
     reports.ts        # 신고 API (향후 추가)
     ...
   mock/
+    auth.ts           # 인증 Mock API 구현
     users.ts          # 회원 Mock API 구현
-    dashboard.ts       # 대시보드 Mock API 구현
+    dashboard.ts      # 대시보드 Mock API 구현
     ...
 ```
 
@@ -71,7 +73,22 @@ export async function getData(): Promise<DataType> {
 
 ## 구현된 Mock API
 
-### 1. 회원 관리 API (`lib/api/users.ts`, `lib/mock/users.ts`)
+### 1. 인증 API (`lib/api/auth.ts`, `lib/mock/auth.ts`)
+
+**v1 스펙:** 로그인 `POST /users/sign-in`, 토큰 재발급 `PUT /users/token/update`, 본인 조회 `GET /users/me`, 로그아웃 `POST /users/sign-out`. 상세는 [.cursor/auth-token.md](.cursor/auth-token.md) 참고.
+
+**Mock 데이터 특징:**
+- 이메일/비밀번호가 비어 있지 않으면 로그인 성공 (개발용)
+- 지연 시뮬레이션: sign-in 400ms, token/update 300ms, getMe 300ms, sign-out 200ms
+- 반환: `accessToken`, `refreshToken` (v1 응답 형식)
+
+**함수:**
+- `login(params)` - 로그인 (`email`, `password`) → 성공 시 `setTokens(accessToken, refreshToken)` 후 `SignInResponse` 반환
+- `refreshTokens()` - `refreshToken`으로 PUT 재발급 요청 후 새 토큰 저장 및 반환 (401 시 `lib/api.ts`에서 자동 호출)
+- `getMe()` - 본인 조회 → `MeResponse` 반환
+- `signOut()` - 로그아웃 (body: refreshToken, accessToken, fcmToken: null) 후 `removeTokens()`
+
+### 2. 회원 관리 API (`lib/api/users.ts`, `lib/mock/users.ts`)
 
 **Mock 데이터 특징:**
 - 50개의 더미 회원 데이터
@@ -87,7 +104,7 @@ export async function getData(): Promise<DataType> {
 - `banUser(userId)` - 회원 추방
 - `updateUserRole(userId, role)` - 역할 변경
 
-### 2. 대시보드 API (`lib/api/dashboard.ts`, `lib/mock/dashboard.ts`)
+### 3. 대시보드 API (`lib/api/dashboard.ts`, `lib/mock/dashboard.ts`)
 
 **Mock 데이터 특징:**
 - 역할별 통계 데이터 (Master, 학생회장, 크자회장)
@@ -97,7 +114,7 @@ export async function getData(): Promise<DataType> {
 **함수:**
 - `getDashboardData()` - 대시보드 데이터 조회
 
-### 3. 사물함 관리 API (`lib/api/lockers.ts`, `lib/mock/lockers.ts`)
+### 4. 사물함 관리 API (`lib/api/lockers.ts`, `lib/mock/lockers.ts`)
 
 **Mock 데이터 특징:**
 - 100개의 사물함 데이터 (번호 101-200)
@@ -114,7 +131,7 @@ export async function getData(): Promise<DataType> {
 - `releaseAllLockers()` - 일괄 회수
 - `setLockerApplicationPeriod(startAt, endAt)` - 신청 기간 설정
 
-### 4. 캘린더 관리 API (`lib/api/calendar.ts`, `lib/mock/calendar.ts`)
+### 5. 캘린더 관리 API (`lib/api/calendar.ts`, `lib/mock/calendar.ts`)
 
 **Mock 데이터 특징:**
 - 다양한 일정 데이터 (사물함 신청 기간, 경조사, 일반 일정 등)
@@ -128,6 +145,23 @@ export async function getData(): Promise<DataType> {
 - `updateCalendarEvent(eventId, data)` - 일정 수정
 - `deleteCalendarEvent(eventId)` - 일정 삭제
 - `syncLockerPeriodToCalendar(startAt, endAt)` - 사물함 기간 캘린더 동기화
+
+### 6. v2 게시판 API (`lib/api/v2/boards.ts`, `lib/mock/boards-v2.ts`)
+
+**v2 스펙:** GET/POST/PUT `/api/v2/admin/boards`, PATCH `/api/v2/admin/boards/orders`. 상세는 [.cursor/boards-api-v2.md](.cursor/boards-api-v2.md) 참고.
+
+**Mock 데이터 특징:**
+- 5개 기본 게시판 (학생회 공지, 문화부 공지, 학부 공지, 자유게시판, 동문 게시판)
+- `display_order` 기준 정렬, 생성/수정/정렬 시 가변 목록 반영
+- 지연 시뮬레이션: get 300ms, create/update 400ms, orders 300ms
+
+**함수:**
+- `getBoardsV2()` - 게시판 리스트 조회 (display_order 정렬)
+- `createBoardV2(data)` - 게시판 생성
+- `updateBoardV2(data)` - 게시판 설정 수정
+- `updateBoardOrdersV2(boardIds)` - 게시판 정렬 수정
+
+**참고:** `NEXT_PUBLIC_USE_MOCK_API=true` 이면 v2 게시판 API는 실제 서버(`/api/v2/admin/boards`)를 호출하지 않고 Mock을 사용합니다.
 
 ## 새로운 API 추가 방법
 

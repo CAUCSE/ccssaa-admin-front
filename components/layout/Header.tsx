@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogOut, User, Menu, ChevronRight, Home } from "lucide-react"
-import { removeToken } from "@/lib/auth"
+import { signOut } from "@/lib/api/auth"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { useMeOptional } from "@/context/MeContext"
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "대시보드",
@@ -101,12 +101,14 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const meContext = useMeOptional()
 
   const currentPageTitle = getPageTitle(pathname)
   const breadcrumbs = getBreadcrumbForPath(pathname)
+  const displayName = meContext?.me?.name ?? "관리자"
 
-  const handleLogout = () => {
-    removeToken()
+  const handleLogout = async () => {
+    await signOut()
     router.push("/login")
   }
 
@@ -129,7 +131,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="h-4 w-4" />
-              <span>관리자</span>
+              <span>{displayName}</span>
             </div>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />

@@ -7,6 +7,17 @@
 
 ---
 
+## 0. 로그인 (Login)
+
+**화면 ID:** `ADM-LOGIN`  
+**상세 스펙:** [.cursor/login-spec.md](.cursor/login-spec.md)
+
+- **경로:** `/login`
+- **레이아웃:** LNB/헤더 없음. 전체 화면 중앙에 이메일·비밀번호 폼(Card).
+- **동작:** 로그인 성공 시 `/dashboard` 이동. 미인증 사용자 대시보드 접근 시 `/login` 리다이렉트.
+
+---
+
 ## 1. 회원 관리 (User Management)
 
 **화면 ID:** `ADM-USER-LIST` / `ADM-USER-DETAIL`
@@ -44,7 +55,9 @@
 
 **화면 ID:** `ADM-BOARD-LIST` / `ADM-BOARD-DETAIL`
 
-### 2.1. 리스트 화면 (List)
+**게시판 생성 API (v2):** [.cursor/boards-api-v2.md](.cursor/boards-api-v2.md) — POST `/api/v2/admin/boards`, 전체 필드(name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility).
+
+### 2.1. 리스트 화면 (List) — `/content/boards`
 
 - **검색 조건:** `[게시판 선택(Select)]`, `[제목+내용(Input)]`, `[작성자(Input)]`
 - **데이터 테이블 (Columns):**
