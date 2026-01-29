@@ -19,8 +19,10 @@ export type BoardVisibility = "VISIBLE" | "HIDDEN"
 // VISIBLE: 보임
 // HIDDEN: 안 보임
 
-/** v2 게시판 리스트 항목 — GET /api/v2/admin/boards 응답 */
+/** v2 게시판 리스트 항목 — GET /api/v2/admin/boards 응답 항목 */
 export interface BoardListItemV2 {
+  /** 서버 부여 번호 (목록 순서용) */
+  no?: number
   boardId: string
   name: string
   description: string
@@ -29,8 +31,13 @@ export interface BoardListItemV2 {
   writeScope: BoardWriteScope
   isNotice: boolean
   visibility: BoardVisibility
-  /** 표시 순서 (정렬용, 없으면 0으로 정렬) */
-  display_order?: number
+  /** 표시 순서 (정렬용) */
+  displayOrder: number
+}
+
+/** GET /api/v2/admin/boards 응답 data 페이로드 */
+export interface BoardsListPayloadV2 {
+  boards: BoardListItemV2[]
 }
 
 /** v2 게시판 생성/수정 요청 Body */

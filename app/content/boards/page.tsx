@@ -96,10 +96,10 @@ function parseAdminUserIds(value: string): string[] {
     .filter(Boolean)
 }
 
-/** display_order 기준 정렬 (없으면 0으로 처리) */
+/** displayOrder 기준 정렬 */
 function sortByDisplayOrder(items: BoardListItemV2[]): BoardListItemV2[] {
   return [...items].sort(
-    (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+    (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
   )
 }
 
@@ -309,7 +309,7 @@ export default function BoardsPage() {
                   {boards.map((board, index) => (
                     <TableRow key={board.boardId}>
                       <TableCell className="text-center w-12 text-muted-foreground font-medium">
-                        {index + 1}
+                        {board.no ?? index + 1}
                       </TableCell>
                       <TableCell className="text-left w-48 min-w-[160px] font-medium">
                         {board.name}

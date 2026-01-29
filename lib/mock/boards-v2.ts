@@ -26,7 +26,7 @@ const createMockBoard = (
     writeScope: "ONLY_ADMIN" as BoardWriteScope,
     isNotice: false,
     visibility: "VISIBLE" as BoardVisibility,
-    display_order: 0,
+    displayOrder: 0,
     ...overrides,
     boardId: id,
   }
@@ -43,7 +43,7 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 0,
+    displayOrder: 0,
   },
   {
     boardId: "2",
@@ -54,7 +54,7 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 1,
+    displayOrder: 1,
   },
   {
     boardId: "3",
@@ -65,7 +65,7 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 2,
+    displayOrder: 2,
   },
   {
     boardId: "4",
@@ -76,7 +76,7 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 3,
+    displayOrder: 3,
   },
   {
     boardId: "5",
@@ -87,7 +87,7 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 4,
+    displayOrder: 4,
   },
 ]
 
@@ -98,7 +98,7 @@ export const mockBoardsV2Api = {
   getBoards: async (): Promise<BoardListItemV2[]> => {
     await delay(300)
     return [...mockBoards].sort(
-      (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+      (a, b) => a.displayOrder - b.displayOrder
     )
   },
 
@@ -114,7 +114,7 @@ export const mockBoardsV2Api = {
       writeScope: data.writeScope,
       isNotice: data.isNotice,
       visibility: data.visibility,
-      display_order: mockBoards.length,
+      displayOrder: mockBoards.length,
     })
     mockBoards.push(newBoard)
     return newBoard
@@ -143,9 +143,9 @@ export const mockBoardsV2Api = {
     await delay(300)
     boardIds.forEach((id, index) => {
       const b = mockBoards.find((x) => x.boardId === id)
-      if (b) b.display_order = index
+      if (b) b.displayOrder = index
     })
-    mockBoards.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    mockBoards.sort((a, b) => a.displayOrder - b.displayOrder)
     return {}
   },
 }

@@ -10,9 +10,9 @@
 
 - **Method:** `GET`
 - **URL:** `/api/v2/admin/boards`
-- **Response:** `BoardListItemV2[]`
+- **Response:** `ApiResponse<{ boards: BoardListItemV2[] }>` — 공통 래퍼 언래핑 후 `data.boards` 사용.
 
-**DTO 필드:** boardId, name(게시판명), description(설명), isAnonymous(익명 여부), readScope(읽기 권한), writeScope(쓰기 권한), isNotice(알림 여부), visibility(노출 여부), display_order(표시 순서, 정렬용).
+**리스트 항목 필드:** no(서버 부여 번호), boardId, name(게시판명), description(설명), isAnonymous(익명 여부), readScope(읽기 권한), writeScope(쓰기 권한), isNotice(알림 여부), visibility(노출 여부), displayOrder(표시 순서, 정렬용).
 
 ---
 
@@ -83,14 +83,14 @@
 | v2 게시판 API | `lib/api/v2/boards.ts` — `getBoardsV2()` (GET), `createBoardV2(data)` (POST), `updateBoardV2(data)` (PUT), `updateBoardOrdersV2(boardIds)` (PATCH orders) |
 | v2 게시판 타입 | `types/board-v2.ts` — `BoardListItemV2`, `BoardCreateRequestV2`, `BoardReadScope`, `BoardWriteScope`, `BoardVisibility` |
 | Hook | `hooks/usePosts.ts` — `useBoardsV2()` (GET), `useCreateBoardV2()` (POST), `useUpdateBoardV2()` (PUT), `useUpdateBoardOrdersV2()` (PATCH orders) |
-| 화면 | `app/content/boards/page.tsx` — v2 리스트(display_order 정렬) + 정렬 수정(드래그&드롭) + 생성/수정 모달 |
+| 화면 | `app/content/boards/page.tsx` — v2 리스트(displayOrder 정렬) + 정렬 수정(드래그&드롭) + 생성/수정 모달 |
 
 ---
 
 ## 6. 화면 동작 (게시판 목록·생성·수정·정렬)
 
-- **목록:** `useBoardsV2()` — GET `/api/v2/admin/boards`. `display_order` 기준 정렬 후 테이블 컬럼: No, boardId, 게시판명, 설명, 익명 여부, 읽기 권한, 쓰기 권한, 알림 여부, 노출 여부, 관리(수정/삭제).
-- **정렬 수정:** 상단 `[정렬 수정]` 버튼 클릭 시 다이얼로그 오픈. 현재 `display_order` 순서대로 리스트 표시, 드래그&드롭으로 순서 변경 후 `[저장]` 시 PATCH `/api/v2/admin/boards/orders` 로 `boardIds` 배열 전달.
+- **목록:** `useBoardsV2()` — GET `/api/v2/admin/boards` (응답 `data.boards`). `displayOrder` 기준 정렬 후 테이블 컬럼: No, boardId, 게시판명, 설명, 익명 여부, 읽기 권한, 쓰기 권한, 알림 여부, 노출 여부, 관리(수정/삭제).
+- **정렬 수정:** 상단 `[정렬 수정]` 버튼 클릭 시 다이얼로그 오픈. 현재 `displayOrder` 순서대로 리스트 표시, 드래그&드롭으로 순서 변경 후 `[저장]` 시 PATCH `/api/v2/admin/boards/orders` 로 `boardIds` 배열 전달.
 - **게시판 생성 버튼:** v2 생성 모달 오픈. 제출 시 **POST** `/api/v2/admin/boards` (`createBoardV2`).
 - **v2 생성 모달 필드:** 게시판명, 설명, 관리자 ID(쉼표/줄바꿈 구분), 익명 여부(체크), 읽기 권한(Select), 쓰기 권한(Select), 알림 가능(체크), 노출 여부(Select).
 - **수정:** 수정 버튼 클릭 시 v2 수정 모달(동일 필드) 오픈. 제출 시 **PUT** `/api/v2/admin/boards` (`updateBoardV2`, `boardId` 필수).
