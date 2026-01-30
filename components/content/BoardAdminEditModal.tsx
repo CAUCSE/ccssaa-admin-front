@@ -100,7 +100,7 @@ export function BoardAdminEditModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 min-h-0 overflow-hidden flex flex-col">
+        <div className="space-y-4 flex-1 min-h-0 overflow-x-visible overflow-y-auto flex flex-col">
           {/* 현재 관리자 목록 */}
           <div className="space-y-2">
             <p className="text-sm font-medium">현재 관리자 ({draft.length}명)</p>
@@ -134,16 +134,18 @@ export function BoardAdminEditModal({
             </ul>
           </div>
 
-          {/* 유저 검색 및 추가 */}
+          {/* 유저 검색 및 추가 — px-[2px]로 focus ring이 잘리지 않도록 여유 확보 */}
           <div className="space-y-2">
             <p className="text-sm font-medium">유저 검색 후 추가</p>
-            <Input
-              placeholder="이름 또는 학번으로 검색"
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              className="h-9"
-            />
-            <ul className="rounded-md border divide-y max-h-40 overflow-y-auto bg-muted/30">
+            <div className="px-[2px]">
+              <Input
+                placeholder="이름 또는 학번으로 검색"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                className="h-9 py-1.5 rounded-b-none border-b-0"
+              />
+            </div>
+            <ul className="rounded-b-md rounded-t-none border divide-y max-h-40 overflow-y-auto bg-muted/30">
               {!debouncedKeyword ? (
                 <li className="px-3 py-4 text-center text-sm text-muted-foreground">
                   검색어를 입력하세요.

@@ -58,3 +58,26 @@
   }
 }
 
+/* 모달 내 Input 포커스 시 outline 중복 방지 */
+[data-state="open"] input:focus-visible,
+[data-state="open"] textarea:focus-visible {
+  outline: none;
+}
+
+/*
+ * Dialog 내부에서만 border+ring 충돌 해결하고 싶을 때 (Input 전역 수정 대신):
+ * 아래 주석 해제 후, components/ui/input.tsx 에서 focus-visible:border-transparent 제거.
+ *
+ * [data-state="open"] input:focus-visible {
+ *   border-color: transparent;
+ *   outline: none;
+ * }
+ *
+ * 해결안 2 (border로만 focus): ring 제거하고 border 색만 변경
+ * [data-state="open"] input:focus-visible {
+ *   outline: none;
+ *   box-shadow: none;
+ *   border-color: hsl(var(--ring));
+ * }
+ */
+

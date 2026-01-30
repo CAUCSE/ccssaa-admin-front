@@ -54,7 +54,7 @@ export function BoardFilter({ value, onChange }: BoardFilterProps) {
                 value={value.nameKeyword}
                 onChange={(e) => handleChange({ nameKeyword: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
-                className="h-9"
+                className="h-9 py-1.5"
               />
             </div>
             <Select
