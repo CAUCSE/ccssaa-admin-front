@@ -4,9 +4,11 @@
  */
 
 import type {
+  BoardDetailV2,
   BoardListItemV2,
   BoardCreateRequestV2,
   BoardReadScope,
+  BoardSearchCondition,
   BoardWriteScope,
   BoardVisibility,
 } from "@/types/board-v2"
@@ -94,12 +96,56 @@ const mockBoards: BoardListItemV2[] = [
 const delay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
+function applySearchCondition(
+  list: BoardListItemV2[],
+  condition?: BoardSearchCondition
+): BoardListItemV2[] {
+  if (!condition) return list
+  return list.filter((b) => {
+    if (
+      condition.keyword != null &&
+      condition.keyword.trim() !== "" &&
+      !b.name.toLowerCase().includes(condition.keyword!.trim().toLowerCase())
+    ) {
+      return false
+    }
+    if (condition.isAnonymous != null && b.isAnonymous !== condition.isAnonymous)
+      return false
+    if (condition.writeScope != null && b.writeScope !== condition.writeScope)
+      return false
+    if (condition.readScope != null && b.readScope !== condition.readScope)
+      return false
+    if (condition.isNotice != null && b.isNotice !== condition.isNotice)
+      return false
+    return true
+  })
+}
+
 export const mockBoardsV2Api = {
-  getBoards: async (): Promise<BoardListItemV2[]> => {
+  getBoards: async (
+    condition?: BoardSearchCondition
+  ): Promise<BoardListItemV2[]> => {
     await delay(300)
-    return [...mockBoards].sort(
+    const sorted = [...mockBoards].sort(
       (a, b) => a.displayOrder - b.displayOrder
     )
+    return applySearchCondition(sorted, condition)
+  },
+
+  getBoard: async (boardId: string): Promise<BoardDetailV2 | null> => {
+    await delay(200)
+    const item = mockBoards.find((b) => b.boardId === boardId)
+    if (!item) return null
+    return {
+      ...item,
+      admins: [
+        {
+          id: "uuid-mock-admin-1",
+          adminEmail: "admin@test.com",
+          adminName: "관리자",
+        },
+      ],
+    }
   },
 
   createBoard: async (

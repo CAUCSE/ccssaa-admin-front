@@ -10,9 +10,36 @@
 
 - **Method:** `GET`
 - **URL:** `/api/v2/admin/boards`
+- **Query (검색 조건, 선택):** `BoardSearchCondition` — keyword, isAnonymous, writeScope, readScope, isNotice.
 - **Response:** `ApiResponse<{ boards: BoardListItemV2[] }>` — 공통 래퍼 언래핑 후 `data.boards` 사용.
 
+**검색 조건 (BoardSearchCondition):**
+
+| 파라미터 | 타입 | 비고 |
+|----------|------|------|
+| keyword | string | 키워드 (게시판명 등 검색) |
+| isAnonymous | boolean | 익명 여부 |
+| writeScope | BoardWriteScope | 쓰기 권한 |
+| readScope | BoardReadScope | 읽기 권한 |
+| isNotice | boolean | 알림 가능 게시판 여부 |
+
 **리스트 항목 필드:** no(서버 부여 번호), boardId, name(게시판명), description(설명), isAnonymous(익명 여부), readScope(읽기 권한), writeScope(쓰기 권한), isNotice(알림 여부), visibility(노출 여부), displayOrder(표시 순서, 정렬용).
+
+---
+
+## 1-1. 게시판 상세 (v2) — edit 페이지용
+
+- **Method:** `GET`
+- **URL:** `/api/v2/admin/boards/{boardId}`
+- **Response:** `ApiResponse<BoardDetailV2>` — 공통 래퍼 언래핑 후 `data` 사용.
+
+**BoardDetailV2 필드:** boardId, name, description, isAnonymous, readScope, writeScope, isNotice, visibility, displayOrder, **admins** (배열).
+
+**admins 항목 (BoardAdminInfo):** id(uuid), adminEmail, adminName.
+
+- **클라이언트:** `getBoardV2(boardId)` — `lib/api/v2/boards.ts`
+- **Hook:** `useBoardV2(boardId)` — `hooks/usePosts.ts`
+- **화면:** `app/content/boards/[boardId]/edit/page.tsx` — 상세 조회 후 폼에 반영, 관리자 ID는 `admins[].id`를 줄바꿈으로 채움.
 
 ---
 
@@ -80,9 +107,9 @@
 | 구분 | 경로 |
 |------|------|
 | v2 API 클라이언트 | `lib/api/v2/client.ts` (apiV2, Bearer + 401 처리) |
-| v2 게시판 API | `lib/api/v2/boards.ts` — `getBoardsV2()` (GET), `createBoardV2(data)` (POST), `updateBoardV2(data)` (PUT), `updateBoardOrdersV2(boardIds)` (PATCH orders) |
-| v2 게시판 타입 | `types/board-v2.ts` — `BoardListItemV2`, `BoardCreateRequestV2`, `BoardReadScope`, `BoardWriteScope`, `BoardVisibility` |
-| Hook | `hooks/usePosts.ts` — `useBoardsV2()` (GET), `useCreateBoardV2()` (POST), `useUpdateBoardV2()` (PUT), `useUpdateBoardOrdersV2()` (PATCH orders) |
+| v2 게시판 API | `lib/api/v2/boards.ts` — `getBoardsV2(condition)` (GET 리스트), `getBoardV2(boardId)` (GET 상세), `createBoardV2(data)` (POST), `updateBoardV2(data)` (PUT), `updateBoardOrdersV2(boardIds)` (PATCH orders) |
+| v2 게시판 타입 | `types/board-v2.ts` — `BoardListItemV2`, `BoardDetailV2`, `BoardAdminInfo`, `BoardCreateRequestV2`, `BoardReadScope`, `BoardWriteScope`, `BoardVisibility` |
+| Hook | `hooks/usePosts.ts` — `useBoardsV2(condition)` (GET 리스트), `useBoardV2(boardId)` (GET 상세), `useCreateBoardV2()` (POST), `useUpdateBoardV2()` (PUT), `useUpdateBoardOrdersV2()` (PATCH orders) |
 | 화면 | `app/content/boards/page.tsx` — v2 리스트(displayOrder 정렬) + 정렬 수정(드래그&드롭) + 생성 모달. 수정은 별도 페이지 `app/content/boards/[boardId]/edit/page.tsx` |
 
 ---

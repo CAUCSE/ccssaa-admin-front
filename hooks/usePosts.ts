@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { postApi } from "@/lib/api/posts"
 import {
+  getBoardV2,
   getBoardsV2,
   createBoardV2,
   updateBoardV2,
   updateBoardOrdersV2,
 } from "@/lib/api/v2/boards"
 import type { PostListParams, PostStatus } from "@/types/post"
-import type { BoardCreateRequestV2 } from "@/types/board-v2"
+import type { BoardCreateRequestV2, BoardSearchCondition } from "@/types/board-v2"
 import { toast } from "sonner"
 
 // 게시글 리스트 조회
@@ -35,11 +36,20 @@ export function useBoards() {
   })
 }
 
-// 게시판 목록 조회 (v2 API: GET /api/v2/admin/boards)
-export function useBoardsV2() {
+// 게시판 목록 조회 (v2 API: GET /api/v2/admin/boards, 검색 조건 query params)
+export function useBoardsV2(condition?: BoardSearchCondition) {
   return useQuery({
-    queryKey: ["admin-boards-v2"],
-    queryFn: getBoardsV2,
+    queryKey: ["admin-boards-v2", condition],
+    queryFn: () => getBoardsV2(condition),
+  })
+}
+
+// 게시판 상세 조회 (v2 API: GET /api/v2/admin/boards/{boardId})
+export function useBoardV2(boardId: string | undefined) {
+  return useQuery({
+    queryKey: ["admin-board-v2", boardId],
+    queryFn: () => getBoardV2(boardId!),
+    enabled: !!boardId,
   })
 }
 
@@ -146,9 +156,10 @@ export function useUpdateBoardV2() {
   return useMutation({
     mutationFn: (data: BoardCreateRequestV2 & { boardId: string }) =>
       updateBoardV2(data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-boards"] })
       queryClient.invalidateQueries({ queryKey: ["admin-boards-v2"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-board-v2", variables.boardId] })
       toast.success("게시판이 수정되었습니다.")
     },
     onError: () => {
@@ -201,6 +212,7 @@ export function useDeleteBoard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-boards"] })
       queryClient.invalidateQueries({ queryKey: ["admin-boards-v2"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-board-v2"] })
       toast.success("게시판이 삭제되었습니다.")
     },
     onError: () => {

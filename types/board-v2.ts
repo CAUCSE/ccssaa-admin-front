@@ -35,9 +35,44 @@ export interface BoardListItemV2 {
   displayOrder: number
 }
 
+/** GET /api/v2/admin/boards 검색 조건 (query params) */
+export interface BoardSearchCondition {
+  /** 키워드 (게시판명 등 검색) */
+  keyword?: string
+  /** 익명 여부 */
+  isAnonymous?: boolean
+  /** 쓰기 권한 */
+  writeScope?: BoardWriteScope
+  /** 읽기 권한 */
+  readScope?: BoardReadScope
+  /** 알림 가능 게시판 여부 */
+  isNotice?: boolean
+}
+
 /** GET /api/v2/admin/boards 응답 data 페이로드 */
 export interface BoardsListPayloadV2 {
   boards: BoardListItemV2[]
+}
+
+/** 게시판 상세 — 관리자 정보 (GET /api/v2/admin/boards/{boardId} 응답 admins 항목) */
+export interface BoardAdminInfo {
+  id: string
+  adminEmail: string
+  adminName: string
+}
+
+/** GET /api/v2/admin/boards/{boardId} 응답 data */
+export interface BoardDetailV2 {
+  boardId: string
+  name: string
+  description: string
+  isAnonymous: boolean
+  readScope: BoardReadScope
+  writeScope: BoardWriteScope
+  isNotice: boolean
+  visibility: BoardVisibility
+  displayOrder: number
+  admins: BoardAdminInfo[]
 }
 
 /** v2 게시판 생성/수정 요청 Body */

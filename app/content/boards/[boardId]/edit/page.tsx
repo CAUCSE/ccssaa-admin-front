@@ -1,13 +1,13 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useBoardsV2, useUpdateBoardV2 } from "@/hooks/usePosts"
+import { useBoardV2, useUpdateBoardV2, useDeleteBoard } from "@/hooks/usePosts"
+import { AlertDialog } from "@/components/ui/alert-dialog"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
@@ -18,39 +18,34 @@ import {
 } from "@/components/ui/select"
 import {
   defaultV2Form,
-  parseAdminUserIds,
   READ_SCOPES,
   WRITE_SCOPES,
   VISIBILITIES,
 } from "@/lib/constants/board-v2-form"
 import type {
+  BoardAdminInfo,
   BoardCreateRequestV2,
-  BoardListItemV2,
   BoardReadScope,
   BoardWriteScope,
   BoardVisibility,
 } from "@/types/board-v2"
 import { useState, useEffect } from "react"
-
-function sortByDisplayOrder(items: BoardListItemV2[]): BoardListItemV2[] {
-  return [...items].sort(
-    (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
-  )
-}
+import { Trash2, Pencil } from "lucide-react"
+import { BoardAdminEditModal } from "@/components/content/BoardAdminEditModal"
 
 export default function BoardEditPage() {
   const params = useParams()
   const router = useRouter()
   const boardId = params.boardId as string
 
-  const { data: boardsRaw, isLoading } = useBoardsV2()
-  const boards = boardsRaw ? sortByDisplayOrder(boardsRaw) : []
-  const board = boards.find((b) => b.boardId === boardId)
-
+  const { data: board, isLoading } = useBoardV2(boardId)
   const updateBoardV2 = useUpdateBoardV2()
+  const deleteBoard = useDeleteBoard()
 
   const [formData, setFormData] = useState<Omit<BoardCreateRequestV2, "boardId">>(defaultV2Form)
-  const [adminUserIdsText, setAdminUserIdsText] = useState("")
+  const [admins, setAdmins] = useState<BoardAdminInfo[]>([])
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [adminModalOpen, setAdminModalOpen] = useState(false)
 
   useEffect(() => {
     if (!board) return
@@ -64,12 +59,12 @@ export default function BoardEditPage() {
       isNotice: board.isNotice,
       visibility: board.visibility,
     })
-    setAdminUserIdsText("")
+    setAdmins(board.admins ?? [])
   }, [board])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const adminUserIds = parseAdminUserIds(adminUserIdsText)
+    const adminUserIds = admins.map((a) => a.id)
     updateBoardV2.mutate(
       {
         ...formData,
@@ -111,6 +106,13 @@ export default function BoardEditPage() {
     )
   }
 
+  const handleDeleteConfirm = () => {
+    deleteBoard.mutate(Number(boardId), {
+      onSuccess: () => router.push("/content/boards"),
+    })
+    setDeleteDialogOpen(false)
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -123,8 +125,19 @@ export default function BoardEditPage() {
 
       <form onSubmit={handleSubmit}>
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle>게시판 설정</CardTitle>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="gap-1"
+              onClick={() => setDeleteDialogOpen(true)}
+              aria-label="게시판 삭제"
+            >
+              <Trash2 className="h-4 w-4" />
+              게시판 삭제
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -148,16 +161,37 @@ export default function BoardEditPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-adminUserIds">
-                관리자 ID (UUID, 쉼표 또는 줄바꿈 구분)
-              </Label>
-              <Textarea
-                id="edit-adminUserIds"
-                value={adminUserIdsText}
-                onChange={(e) => setAdminUserIdsText(e.target.value)}
-                placeholder="예: uuid1, uuid2"
-                className="min-h-[60px]"
-              />
+              <div className="flex items-center justify-between gap-2">
+                <Label>관리자</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => setAdminModalOpen(true)}
+                  aria-label="관리자 수정"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  수정
+                </Button>
+              </div>
+              <div className="rounded-md border bg-muted/30 px-3 py-2 min-h-[44px]">
+                {admins.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    등록된 관리자가 없습니다. 수정 버튼에서 추가할 수 있습니다.
+                  </p>
+                ) : (
+                  <ul className="text-sm space-y-1">
+                    {admins.map((admin) => (
+                      <li key={admin.id}>
+                        {admin.adminEmail?.trim()
+                          ? `${admin.adminName}(${admin.adminEmail})`
+                          : admin.adminName}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
@@ -258,6 +292,24 @@ export default function BoardEditPage() {
           </CardContent>
         </Card>
       </form>
+
+      <BoardAdminEditModal
+        open={adminModalOpen}
+        onOpenChange={setAdminModalOpen}
+        admins={admins}
+        onApply={setAdmins}
+      />
+
+      <AlertDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="게시판 삭제"
+        description={`"${board.name}" 게시판을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`}
+        confirmText="삭제"
+        cancelText="취소"
+        variant="destructive"
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }
