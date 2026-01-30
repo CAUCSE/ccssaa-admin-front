@@ -3,7 +3,7 @@
  * GET  /api/v2/admin/boards (리스트)
  * GET  /api/v2/admin/boards/{boardId} (상세)
  * POST /api/v2/admin/boards (생성)
- * PUT  /api/v2/admin/boards (수정)
+ * PUT  /api/v2/admin/boards/{boardId} (수정)
  * PATCH /api/v2/admin/boards/orders (정렬)
  */
 
@@ -60,12 +60,16 @@ export async function createBoardV2(
   return unwrapV2(res)
 }
 
-/** v2 게시판 설정 수정 — PUT, boardId 필수 */
+/** v2 게시판 설정 수정 — PUT /api/v2/admin/boards/{boardId}, body: boardId, name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility */
 export async function updateBoardV2(
   data: BoardCreateRequestV2 & { boardId: string }
 ): Promise<unknown> {
   if (USE_MOCK_API) return mockBoardsV2Api.updateBoard(data)
-  const res = await apiV2.put<ApiResponse<unknown>>("/admin/boards", data)
+  const { boardId, ...body } = data
+  const res = await apiV2.put<ApiResponse<unknown>>(
+    `/admin/boards/${encodeURIComponent(boardId)}`,
+    { boardId, ...body }
+  )
   return unwrapV2(res)
 }
 

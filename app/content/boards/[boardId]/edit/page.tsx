@@ -81,16 +81,11 @@ export default function BoardEditPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const adminUserIds = admins.map((a) => a.id)
-    updateBoardV2.mutate(
-      {
-        ...formData,
-        boardId,
-        adminUserIds,
-      },
-      {
-        onSuccess: () => router.push("/content/boards"),
-      }
-    )
+    updateBoardV2.mutate({
+      ...formData,
+      boardId,
+      adminUserIds,
+    })
   }
 
   if (isLoading) {
