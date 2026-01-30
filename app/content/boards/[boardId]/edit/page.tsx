@@ -1,8 +1,16 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useBoardV2, useUpdateBoardV2, useDeleteBoard } from "@/hooks/usePosts"
-import { AlertDialog } from "@/components/ui/alert-dialog"
+import { useBoardV2, useUpdateBoardV2, useDeleteBoardV2 } from "@/hooks/usePosts"
+import {
+  AlertDialogRoot,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,13 +48,16 @@ export default function BoardEditPage() {
 
   const { data: board, isLoading } = useBoardV2(boardId)
   const updateBoardV2 = useUpdateBoardV2()
-  const deleteBoard = useDeleteBoard()
+  const deleteBoardV2 = useDeleteBoardV2()
 
   const [formData, setFormData] = useState<Omit<BoardCreateRequestV2, "boardId">>(defaultV2Form)
   const [admins, setAdmins] = useState<BoardAdminInfo[]>([])
   const [formSynced, setFormSynced] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
   const [adminModalOpen, setAdminModalOpen] = useState(false)
+
+  const DELETE_CONFIRM_PHRASE = "삭제하겠습니다"
 
   useEffect(() => {
     if (!board) return
@@ -128,10 +139,19 @@ export default function BoardEditPage() {
   }
 
   const handleDeleteConfirm = () => {
-    deleteBoard.mutate(Number(boardId), {
-      onSuccess: () => router.push("/content/boards"),
+    if (deleteConfirmText !== DELETE_CONFIRM_PHRASE) return
+    deleteBoardV2.mutate(boardId, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false)
+        setDeleteConfirmText("")
+        router.push("/content/boards")
+      },
     })
-    setDeleteDialogOpen(false)
+  }
+
+  const handleDeleteDialogOpenChange = (open: boolean) => {
+    setDeleteDialogOpen(open)
+    if (!open) setDeleteConfirmText("")
   }
 
   return (
@@ -321,16 +341,42 @@ export default function BoardEditPage() {
         onApply={setAdmins}
       />
 
-      <AlertDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="게시판 삭제"
-        description={`"${board.name}" 게시판을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`}
-        confirmText="삭제"
-        cancelText="취소"
-        variant="destructive"
-        onConfirm={handleDeleteConfirm}
-      />
+      <AlertDialogRoot open={deleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange}>
+        <AlertDialogContent className="max-w-[400px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>게시판 삭제</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  &quot;{board.name}&quot; 게시판을 삭제하시겠습니까? 이 작업은 되돌릴 수
+                  없습니다.
+                </p>
+                <p className="text-foreground font-medium text-sm">
+                  삭제하려면 아래에 &quot;{DELETE_CONFIRM_PHRASE}&quot;를 입력하세요.
+                </p>
+                <Input
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={DELETE_CONFIRM_PHRASE}
+                  className="mt-1"
+                  aria-label="삭제 확인 문구 입력"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteConfirmText !== DELETE_CONFIRM_PHRASE || deleteBoardV2.isPending}
+            >
+              {deleteBoardV2.isPending ? "삭제 중..." : "삭제"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogRoot>
     </div>
   )
 }

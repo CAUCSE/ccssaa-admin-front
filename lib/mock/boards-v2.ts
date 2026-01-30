@@ -194,4 +194,12 @@ export const mockBoardsV2Api = {
     mockBoards.sort((a, b) => a.displayOrder - b.displayOrder)
     return {}
   },
+
+  deleteBoard: async (boardId: string): Promise<unknown> => {
+    await delay(300)
+    const idx = mockBoards.findIndex((b) => b.boardId === boardId)
+    if (idx === -1) return {}
+    mockBoards.splice(idx, 1)
+    return {}
+  },
 }

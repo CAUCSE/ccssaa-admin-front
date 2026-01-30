@@ -5,6 +5,7 @@ import {
   getBoardsV2,
   createBoardV2,
   updateBoardV2,
+  deleteBoardV2,
   updateBoardOrdersV2,
 } from "@/lib/api/v2/boards"
 import type { PostListParams, PostStatus } from "@/types/post"
@@ -209,6 +210,24 @@ export function useDeleteBoard() {
 
   return useMutation({
     mutationFn: (boardId: number) => postApi.deleteBoard(boardId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-boards"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-boards-v2"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-board-v2"] })
+      toast.success("게시판이 삭제되었습니다.")
+    },
+    onError: () => {
+      toast.error("게시판 삭제에 실패했습니다.")
+    },
+  })
+}
+
+// 게시판 삭제 (v2 API: DELETE /api/v2/admin/boards/{boardId})
+export function useDeleteBoardV2() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (boardId: string) => deleteBoardV2(boardId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-boards"] })
       queryClient.invalidateQueries({ queryKey: ["admin-boards-v2"] })

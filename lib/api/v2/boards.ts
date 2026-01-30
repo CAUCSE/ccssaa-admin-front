@@ -1,10 +1,11 @@
 /**
  * v2 게시판 API
- * GET  /api/v2/admin/boards (리스트)
- * GET  /api/v2/admin/boards/{boardId} (상세)
- * POST /api/v2/admin/boards (생성)
- * PUT  /api/v2/admin/boards/{boardId} (수정)
- * PATCH /api/v2/admin/boards/orders (정렬)
+ * GET    /api/v2/admin/boards (리스트)
+ * GET    /api/v2/admin/boards/{boardId} (상세)
+ * POST   /api/v2/admin/boards (생성)
+ * PUT    /api/v2/admin/boards/{boardId} (수정)
+ * DELETE /api/v2/admin/boards/{boardId} (삭제)
+ * PATCH  /api/v2/admin/boards/orders (정렬)
  */
 
 import { apiV2 } from "./client"
@@ -69,6 +70,15 @@ export async function updateBoardV2(
   const res = await apiV2.put<ApiResponse<unknown>>(
     `/admin/boards/${encodeURIComponent(boardId)}`,
     { boardId, ...body }
+  )
+  return unwrapV2(res)
+}
+
+/** v2 게시판 삭제 — DELETE /api/v2/admin/boards/{boardId} */
+export async function deleteBoardV2(boardId: string): Promise<unknown> {
+  if (USE_MOCK_API) return mockBoardsV2Api.deleteBoard(boardId)
+  const res = await apiV2.delete<ApiResponse<unknown>>(
+    `/admin/boards/${encodeURIComponent(boardId)}`
   )
   return unwrapV2(res)
 }
