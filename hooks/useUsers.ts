@@ -1,13 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { userApi } from "@/lib/api/users"
-import type { UserListParams } from "@/types/user"
+import { getAdminUsersV2 } from "@/lib/api/v2/users"
+import type {
+  AdminUsersSearchParamsV2,
+  UserListParams,
+} from "@/types/user"
 import { toast } from "sonner"
 
-// 회원 리스트 조회
+// 회원 리스트 조회 (v1)
 export function useUsers(params: UserListParams) {
   return useQuery({
     queryKey: ["admin-users", params],
     queryFn: () => userApi.getUsers(params),
+  })
+}
+
+// v2 관리자 유저 검색 — GET /api/v2/admin/users (관리자 지정 모달용)
+export function useAdminUsersV2(params: AdminUsersSearchParamsV2 | undefined) {
+  return useQuery({
+    queryKey: ["admin-users-v2", params],
+    queryFn: () => getAdminUsersV2(params),
+    enabled: params != null,
   })
 }
 

@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useUsers } from "@/hooks/useUsers"
+import { useAdminUsersV2 } from "@/hooks/useUsers"
 import type { BoardAdminInfo } from "@/types/board-v2"
-import type { UserSummary } from "@/types/user"
+import type { AdminUserItemV2 } from "@/types/user"
 import { Plus, X } from "lucide-react"
 
 const SEARCH_DEBOUNCE_MS = 300
@@ -25,16 +25,20 @@ function adminDisplayLabel(admin: BoardAdminInfo): string {
   return admin.adminName
 }
 
-function userToAdmin(user: UserSummary): BoardAdminInfo {
+function userItemToAdmin(user: AdminUserItemV2): BoardAdminInfo {
   return {
-    id: String(user.id),
-    adminName: user.name,
-    adminEmail: "", // UserSummary에는 이메일 없음, 상세 API 연동 시 채울 수 있음
+    id: user.id,
+    adminName: user.adminName,
+    adminEmail: user.adminEmail ?? "",
   }
 }
 
-function userDisplayLabel(user: UserSummary): string {
-  return user.studentNo ? `${user.name} (${user.studentNo})` : user.name
+function userItemDisplayLabel(user: AdminUserItemV2): string {
+  const name = user.adminName?.trim() || "이름 없음"
+  if (user.adminEmail?.trim()) {
+    return `${name} (${user.adminEmail})`
+  }
+  return name
 }
 
 interface BoardAdminEditModalProps {
@@ -67,22 +71,25 @@ export function BoardAdminEditModal({
     return () => clearTimeout(t)
   }, [searchKeyword, open])
 
-  const { data: searchResult } = useUsers({
-    keyword: open ? debouncedKeyword || undefined : undefined,
-    size: 20,
-    status: "ACTIVE",
-  })
-  const searchUsers = searchResult?.content ?? []
+  const { data: searchUsers = [] } = useAdminUsersV2(
+    open
+      ? {
+          userState: "ACTIVE",
+          userRole: "ADMIN",
+          keyword: debouncedKeyword || undefined,
+        }
+      : undefined
+  )
   const draftIds = new Set(draft.map((a) => a.id))
-  const addableUsers = searchUsers.filter((u) => !draftIds.has(String(u.id)))
+  const addableUsers = searchUsers.filter((u) => !draftIds.has(u.id))
 
   const handleRemove = (id: string) => {
     setDraft((prev) => prev.filter((a) => a.id !== id))
   }
 
-  const handleAdd = (user: UserSummary) => {
-    if (draftIds.has(String(user.id))) return
-    setDraft((prev) => [...prev, userToAdmin(user)])
+  const handleAdd = (user: AdminUserItemV2) => {
+    if (draftIds.has(user.id)) return
+    setDraft((prev) => [...prev, userItemToAdmin(user)])
   }
 
   const handleApply = () => {
@@ -139,7 +146,7 @@ export function BoardAdminEditModal({
             <p className="text-sm font-medium">유저 검색 후 추가</p>
             <div className="px-[2px]">
               <Input
-                placeholder="이름 또는 학번으로 검색"
+                placeholder="이름 또는 이메일로 검색"
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 className="h-9 py-1.5 rounded-b-none border-b-0"
@@ -161,7 +168,7 @@ export function BoardAdminEditModal({
                     className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
                   >
                     <span className="min-w-0 truncate">
-                      {userDisplayLabel(user)}
+                      {userItemDisplayLabel(user)}
                     </span>
                     <Button
                       type="button"

@@ -44,23 +44,39 @@ export default function BoardEditPage() {
 
   const [formData, setFormData] = useState<Omit<BoardCreateRequestV2, "boardId">>(defaultV2Form)
   const [admins, setAdmins] = useState<BoardAdminInfo[]>([])
+  const [formSynced, setFormSynced] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [adminModalOpen, setAdminModalOpen] = useState(false)
 
   useEffect(() => {
     if (!board) return
+    const writeScope: BoardWriteScope = WRITE_SCOPES.some((o) => o.value === board.writeScope)
+      ? board.writeScope
+      : defaultV2Form.writeScope
+    const readScope: BoardReadScope = READ_SCOPES.some((o) => o.value === board.readScope)
+      ? board.readScope
+      : defaultV2Form.readScope
+    const visibility: BoardVisibility = VISIBILITIES.some((o) => o.value === board.visibility)
+      ? board.visibility
+      : defaultV2Form.visibility
     setFormData({
       ...defaultV2Form,
       name: board.name,
       description: board.description,
       isAnonymous: board.isAnonymous,
-      readScope: board.readScope,
-      writeScope: board.writeScope,
+      readScope,
+      writeScope,
       isNotice: board.isNotice,
-      visibility: board.visibility,
+      visibility,
     })
     setAdmins(board.admins ?? [])
+    setFormSynced(true)
   }, [board])
+
+  // boardId가 바뀌면 동기화 플래그 리셋 (다른 게시판으로 이동 시)
+  useEffect(() => {
+    if (!board) setFormSynced(false)
+  }, [boardId, board])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,6 +118,16 @@ export default function BoardEditPage() {
             목록으로 돌아가기
           </Button>
         </div>
+      </div>
+    )
+  }
+
+  // formData가 board와 동기화된 뒤에만 폼 렌더 (Select value가 올바르게 표시되도록)
+  if (!formSynced) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+        <div className="h-64 bg-muted animate-pulse rounded" />
       </div>
     )
   }
@@ -228,13 +254,13 @@ export default function BoardEditPage() {
             <div className="space-y-2">
               <Label>쓰기 권한</Label>
               <Select
-                value={formData.writeScope}
+                value={formData.writeScope ?? defaultV2Form.writeScope}
                 onValueChange={(value: BoardWriteScope) =>
                   setFormData({ ...formData, writeScope: value })
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="쓰기 권한 선택" />
                 </SelectTrigger>
                 <SelectContent>
                   {WRITE_SCOPES.map((opt) => (
