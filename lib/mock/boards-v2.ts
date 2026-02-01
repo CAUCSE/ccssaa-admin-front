@@ -147,39 +147,35 @@ export const mockBoardsV2Api = {
     const sorted = [...mockBoards].sort(
       (a, b) => a.displayOrder - b.displayOrder
     )
-    return applySearchCondition(sorted, condition)
+    const filtered = applySearchCondition(sorted, condition)
+    return filtered.map(({ admins: _admins, ...b }) => b as BoardListItemV2)
   },
 
   getBoard: async (boardId: string): Promise<BoardDetailV2 | null> => {
     await delay(200)
     const item = mockBoards.find((b) => b.boardId === boardId)
     if (!item) return null
-    return {
-      ...item,
-      admins: [
-        {
-          id: "uuid-mock-admin-1",
-          adminEmail: "admin@test.com",
-          adminName: "관리자",
-        },
-      ],
-    }
+    return { ...item }
   },
 
   createBoard: async (
     data: Omit<BoardCreateRequestV2, "boardId">
   ): Promise<unknown> => {
     await delay(400)
-    const newBoard = createMockBoard({
-      name: data.name,
-      description: data.description,
-      isAnonymous: data.isAnonymous,
-      readScope: data.readScope,
-      writeScope: data.writeScope,
-      isNotice: data.isNotice,
-      visibility: data.visibility,
-      displayOrder: mockBoards.length,
-    })
+    const admins = adminUserIdsToAdmins(data.adminUserIds ?? [])
+    const newBoard = createMockBoard(
+      {
+        name: data.name,
+        description: data.description,
+        isAnonymous: data.isAnonymous,
+        readScope: data.readScope,
+        writeScope: data.writeScope,
+        isNotice: data.isNotice,
+        visibility: data.visibility,
+        displayOrder: mockBoards.length,
+      },
+      admins
+    )
     mockBoards.push(newBoard)
     return newBoard
   },
@@ -190,6 +186,7 @@ export const mockBoardsV2Api = {
     await delay(400)
     const idx = mockBoards.findIndex((b) => b.boardId === data.boardId)
     if (idx === -1) return {}
+    const admins = adminUserIdsToAdmins(data.adminUserIds ?? [])
     mockBoards[idx] = {
       ...mockBoards[idx],
       name: data.name,
@@ -199,6 +196,7 @@ export const mockBoardsV2Api = {
       writeScope: data.writeScope,
       isNotice: data.isNotice,
       visibility: data.visibility,
+      admins,
     }
     return mockBoards[idx]
   },
