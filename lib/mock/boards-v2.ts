@@ -4,6 +4,7 @@
  */
 
 import type {
+  BoardAdminInfo,
   BoardDetailV2,
   BoardListItemV2,
   BoardCreateRequestV2,
@@ -15,9 +16,19 @@ import type {
 
 let mockIdCounter = 5
 
+/** adminUserIds를 BoardAdminInfo[]로 변환 (mock에서는 id만 있고 name/email은 빈 문자열) */
+function adminUserIdsToAdmins(adminUserIds: string[]): BoardAdminInfo[] {
+  return adminUserIds.map((id) => ({
+    id,
+    adminEmail: "",
+    adminName: "",
+  }))
+}
+
 const createMockBoard = (
-  overrides: Partial<BoardListItemV2> & { name: string; description: string }
-): BoardListItemV2 => {
+  overrides: Partial<BoardDetailV2> & { name: string; description: string },
+  admins: BoardAdminInfo[] = []
+): BoardDetailV2 => {
   const id = overrides.boardId ?? String(++mockIdCounter)
   return {
     boardId: id,
@@ -29,13 +40,15 @@ const createMockBoard = (
     isNotice: false,
     visibility: "VISIBLE" as BoardVisibility,
     displayOrder: 0,
+    admins: [],
     ...overrides,
     boardId: id,
+    admins: overrides.admins ?? admins,
   }
 }
 
-// 가변 목록 (생성/수정/정렬 반영)
-const mockBoards: BoardListItemV2[] = [
+// 가변 목록 (생성/수정/정렬 반영). 상세 조회 시 admins 반영을 위해 BoardDetailV2로 저장.
+const mockBoards: BoardDetailV2[] = [
   {
     boardId: "1",
     name: "학생회 공지",
@@ -46,6 +59,7 @@ const mockBoards: BoardListItemV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 0,
+    admins: [],
   },
   {
     boardId: "2",
@@ -57,6 +71,7 @@ const mockBoards: BoardListItemV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 1,
+    admins: [],
   },
   {
     boardId: "3",
@@ -68,6 +83,7 @@ const mockBoards: BoardListItemV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 2,
+    admins: [],
   },
   {
     boardId: "4",
@@ -79,6 +95,7 @@ const mockBoards: BoardListItemV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 3,
+    admins: [],
   },
   {
     boardId: "5",
@@ -90,6 +107,7 @@ const mockBoards: BoardListItemV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 4,
+    admins: [],
   },
 ]
 
@@ -97,9 +115,9 @@ const delay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
 function applySearchCondition(
-  list: BoardListItemV2[],
+  list: BoardDetailV2[],
   condition?: BoardSearchCondition
-): BoardListItemV2[] {
+): BoardDetailV2[] {
   if (!condition) return list
   return list.filter((b) => {
     if (

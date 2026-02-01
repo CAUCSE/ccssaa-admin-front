@@ -40,9 +40,11 @@ export async function getAdminUsersV2(
     query.keyword = params.keyword
 
   const res = await apiV2.get<
-    ApiResponse<{ users?: RawUserItem[]; content?: RawUserItem[] }>
+    ApiResponse<{ users?: RawUserItem[]; content?: RawUserItem[] } | RawUserItem[]>
   >("/admin/users", { params: query })
-  const data = unwrapV2(res)
-  const rawList = data?.users ?? data?.content ?? []
+  const data = unwrapV2(res) as
+    | { users?: RawUserItem[]; content?: RawUserItem[] }
+    | RawUserItem[]
+  const rawList = Array.isArray(data) ? data : (data?.users ?? data?.content ?? [])
   return rawList.map(normalizeToAdminUserItem)
 }
