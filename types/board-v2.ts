@@ -3,6 +3,8 @@
  * POST /api/v2/admin/boards (생성/수정)
  */
 
+import type { UserIdV2 } from "@/types/user"
+
 /** BoardReadScope — 읽기 권한 범위 */
 export type BoardReadScope = "ENROLLED" | "GRADUATED" | "BOTH"
 // ENROLLED: 재학생
@@ -54,9 +56,9 @@ export interface BoardsListPayloadV2 {
   boards: BoardListItemV2[]
 }
 
-/** 게시판 상세 — 관리자 정보 (GET /api/v2/admin/boards/{boardId} 응답 admins 항목) */
+/** 게시판 상세 — 관리자 정보 (GET /api/v2/admin/boards/{boardId} 응답 admins 항목). id는 v2 유저 UUID(UserIdV2). */
 export interface BoardAdminInfo {
-  id: string
+  id: UserIdV2
   adminEmail: string
   adminName: string
 }
@@ -83,8 +85,8 @@ export interface BoardCreateRequestV2 {
   name: string
   /** 게시판 설명 */
   description: string
-  /** 게시판 관리자 id 배열 (uuid) */
-  adminUserIds: string[]
+  /** 게시판 관리자 id 배열 (v2 UUID, UserIdV2[]) */
+  adminUserIds: UserIdV2[]
   /** 익명 여부 */
   isAnonymous: boolean
   /** 읽기 권한 (BoardReadScope) */
