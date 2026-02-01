@@ -35,11 +35,13 @@
 
 **BoardDetailV2 필드:** boardId, name, description, isAnonymous, readScope, writeScope, isNotice, visibility, displayOrder, **admins** (배열).
 
-**admins 항목 (BoardAdminInfo):** id(uuid), adminEmail, adminName.
+**admins:** `BoardAdminInfo[]`. 각 항목은 id(uuid), adminEmail, adminName.
+
+관리자는 줄바꿈으로 ID를 입력하는 방식이 아니라, **관리자 선택 UI(모달)** 로 검색·추가·제거합니다. edit 페이지에서 "관리자 수정" 버튼을 누르면 `BoardAdminEditModal`이 열리고, `GET /api/v2/admin/users`로 관리자 후보를 검색한 뒤 선택한 항목이 `admins[].id` / `adminEmail` / `adminName`으로 반영됩니다.
 
 - **클라이언트:** `getBoardV2(boardId)` — `lib/api/v2/boards.ts`
 - **Hook:** `useBoardV2(boardId)` — `hooks/usePosts.ts`
-- **화면:** `app/content/boards/[boardId]/edit/page.tsx` — 상세 조회 후 폼에 반영, 관리자 ID는 `admins[].id`를 줄바꿈으로 채움.
+- **화면:** `app/content/boards/[boardId]/edit/page.tsx` — 상세 조회 후 폼에 반영하고, 관리자 목록은 모달에서 검색·선택하여 `admins` 배열을 채움.
 
 ---
 

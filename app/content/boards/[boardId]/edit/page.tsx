@@ -46,7 +46,7 @@ export default function BoardEditPage() {
   const router = useRouter()
   const boardId = params.boardId as string
 
-  const { data: board, isLoading } = useBoardV2(boardId)
+  const { data: board, isLoading, isError, refetch } = useBoardV2(boardId)
   const updateBoardV2 = useUpdateBoardV2()
   const deleteBoardV2 = useDeleteBoardV2()
 
@@ -60,7 +60,7 @@ export default function BoardEditPage() {
   const DELETE_CONFIRM_PHRASE = "삭제하겠습니다"
 
   useEffect(() => {
-    if (!board) return
+    if (!board || formSynced) return
     const writeScope: BoardWriteScope = WRITE_SCOPES.some((o) => o.value === board.writeScope)
       ? board.writeScope
       : defaultV2Form.writeScope
@@ -82,12 +82,12 @@ export default function BoardEditPage() {
     })
     setAdmins(board.admins ?? [])
     setFormSynced(true)
-  }, [board])
+  }, [board, formSynced])
 
   // boardId가 바뀌면 동기화 플래그 리셋 (다른 게시판으로 이동 시)
   useEffect(() => {
-    if (!board) setFormSynced(false)
-  }, [boardId, board])
+    setFormSynced(false)
+  }, [boardId])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -104,6 +104,33 @@ export default function BoardEditPage() {
       <div className="space-y-6">
         <div className="h-8 w-48 bg-muted animate-pulse rounded" />
         <div className="h-64 bg-muted animate-pulse rounded" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="게시판 수정"
+          description="게시판 설정을 수정합니다."
+          backHref="/content/boards"
+          backLabel="게시판 관리"
+          breadcrumbs={[{ label: "게시판 수정" }]}
+        />
+        <div className="rounded-md border p-12 text-center">
+          <p className="text-destructive mb-4">
+            게시판 정보를 불러오는 중 오류가 발생했습니다. 네트워크 또는 권한을 확인한 뒤 다시 시도해 주세요.
+          </p>
+          <div className="flex justify-center gap-2">
+            <Button variant="outline" onClick={() => refetch()}>
+              다시 시도
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/content/boards")}>
+              목록으로 돌아가기
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }
