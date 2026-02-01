@@ -40,17 +40,33 @@ export function useBoards() {
 
 // 게시판 목록 조회 (v2 API: GET /api/v2/admin/boards, 검색 조건 query params)
 export function useBoardsV2(condition?: BoardSearchCondition) {
+  const showError = useApiErrorDialog()
   return useQuery({
     queryKey: ["admin-boards-v2", condition],
-    queryFn: () => getBoardsV2(condition),
+    queryFn: async () => {
+      try {
+        return await getBoardsV2(condition)
+      } catch (error) {
+        showError?.(error)
+        throw error
+      }
+    },
   })
 }
 
 // 게시판 상세 조회 (v2 API: GET /api/v2/admin/boards/{boardId})
 export function useBoardV2(boardId: string | undefined) {
+  const showError = useApiErrorDialog()
   return useQuery({
     queryKey: ["admin-board-v2", boardId],
-    queryFn: () => getBoardV2(boardId!),
+    queryFn: async () => {
+      try {
+        return await getBoardV2(boardId!)
+      } catch (error) {
+        showError?.(error)
+        throw error
+      }
+    },
     enabled: !!boardId,
   })
 }
