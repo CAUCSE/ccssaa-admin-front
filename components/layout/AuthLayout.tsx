@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
 import { MeProvider } from "@/context/MeContext"
+import { ApiErrorDialogProvider } from "@/components/ApiErrorDialog"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Header } from "@/components/layout/Header"
 import { Toaster } from "@/components/ui/toaster"
@@ -86,7 +87,9 @@ export function AuthLayoutProvider({
 }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthLayout>{children}</AuthLayout>
+      <ApiErrorDialogProvider>
+        <AuthLayout>{children}</AuthLayout>
+      </ApiErrorDialogProvider>
     </QueryClientProvider>
   )
 }

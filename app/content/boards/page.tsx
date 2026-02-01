@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
@@ -37,12 +36,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, GripVertical, ChevronRight } from "lucide-react"
+import { Plus, GripVertical, ChevronRight, Pencil } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import type { BoardListItemV2, BoardReadScope, BoardWriteScope, BoardVisibility } from "@/types/board-v2"
+import type {
+  BoardAdminInfo,
+  BoardListItemV2,
+  BoardReadScope,
+  BoardSearchCondition,
+  BoardWriteScope,
+  BoardVisibility,
+} from "@/types/board-v2"
 import {
   defaultV2Form,
-  parseAdminUserIds,
   readScopeLabel,
   writeScopeLabel,
   visibilityLabel,
@@ -50,8 +55,8 @@ import {
   WRITE_SCOPES,
   VISIBILITIES,
 } from "@/lib/constants/board-v2-form"
+import { BoardAdminEditModal } from "@/components/content/BoardAdminEditModal"
 import { BoardFilter, type BoardFilterValues } from "@/components/content/BoardFilter"
-import type { BoardSearchCondition } from "@/types/board-v2"
 
 /** displayOrder 기준 정렬 */
 function sortByDisplayOrder(items: BoardListItemV2[]): BoardListItemV2[] {
@@ -127,16 +132,17 @@ export default function BoardsPage() {
   const updateBoardOrdersV2 = useUpdateBoardOrdersV2()
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [createAdminModalOpen, setCreateAdminModalOpen] = useState(false)
   const [orderDialogOpen, setOrderDialogOpen] = useState(false)
   const [orderBoardIds, setOrderBoardIds] = useState<string[]>([])
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
 
   const [formData, setFormData] = useState(defaultV2Form)
-  const [adminUserIdsText, setAdminUserIdsText] = useState("")
+  const [createAdmins, setCreateAdmins] = useState<BoardAdminInfo[]>([])
 
   const handleCreate = () => {
     setFormData(defaultV2Form)
-    setAdminUserIdsText("")
+    setCreateAdmins([])
     setCreateDialogOpen(true)
   }
 
@@ -177,14 +183,14 @@ export default function BoardsPage() {
   }
 
   const handleCreateSubmit = () => {
-    const adminUserIds = parseAdminUserIds(adminUserIdsText)
+    const adminUserIds = createAdmins.map((a) => a.id)
     createBoardV2.mutate(
       { ...formData, adminUserIds },
       {
         onSuccess: () => {
           setCreateDialogOpen(false)
           setFormData(defaultV2Form)
-          setAdminUserIdsText("")
+          setCreateAdmins([])
         },
       }
     )
@@ -358,14 +364,37 @@ export default function BoardsPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="create-adminUserIds">관리자 ID (UUID, 쉼표 또는 줄바꿈 구분)</Label>
-            <Textarea
-              id="create-adminUserIds"
-              value={adminUserIdsText}
-              onChange={(e) => setAdminUserIdsText(e.target.value)}
-              placeholder="예: uuid1, uuid2"
-              className="min-h-[60px]"
-            />
+            <div className="flex items-center justify-between gap-2">
+              <Label>관리자</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1"
+                onClick={() => setCreateAdminModalOpen(true)}
+                aria-label="관리자 수정"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                수정
+              </Button>
+            </div>
+            <div className="rounded-md border bg-muted/30 px-3 py-2 min-h-[44px]">
+              {createAdmins.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  등록된 관리자가 없습니다. 수정 버튼에서 추가할 수 있습니다.
+                </p>
+              ) : (
+                <ul className="text-sm space-y-1">
+                  {createAdmins.map((admin) => (
+                    <li key={admin.id}>
+                      {admin.adminEmail?.trim()
+                        ? `${admin.adminName}(${admin.adminEmail})`
+                        : admin.adminName}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Checkbox
@@ -453,6 +482,13 @@ export default function BoardsPage() {
           </div>
         </div>
       </FormDialog>
+
+      <BoardAdminEditModal
+        open={createAdminModalOpen}
+        onOpenChange={setCreateAdminModalOpen}
+        admins={createAdmins}
+        onApply={setCreateAdmins}
+      />
 
       {/* 정렬 수정 다이얼로그 */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>

@@ -149,7 +149,7 @@ export const mockBoardsV2Api = {
   },
 
   createBoard: async (
-    data: Omit<BoardCreateRequestV2, "boardId"> & { boardId?: string }
+    data: Omit<BoardCreateRequestV2, "boardId">
   ): Promise<unknown> => {
     await delay(400)
     const newBoard = createMockBoard({

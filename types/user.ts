@@ -43,9 +43,7 @@ export interface AdminUsersSearchParamsV2 {
   userState?: UserStatus
   userRole?: UserRole
   keyword?: string
-}
-
-/** GET /api/v2/admin/users 응답 항목 (관리자 지정 모달 검색용) */
+}/** GET /api/v2/admin/users 응답 항목 (관리자 지정 모달 검색용) */
 export interface AdminUserItemV2 {
   id: string
   adminName: string
@@ -56,4 +54,3 @@ export interface AdminUserItemV2 {
 export interface AdminUsersListPayloadV2 {
   users: AdminUserItemV2[]
 }
-

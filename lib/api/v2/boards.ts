@@ -51,13 +51,12 @@ export async function getBoardV2(boardId: string): Promise<BoardDetailV2 | null>
   return data ?? null
 }
 
-/** v2 게시판 생성 — POST, boardId 빈 문자열 */
+/** v2 게시판 생성 — POST /api/v2/admin/boards, body: name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility (boardId 없음) */
 export async function createBoardV2(
-  data: Omit<BoardCreateRequestV2, "boardId"> & { boardId?: string }
+  data: Omit<BoardCreateRequestV2, "boardId">
 ): Promise<unknown> {
   if (USE_MOCK_API) return mockBoardsV2Api.createBoard(data)
-  const body = { ...data, boardId: data.boardId ?? "" }
-  const res = await apiV2.post<ApiResponse<unknown>>("/admin/boards", body)
+  const res = await apiV2.post<ApiResponse<unknown>>("/admin/boards", data)
   return unwrapV2(res)
 }
 
@@ -83,7 +82,7 @@ export async function deleteBoardV2(boardId: string): Promise<unknown> {
   return unwrapV2(res)
 }
 
-/** v2 게시판 정렬 수정 — PATCH, boardIds를 원하는 순서대로 나열 */
+/** v2 게시판 정렬 수정 — PATCH /api/v2/admin/boards/orders, body: { boardIds: string[] } (정렬 순서대로 id 나열) */
 export async function updateBoardOrdersV2(boardIds: string[]): Promise<unknown> {
   if (USE_MOCK_API) return mockBoardsV2Api.updateBoardOrders(boardIds)
   const res = await apiV2.patch<ApiResponse<unknown>>("/admin/boards/orders", {

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { reportApi } from "@/lib/api/reports"
 import type { ReportListParams, ReportAction } from "@/types/report"
 import { toast } from "sonner"
+import { useApiErrorDialog } from "@/components/ApiErrorDialog"
 
 // 신고 리스트 조회
 export function useReports(params: ReportListParams) {
@@ -23,6 +24,7 @@ export function useReportDetail(reportId: number) {
 // 신고 처리 (반려/승인)
 export function useProcessReport() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: ({
@@ -41,8 +43,8 @@ export function useProcessReport() {
         action === "APPROVE" ? "신고가 승인되어 처리되었습니다." : "신고가 반려되었습니다."
       )
     },
-    onError: () => {
-      toast.error("신고 처리에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
