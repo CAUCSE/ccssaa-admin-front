@@ -53,9 +53,9 @@
 
 ## 2. 게시판 관리 (Board Management)
 
-**화면 ID:** `ADM-BOARD-LIST` / `ADM-BOARD-DETAIL`
+**화면 ID:** `ADM-BOARD-LIST` / `ADM-BOARD-EDIT` / `ADM-BOARD-DETAIL`
 
-**게시판 생성 API (v2):** [.cursor/boards-api-v2.md](.cursor/boards-api-v2.md) — POST `/api/v2/admin/boards`, 전체 필드(name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility).
+**게시판 API (v2):** [.cursor/boards-api-v2.md](.cursor/boards-api-v2.md) — GET/POST/PUT/PATCH `/api/v2/admin/boards`, 전체 필드(name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility).
 
 ### 2.1. 리스트 화면 (List) — `/content/boards`
 
@@ -68,8 +68,16 @@
   5. **작성일:** (Center) YYYY.MM.DD
   6. **상태:** (Center) `PUBLIC(공개)`, `HIDDEN(숨김)` **[Badge]**
   7. **관리:** (Center) `[상세보기 >]`
+- **v2 게시판 메타 관리:** 리스트 컬럼(No, 게시판명, 설명, 익명/읽기·쓰기 권한/알림/노출), 상단 `[정렬 수정]`·`[게시판 생성]`, 행별 `[수정]` → `/content/boards/[boardId]/edit` 이동, `[삭제]` 확인 모달.
 
-### 2.2. 상세 화면 (Detail)
+### 2.2. 게시판 수정 화면 (Edit) — `/content/boards/[boardId]/edit`
+
+- **경로:** `/content/boards/[boardId]/edit` (boardId: 게시판 ID)
+- **페이지 헤더:** `← 게시판 관리 / [게시판명] / 수정` (Breadcrumb), 제목 "게시판 수정", 설명 "게시판 설정을 수정합니다. (v2 API)"
+- **정보 영역 (폼):** 게시판명, 설명, 관리자 ID(쉼표/줄바꿈 구분), 익명 여부(체크), 읽기 권한(Select), 쓰기 권한(Select), 알림 가능(체크), 노출 여부(Select)
+- **하단 버튼:** `[취소]` → 목록 이동, `[수정]` → PUT `/api/v2/admin/boards` 제출 후 목록(`/content/boards`)으로 이동
+
+### 2.3. 상세 화면 (Detail) — 게시글 상세
 
 - **정보 영역:**
   - **본문 미리보기:** 제목, 작성자, 본문 내용(Text only), 첨부파일 목록.

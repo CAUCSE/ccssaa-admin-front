@@ -1,13 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { userApi } from "@/lib/api/users"
-import type { UserListParams } from "@/types/user"
+import { getAdminUsersV2 } from "@/lib/api/v2/users"
+import type {
+  AdminUsersSearchParamsV2,
+  UserListParams,
+} from "@/types/user"
 import { toast } from "sonner"
+import { useApiErrorDialog } from "@/components/ApiErrorDialog"
 
-// 회원 리스트 조회
+// 회원 리스트 조회 (v1)
 export function useUsers(params: UserListParams) {
   return useQuery({
     queryKey: ["admin-users", params],
     queryFn: () => userApi.getUsers(params),
+  })
+}
+
+// v2 관리자 유저 검색 — GET /api/v2/admin/users (관리자 지정 모달용)
+export function useAdminUsersV2(params: AdminUsersSearchParamsV2 | undefined) {
+  return useQuery({
+    queryKey: ["admin-users-v2", params],
+    queryFn: () => getAdminUsersV2(params),
+    enabled: params != null,
   })
 }
 
@@ -23,6 +37,7 @@ export function useUserDetail(userId: number) {
 // 회원 승인
 export function useApproveUser() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: userApi.approveUser,
@@ -31,8 +46,8 @@ export function useApproveUser() {
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
       toast.success("회원 승인이 완료되었습니다.")
     },
-    onError: () => {
-      toast.error("회원 승인에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -40,6 +55,7 @@ export function useApproveUser() {
 // 회원 거부
 export function useRejectUser() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: userApi.rejectUser,
@@ -47,8 +63,8 @@ export function useRejectUser() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
       toast.success("회원 거부가 완료되었습니다.")
     },
-    onError: () => {
-      toast.error("회원 거부에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -56,6 +72,7 @@ export function useRejectUser() {
 // 회원 추방
 export function useBanUser() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: userApi.banUser,
@@ -64,8 +81,8 @@ export function useBanUser() {
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
       toast.success("회원 추방이 완료되었습니다.")
     },
-    onError: () => {
-      toast.error("회원 추방에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -73,6 +90,7 @@ export function useBanUser() {
 // 역할 변경
 export function useUpdateUserRole() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: ({ userId, role }: { userId: number; role: "USER" | "ADMIN" | "MASTER" }) =>
@@ -81,8 +99,8 @@ export function useUpdateUserRole() {
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
       toast.success("역할이 변경되었습니다.")
     },
-    onError: () => {
-      toast.error("역할 변경에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }

@@ -152,11 +152,11 @@ export async function getData(): Promise<DataType> {
 
 **Mock 데이터 특징:**
 - 5개 기본 게시판 (학생회 공지, 문화부 공지, 학부 공지, 자유게시판, 동문 게시판)
-- `display_order` 기준 정렬, 생성/수정/정렬 시 가변 목록 반영
+- `displayOrder` 기준 정렬, 생성/수정/정렬 시 가변 목록 반영
 - 지연 시뮬레이션: get 300ms, create/update 400ms, orders 300ms
 
 **함수:**
-- `getBoardsV2()` - 게시판 리스트 조회 (display_order 정렬)
+- `getBoardsV2()` - 게시판 리스트 조회 (displayOrder 정렬, 응답 data.boards)
 - `createBoardV2(data)` - 게시판 생성
 - `updateBoardV2(data)` - 게시판 설정 수정
 - `updateBoardOrdersV2(boardIds)` - 게시판 정렬 수정

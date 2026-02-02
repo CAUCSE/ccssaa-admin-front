@@ -4,18 +4,31 @@
  */
 
 import type {
+  BoardAdminInfo,
+  BoardDetailV2,
   BoardListItemV2,
   BoardCreateRequestV2,
   BoardReadScope,
+  BoardSearchCondition,
   BoardWriteScope,
   BoardVisibility,
 } from "@/types/board-v2"
 
 let mockIdCounter = 5
 
+/** adminUserIds를 BoardAdminInfo[]로 변환 (mock에서는 id만 있고 name/email은 빈 문자열) */
+function adminUserIdsToAdmins(adminUserIds: string[]): BoardAdminInfo[] {
+  return adminUserIds.map((id) => ({
+    id,
+    adminEmail: "",
+    adminName: "",
+  }))
+}
+
 const createMockBoard = (
-  overrides: Partial<BoardListItemV2> & { name: string; description: string }
-): BoardListItemV2 => {
+  overrides: Partial<BoardDetailV2> & { name: string; description: string },
+  admins: BoardAdminInfo[] = []
+): BoardDetailV2 => {
   const id = overrides.boardId ?? String(++mockIdCounter)
   return {
     boardId: id,
@@ -26,14 +39,16 @@ const createMockBoard = (
     writeScope: "ONLY_ADMIN" as BoardWriteScope,
     isNotice: false,
     visibility: "VISIBLE" as BoardVisibility,
-    display_order: 0,
+    displayOrder: 0,
+    admins: [],
     ...overrides,
     boardId: id,
+    admins: overrides.admins ?? admins,
   }
 }
 
-// 가변 목록 (생성/수정/정렬 반영)
-const mockBoards: BoardListItemV2[] = [
+// 가변 목록 (생성/수정/정렬 반영). 상세 조회 시 admins 반영을 위해 BoardDetailV2로 저장.
+const mockBoards: BoardDetailV2[] = [
   {
     boardId: "1",
     name: "학생회 공지",
@@ -43,7 +58,8 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 0,
+    displayOrder: 0,
+    admins: [],
   },
   {
     boardId: "2",
@@ -54,7 +70,8 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 1,
+    displayOrder: 1,
+    admins: [],
   },
   {
     boardId: "3",
@@ -65,7 +82,8 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 2,
+    displayOrder: 2,
+    admins: [],
   },
   {
     boardId: "4",
@@ -76,7 +94,8 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 3,
+    displayOrder: 3,
+    admins: [],
   },
   {
     boardId: "5",
@@ -87,35 +106,76 @@ const mockBoards: BoardListItemV2[] = [
     writeScope: "ONLY_ADMIN",
     isNotice: false,
     visibility: "VISIBLE",
-    display_order: 4,
+    displayOrder: 4,
+    admins: [],
   },
 ]
 
 const delay = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
+function applySearchCondition(
+  list: BoardDetailV2[],
+  condition?: BoardSearchCondition
+): BoardDetailV2[] {
+  if (!condition) return list
+  return list.filter((b) => {
+    if (
+      condition.keyword != null &&
+      condition.keyword.trim() !== "" &&
+      !b.name.toLowerCase().includes(condition.keyword!.trim().toLowerCase())
+    ) {
+      return false
+    }
+    if (condition.isAnonymous != null && b.isAnonymous !== condition.isAnonymous)
+      return false
+    if (condition.writeScope != null && b.writeScope !== condition.writeScope)
+      return false
+    if (condition.readScope != null && b.readScope !== condition.readScope)
+      return false
+    if (condition.isNotice != null && b.isNotice !== condition.isNotice)
+      return false
+    return true
+  })
+}
+
 export const mockBoardsV2Api = {
-  getBoards: async (): Promise<BoardListItemV2[]> => {
+  getBoards: async (
+    condition?: BoardSearchCondition
+  ): Promise<BoardListItemV2[]> => {
     await delay(300)
-    return [...mockBoards].sort(
-      (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+    const sorted = [...mockBoards].sort(
+      (a, b) => a.displayOrder - b.displayOrder
     )
+    const filtered = applySearchCondition(sorted, condition)
+    return filtered.map(({ admins: _admins, ...b }) => b as BoardListItemV2)
+  },
+
+  getBoard: async (boardId: string): Promise<BoardDetailV2 | null> => {
+    await delay(200)
+    const item = mockBoards.find((b) => b.boardId === boardId)
+    if (!item) return null
+    return { ...item }
   },
 
   createBoard: async (
-    data: Omit<BoardCreateRequestV2, "boardId"> & { boardId?: string }
+    data: Omit<BoardCreateRequestV2, "boardId">
   ): Promise<unknown> => {
     await delay(400)
-    const newBoard = createMockBoard({
-      name: data.name,
-      description: data.description,
-      isAnonymous: data.isAnonymous,
-      readScope: data.readScope,
-      writeScope: data.writeScope,
-      isNotice: data.isNotice,
-      visibility: data.visibility,
-      display_order: mockBoards.length,
-    })
+    const admins = adminUserIdsToAdmins(data.adminUserIds ?? [])
+    const newBoard = createMockBoard(
+      {
+        name: data.name,
+        description: data.description,
+        isAnonymous: data.isAnonymous,
+        readScope: data.readScope,
+        writeScope: data.writeScope,
+        isNotice: data.isNotice,
+        visibility: data.visibility,
+        displayOrder: mockBoards.length,
+      },
+      admins
+    )
     mockBoards.push(newBoard)
     return newBoard
   },
@@ -126,6 +186,7 @@ export const mockBoardsV2Api = {
     await delay(400)
     const idx = mockBoards.findIndex((b) => b.boardId === data.boardId)
     if (idx === -1) return {}
+    const admins = adminUserIdsToAdmins(data.adminUserIds ?? [])
     mockBoards[idx] = {
       ...mockBoards[idx],
       name: data.name,
@@ -135,6 +196,7 @@ export const mockBoardsV2Api = {
       writeScope: data.writeScope,
       isNotice: data.isNotice,
       visibility: data.visibility,
+      admins,
     }
     return mockBoards[idx]
   },
@@ -143,9 +205,17 @@ export const mockBoardsV2Api = {
     await delay(300)
     boardIds.forEach((id, index) => {
       const b = mockBoards.find((x) => x.boardId === id)
-      if (b) b.display_order = index
+      if (b) b.displayOrder = index
     })
-    mockBoards.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    mockBoards.sort((a, b) => a.displayOrder - b.displayOrder)
+    return {}
+  },
+
+  deleteBoard: async (boardId: string): Promise<unknown> => {
+    await delay(300)
+    const idx = mockBoards.findIndex((b) => b.boardId === boardId)
+    if (idx === -1) return {}
+    mockBoards.splice(idx, 1)
     return {}
   },
 }

@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import {
   useBoardsV2,
   useCreateBoardV2,
-  useUpdateBoardV2,
   useUpdateBoardOrdersV2,
-  useDeleteBoard,
 } from "@/hooks/usePosts"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,7 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { FormDialog } from "@/components/ui/form-dialog"
-import { AlertDialog } from "@/components/ui/alert-dialog"
 import {
   Dialog,
   DialogContent,
@@ -30,7 +28,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
@@ -39,120 +36,118 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, GripVertical } from "lucide-react"
+import { Plus, GripVertical, ChevronRight, Pencil } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type {
-  BoardCreateRequestV2,
+  BoardAdminInfo,
   BoardListItemV2,
   BoardReadScope,
+  BoardSearchCondition,
   BoardWriteScope,
   BoardVisibility,
 } from "@/types/board-v2"
+import {
+  defaultV2Form,
+  readScopeLabel,
+  writeScopeLabel,
+  visibilityLabel,
+  READ_SCOPES,
+  WRITE_SCOPES,
+  VISIBILITIES,
+} from "@/lib/constants/board-v2-form"
+import { BoardAdminEditModal } from "@/components/content/BoardAdminEditModal"
+import { BoardFilter, type BoardFilterValues } from "@/components/content/BoardFilter"
 
-/** BoardReadScope: ENROLLED 재학생, GRADUATED 졸업생, BOTH 모두 */
-const READ_SCOPES: { value: BoardReadScope; label: string }[] = [
-  { value: "BOTH", label: "모두" },
-  { value: "ENROLLED", label: "재학생" },
-  { value: "GRADUATED", label: "졸업생" },
-]
-
-/** BoardWriteScope: ALL_USER 일반 유저 작성 가능, ONLY_ADMIN 게시판 관리자만 작성 가능 */
-const WRITE_SCOPES: { value: BoardWriteScope; label: string }[] = [
-  { value: "ALL_USER", label: "일반 유저 작성 가능" },
-  { value: "ONLY_ADMIN", label: "게시판 관리자만 작성 가능" },
-]
-
-/** BoardVisibility: VISIBLE 보임, HIDDEN 안 보임 */
-const VISIBILITIES: { value: BoardVisibility; label: string }[] = [
-  { value: "VISIBLE", label: "보임" },
-  { value: "HIDDEN", label: "안 보임" },
-]
-
-function readScopeLabel(value: BoardReadScope): string {
-  return READ_SCOPES.find((o) => o.value === value)?.label ?? value
-}
-function writeScopeLabel(value: BoardWriteScope): string {
-  return WRITE_SCOPES.find((o) => o.value === value)?.label ?? value
-}
-function visibilityLabel(value: BoardVisibility): string {
-  return VISIBILITIES.find((o) => o.value === value)?.label ?? value
-}
-
-const defaultV2Form: Omit<BoardCreateRequestV2, "boardId"> = {
-  name: "",
-  description: "",
-  adminUserIds: [],
-  isAnonymous: false,
-  readScope: "BOTH",
-  writeScope: "ONLY_ADMIN",
-  isNotice: false,
-  visibility: "VISIBLE",
-}
-
-function parseAdminUserIds(value: string): string[] {
-  return value
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
-
-/** display_order 기준 정렬 (없으면 0으로 처리) */
+/** displayOrder 기준 정렬 */
 function sortByDisplayOrder(items: BoardListItemV2[]): BoardListItemV2[] {
   return [...items].sort(
-    (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+    (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
   )
 }
 
+const defaultBoardFilter: BoardFilterValues = {
+  nameKeyword: "",
+  readScope: "ALL",
+  writeScope: "ALL",
+  isAnonymous: "ALL",
+  isNotice: "ALL",
+}
+
+/** UI 필터 값을 API 검색 조건으로 변환 (ALL/빈값은 제외) */
+function filterToSearchCondition(
+  filter: BoardFilterValues
+): BoardSearchCondition | undefined {
+  const keyword =
+    filter.nameKeyword.trim() !== ""
+      ? filter.nameKeyword.trim()
+      : undefined
+  const readScope =
+    filter.readScope !== "ALL" ? filter.readScope : undefined
+  const writeScope =
+    filter.writeScope !== "ALL" ? filter.writeScope : undefined
+  const isAnonymous =
+    filter.isAnonymous === "Y"
+      ? true
+      : filter.isAnonymous === "N"
+        ? false
+        : undefined
+  const isNotice =
+    filter.isNotice === "Y" ? true : filter.isNotice === "N" ? false : undefined
+  if (
+    keyword === undefined &&
+    readScope === undefined &&
+    writeScope === undefined &&
+    isAnonymous === undefined &&
+    isNotice === undefined
+  ) {
+    return undefined
+  }
+  return { keyword, readScope, writeScope, isAnonymous, isNotice }
+}
+
+const KEYWORD_DEBOUNCE_MS = 400
+
 export default function BoardsPage() {
-  const { data: boardsRaw, isLoading } = useBoardsV2()
+  const [filter, setFilter] = useState<BoardFilterValues>(defaultBoardFilter)
+  const [debouncedKeyword, setDebouncedKeyword] = useState("")
+
+  useEffect(() => {
+    if (filter.nameKeyword.trim() === "") {
+      setDebouncedKeyword("")
+      return
+    }
+    const t = setTimeout(() => setDebouncedKeyword(filter.nameKeyword.trim()), KEYWORD_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [filter.nameKeyword])
+
+  const apiCondition = filterToSearchCondition({
+    ...filter,
+    nameKeyword: debouncedKeyword,
+  })
+  const { data: boardsRaw, isLoading } = useBoardsV2(apiCondition)
+  const { data: fullBoardsRaw } = useBoardsV2(undefined) // 정렬 다이얼로그용 전체 목록
   const boards = boardsRaw ? sortByDisplayOrder(boardsRaw) : []
+  const fullBoards = fullBoardsRaw ? sortByDisplayOrder(fullBoardsRaw) : []
   const createBoardV2 = useCreateBoardV2()
-  const updateBoardV2 = useUpdateBoardV2()
   const updateBoardOrdersV2 = useUpdateBoardOrdersV2()
-  const deleteBoard = useDeleteBoard()
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [createAdminModalOpen, setCreateAdminModalOpen] = useState(false)
   const [orderDialogOpen, setOrderDialogOpen] = useState(false)
   const [orderBoardIds, setOrderBoardIds] = useState<string[]>([])
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [selectedBoard, setSelectedBoard] = useState<BoardListItemV2 | null>(null)
 
   const [formData, setFormData] = useState(defaultV2Form)
-  const [adminUserIdsText, setAdminUserIdsText] = useState("")
-  const [editFormData, setEditFormData] = useState(defaultV2Form)
-  const [editAdminUserIdsText, setEditAdminUserIdsText] = useState("")
+  const [createAdmins, setCreateAdmins] = useState<BoardAdminInfo[]>([])
 
   const handleCreate = () => {
     setFormData(defaultV2Form)
-    setAdminUserIdsText("")
+    setCreateAdmins([])
     setCreateDialogOpen(true)
   }
 
-  const handleEdit = (board: BoardListItemV2) => {
-    setSelectedBoard(board)
-    setEditFormData({
-      ...defaultV2Form,
-      name: board.name,
-      description: board.description,
-      isAnonymous: board.isAnonymous,
-      readScope: board.readScope,
-      writeScope: board.writeScope,
-      isNotice: board.isNotice,
-      visibility: board.visibility,
-    })
-    setEditAdminUserIdsText("")
-    setEditDialogOpen(true)
-  }
-
-  const handleDelete = (board: BoardListItemV2) => {
-    setSelectedBoard(board)
-    setDeleteDialogOpen(true)
-  }
-
   const handleOrderOpen = () => {
-    setOrderBoardIds(boards.map((b) => b.boardId))
+    setOrderBoardIds(fullBoards.map((b) => b.boardId))
     setOrderDialogOpen(true)
   }
 
@@ -162,7 +157,8 @@ export default function BoardsPage() {
     })
   }
 
-  const boardById = (id: string) => boards.find((b) => b.boardId === id)
+  const boardById = (id: string) =>
+    fullBoards.find((b) => b.boardId === id) ?? boards.find((b) => b.boardId === id)
 
   const handleOrderDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index)
@@ -187,77 +183,16 @@ export default function BoardsPage() {
   }
 
   const handleCreateSubmit = () => {
-    const adminUserIds = parseAdminUserIds(adminUserIdsText)
+    const adminUserIds = createAdmins.map((a) => a.id)
     createBoardV2.mutate(
       { ...formData, adminUserIds },
       {
         onSuccess: () => {
           setCreateDialogOpen(false)
           setFormData(defaultV2Form)
-          setAdminUserIdsText("")
+          setCreateAdmins([])
         },
       }
-    )
-  }
-
-  const handleEditSubmit = () => {
-    if (!selectedBoard) return
-    const adminUserIds = parseAdminUserIds(editAdminUserIdsText)
-    updateBoardV2.mutate(
-      {
-        ...editFormData,
-        boardId: selectedBoard.boardId,
-        adminUserIds,
-      },
-      {
-        onSuccess: () => {
-          setEditDialogOpen(false)
-          setSelectedBoard(null)
-          setEditFormData(defaultV2Form)
-          setEditAdminUserIdsText("")
-        },
-      }
-    )
-  }
-
-  const handleDeleteConfirm = () => {
-    if (!selectedBoard) return
-    deleteBoard.mutate(Number(selectedBoard.boardId), {
-      onSuccess: () => {
-        setDeleteDialogOpen(false)
-        setSelectedBoard(null)
-      },
-    })
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <TableHead key={i}>
-                    <div className="h-4 w-20 bg-muted animate-pulse rounded" />
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <TableCell key={j}>
-                      <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
     )
   }
 
@@ -269,7 +204,7 @@ export default function BoardsPage() {
           <p className="text-muted-foreground mt-1">게시판을 생성, 수정, 삭제할 수 있습니다.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleOrderOpen} disabled={!boards?.length}>
+          <Button variant="outline" onClick={handleOrderOpen} disabled={!fullBoards?.length}>
             <GripVertical className="mr-2 h-4 w-4" />
             정렬 수정
           </Button>
@@ -280,14 +215,45 @@ export default function BoardsPage() {
         </div>
       </div>
 
+      <BoardFilter value={filter} onChange={setFilter} />
+
       <Card>
         <CardHeader>
           <CardTitle>게시판 목록</CardTitle>
         </CardHeader>
         <CardContent>
-          {!boards || boards.length === 0 ? (
+          {isLoading ? (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {Array.from({ length: 9 }).map((_, i) => (
+                      <TableHead key={i}>
+                        <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 9 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : !boards || boards.length === 0 ? (
             <div className="rounded-md border p-12 text-center">
-              <p className="text-muted-foreground">등록된 게시판이 없습니다.</p>
+              <p className="text-muted-foreground">
+                {apiCondition
+                  ? "조건에 맞는 게시판이 없습니다."
+                  : "등록된 게시판이 없습니다."}
+              </p>
             </div>
           ) : (
             <div className="rounded-lg border overflow-x-auto bg-card [&_tbody_td]:py-5">
@@ -302,14 +268,14 @@ export default function BoardsPage() {
                     <TableHead className="text-center w-32 whitespace-nowrap">쓰기 권한</TableHead>
                     <TableHead className="text-center w-20">알림</TableHead>
                     <TableHead className="text-center w-24">노출</TableHead>
-                    <TableHead className="text-center w-[88px] shrink-0">관리</TableHead>
+                    <TableHead className="text-center min-w-[100px] shrink-0">관리</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {boards.map((board, index) => (
                     <TableRow key={board.boardId}>
                       <TableCell className="text-center w-12 text-muted-foreground font-medium">
-                        {index + 1}
+                        {board.no ?? index + 1}
                       </TableCell>
                       <TableCell className="text-left w-48 min-w-[160px] font-medium">
                         {board.name}
@@ -345,27 +311,19 @@ export default function BoardsPage() {
                           {visibilityLabel(board.visibility)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center w-[88px] shrink-0">
-                        <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleEdit(board)}
-                            aria-label="수정"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => handleDelete(board)}
-                            aria-label="삭제"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                      <TableCell className="text-center min-w-[100px] shrink-0 whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 shrink-0 whitespace-nowrap"
+                          asChild
+                          aria-label="상세보기"
+                        >
+                          <Link href={`/content/boards/${board.boardId}/edit`} className="inline-flex items-center gap-1">
+                            상세보기
+                            <ChevronRight className="h-4 w-4 shrink-0" />
+                          </Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -406,14 +364,37 @@ export default function BoardsPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="create-adminUserIds">관리자 ID (UUID, 쉼표 또는 줄바꿈 구분)</Label>
-            <Textarea
-              id="create-adminUserIds"
-              value={adminUserIdsText}
-              onChange={(e) => setAdminUserIdsText(e.target.value)}
-              placeholder="예: uuid1, uuid2"
-              className="min-h-[60px]"
-            />
+            <div className="flex items-center justify-between gap-2">
+              <Label>관리자</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1"
+                onClick={() => setCreateAdminModalOpen(true)}
+                aria-label="관리자 수정"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                수정
+              </Button>
+            </div>
+            <div className="rounded-md border bg-muted/30 px-3 py-2 min-h-[44px]">
+              {createAdmins.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  등록된 관리자가 없습니다. 수정 버튼에서 추가할 수 있습니다.
+                </p>
+              ) : (
+                <ul className="text-sm space-y-1">
+                  {createAdmins.map((admin) => (
+                    <li key={admin.id}>
+                      {admin.adminEmail?.trim()
+                        ? `${admin.adminName}(${admin.adminEmail})`
+                        : admin.adminName}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Checkbox
@@ -502,131 +483,12 @@ export default function BoardsPage() {
         </div>
       </FormDialog>
 
-      {/* 수정 모달 (v2 API: PUT /api/v2/admin/boards) */}
-      <FormDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        title="게시판 수정"
-        description="게시판 설정을 수정합니다. (v2 API)"
-        confirmText="수정"
-        onConfirm={handleEditSubmit}
-        isLoading={updateBoardV2.isPending}
-      >
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-          <div className="space-y-2">
-            <Label htmlFor="edit-name">게시판명 *</Label>
-            <Input
-              id="edit-name"
-              value={editFormData.name}
-              onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-              placeholder="게시판명을 입력하세요"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-description">설명 *</Label>
-            <Input
-              id="edit-description"
-              value={editFormData.description}
-              onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-              placeholder="게시판 설명을 입력하세요"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-adminUserIds">관리자 ID (UUID, 쉼표 또는 줄바꿈 구분)</Label>
-            <Textarea
-              id="edit-adminUserIds"
-              value={editAdminUserIdsText}
-              onChange={(e) => setEditAdminUserIdsText(e.target.value)}
-              placeholder="예: uuid1, uuid2"
-              className="min-h-[60px]"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="edit-isAnonymous"
-              checked={editFormData.isAnonymous}
-              onCheckedChange={(checked) =>
-                setEditFormData({ ...editFormData, isAnonymous: checked === true })
-              }
-            />
-            <Label htmlFor="edit-isAnonymous" className="cursor-pointer">
-              익명 게시판
-            </Label>
-          </div>
-          <div className="space-y-2">
-            <Label>읽기 권한</Label>
-            <Select
-              value={editFormData.readScope}
-              onValueChange={(value: BoardReadScope) =>
-                setEditFormData({ ...editFormData, readScope: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {READ_SCOPES.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>쓰기 권한</Label>
-            <Select
-              value={editFormData.writeScope}
-              onValueChange={(value: BoardWriteScope) =>
-                setEditFormData({ ...editFormData, writeScope: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {WRITE_SCOPES.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="edit-isNotice"
-              checked={editFormData.isNotice}
-              onCheckedChange={(checked) =>
-                setEditFormData({ ...editFormData, isNotice: checked === true })
-              }
-            />
-            <Label htmlFor="edit-isNotice" className="cursor-pointer">
-              알림 가능 게시판
-            </Label>
-          </div>
-          <div className="space-y-2">
-            <Label>노출 여부</Label>
-            <Select
-              value={editFormData.visibility}
-              onValueChange={(value: BoardVisibility) =>
-                setEditFormData({ ...editFormData, visibility: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {VISIBILITIES.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </FormDialog>
+      <BoardAdminEditModal
+        open={createAdminModalOpen}
+        onOpenChange={setCreateAdminModalOpen}
+        admins={createAdmins}
+        onApply={setCreateAdmins}
+      />
 
       {/* 정렬 수정 다이얼로그 */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
@@ -675,18 +537,6 @@ export default function BoardsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* 삭제 확인 모달 */}
-      <AlertDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="게시판 삭제"
-        description={`"${selectedBoard?.name}" 게시판을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`}
-        confirmText="삭제"
-        cancelText="취소"
-        variant="destructive"
-        onConfirm={handleDeleteConfirm}
-      />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import type {
   LockerApplicationPeriod,
 } from "@/types/locker"
 import { toast } from "sonner"
+import { useApiErrorDialog } from "@/components/ApiErrorDialog"
 
 // 사물함 리스트 조회
 export function useLockers(params: LockerListParams) {
@@ -35,6 +36,7 @@ export function useLockerApplicationPeriod() {
 // 수동 배정
 export function useAssignLocker() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: ({ lockerId, data }: { lockerId: number; data: AssignLockerRequest }) =>
@@ -44,8 +46,8 @@ export function useAssignLocker() {
       queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })
       toast.success("사물함 배정이 완료되었습니다.")
     },
-    onError: () => {
-      toast.error("사물함 배정에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -53,6 +55,7 @@ export function useAssignLocker() {
 // 개별 회수
 export function useReleaseLocker() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: (lockerId: number) => lockerApi.releaseLocker(lockerId),
@@ -61,8 +64,8 @@ export function useReleaseLocker() {
       queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })
       toast.success("사물함 회수가 완료되었습니다.")
     },
-    onError: () => {
-      toast.error("사물함 회수에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -70,6 +73,7 @@ export function useReleaseLocker() {
 // 일괄 회수
 export function useReleaseAllLockers() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: () => lockerApi.releaseAllLockers(),
@@ -77,8 +81,8 @@ export function useReleaseAllLockers() {
       queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
       toast.success("모든 사물함 회수가 완료되었습니다.")
     },
-    onError: () => {
-      toast.error("사물함 일괄 회수에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -86,6 +90,7 @@ export function useReleaseAllLockers() {
 // 신청 기간 설정
 export function useSetLockerApplicationPeriod() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: (data: LockerApplicationPeriod) =>
@@ -94,8 +99,8 @@ export function useSetLockerApplicationPeriod() {
       queryClient.invalidateQueries({ queryKey: ["admin-locker-application-period"] })
       toast.success("신청 기간이 설정되었습니다.")
     },
-    onError: () => {
-      toast.error("신청 기간 설정에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
