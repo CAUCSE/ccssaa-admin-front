@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Search } from "lucide-react"
-import type { CalendarScope, CalendarActionType } from "@/types/calendar"
+import type { CalendarType } from "@/types/calendar"
 
 export function CalendarFilter() {
   const router = useRouter()
@@ -23,11 +23,8 @@ export function CalendarFilter() {
     searchParams.get("startDate") || ""
   )
   const [endDate, setEndDate] = useState(searchParams.get("endDate") || "")
-  const [scope, setScope] = useState<CalendarScope | "ALL">(
-    (searchParams.get("scope") as CalendarScope | "ALL") || "ALL"
-  )
-  const [actionType, setActionType] = useState<CalendarActionType | "ALL">(
-    (searchParams.get("actionType") as CalendarActionType | "ALL") || "ALL"
+  const [type, setType] = useState<CalendarType | "">(
+    (searchParams.get("type") as CalendarType) || ""
   )
   const [keyword, setKeyword] = useState(searchParams.get("keyword") || "")
 
@@ -40,11 +37,8 @@ export function CalendarFilter() {
     if (endDate) {
       params.set("endDate", endDate)
     }
-    if (scope && scope !== "ALL") {
-      params.set("scope", scope)
-    }
-    if (actionType && actionType !== "ALL") {
-      params.set("actionType", actionType)
+    if (type) {
+      params.set("type", type)
     }
     if (keyword.trim()) {
       params.set("keyword", keyword.trim())
@@ -81,32 +75,20 @@ export function CalendarFilter() {
               />
             </div>
             <Select
-              value={scope}
-              onValueChange={(value) => setScope(value as CalendarScope | "ALL")}
+              value={type}
+              onValueChange={(value) => setType(value as CalendarType | "")}
             >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue placeholder="스코프" />
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="일정 타입" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="STUDENT">재학생</SelectItem>
-                <SelectItem value="ALUMNI">졸업생</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={actionType}
-              onValueChange={(value) =>
-                setActionType(value as CalendarActionType | "ALL")
-              }
-            >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue placeholder="액션 타입" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="Notice">일반</SelectItem>
-                <SelectItem value="Service">서비스연결</SelectItem>
-                <SelectItem value="Link">외부링크</SelectItem>
+                <SelectItem value="">전체</SelectItem>
+                <SelectItem value="ACADEMIC">학사일정</SelectItem>
+                <SelectItem value="DEPARTMENT">학부행사</SelectItem>
+                <SelectItem value="CCSSAA">CCSSAA</SelectItem>
+                <SelectItem value="STUDENT_COUNCIL">학생회</SelectItem>
+                <SelectItem value="COMPETITION">대회</SelectItem>
+                <SelectItem value="HOLIDAY">공휴일</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -14,13 +14,8 @@ import type { CalendarEvent } from "@/types/calendar"
 
 interface CalendarTableProps {
   data: CalendarEvent[]
-  currentPage: number
-  totalPages: number
-  totalElements: number
-  pageSize: number
-  onPageChange: (page: number) => void
   onEdit?: (event: CalendarEvent) => void
-  onDelete?: (eventId: number) => void
+  onDelete?: (eventId: string) => void
   isLoading?: boolean
 }
 
@@ -30,11 +25,6 @@ interface CalendarTableProps {
  */
 export function CalendarTable({
   data,
-  currentPage,
-  totalPages,
-  totalElements,
-  pageSize,
-  onPageChange,
   onEdit,
   onDelete,
   isLoading,
@@ -44,30 +34,125 @@ export function CalendarTable({
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
-  }
-
-  const startIndex = (currentPage - 1) * pageSize
-
-  const getScopeBadge = (scope: string) => {
-    const scopeMap: Record<string, { variant: "default" | "success" | "warning" | "destructive" | "secondary"; label: string }> = {
-      ALL: { variant: "default", label: "전체" },
-      STUDENT: { variant: "success", label: "재학생" },
-      ALUMNI: { variant: "warning", label: "졸업생" },
+  const getTypeBadge = (type: string) => {
+    const typeMap: Record<string, { variant: "default" | "success" | "warning" | "destructive" | "secondary"; label: string }> = {
+      ACADEMIC: { variant: "default", label: "학사일정" },
+      DEPARTMENT: { variant: "success", label: "학부행사" },
+      CCSSAA: { variant: "warning", label: "CCSSAA" },
+      STUDENT_COUNCIL: { variant: "secondary", label: "학생회" },
+      COMPETITION: { variant: "destructive", label: "대회" },
+      HOLIDAY: { variant: "default", label: "공휴일" },
     }
-    return scopeMap[scope] || { variant: "secondary", label: scope }
+    return typeMap[type] || { variant: "secondary", label: type }
   }
 
-  const getActionTypeBadge = (actionType: string) => {
-    const actionMap: Record<string, { variant: "default" | "success" | "warning" | "destructive" | "secondary"; label: string }> = {
-      Notice: { variant: "secondary", label: "일반" },
-      Service: { variant: "default", label: "서비스연결" },
-      Link: { variant: "default", label: "외부링크" },
-    }
-    return actionMap[actionType] || { variant: "secondary", label: actionType }
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableHead key={i}>
+                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <TableCell key={j}>
+                      <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    )
   }
+
+  if (data.length === 0) {
+    return (
+      <div className="rounded-md border">
+        <div className="p-12 text-center text-gray-500">
+          일정 데이터가 없습니다.
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-left">일정명</TableHead>
+              <TableHead className="text-center">타입</TableHead>
+              <TableHead className="text-center">시작일시</TableHead>
+              <TableHead className="text-center">종료일시</TableHead>
+              <TableHead className="text-center">관리</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((event) => {
+              const typeBadge = getTypeBadge(event.type)
+              return (
+                <TableRow key={event.id}>
+                  <TableCell className="font-medium">{event.title}</TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={typeBadge.variant}>{typeBadge.label}</Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {formatDateTime(event.start)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {formatDateTime(event.end)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex justify-center gap-2">
+                      {onEdit && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onEdit(event)}
+                        >
+                          수정
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => onDelete(event.id)}
+                        >
+                          삭제
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Total count */}
+      <div className="flex justify-center">
+        <div className="text-sm text-muted-foreground">
+          총 {data.length}개의 일정
+        </div>
+      </div>
+    </div>
+  )
+}
 
   if (isLoading) {
     return (

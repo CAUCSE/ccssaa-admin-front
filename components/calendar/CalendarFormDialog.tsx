@@ -11,14 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import type {
   CalendarEvent,
   CreateCalendarEventRequest,
   UpdateCalendarEventRequest,
-  CalendarScope,
-  CalendarActionType,
+  CalendarType,
 } from "@/types/calendar"
 
 interface CalendarFormDialogProps {
@@ -41,58 +38,52 @@ export function CalendarFormDialog({
   isLoading,
 }: CalendarFormDialogProps) {
   const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [date, setDate] = useState("")
-  const [time, setTime] = useState("")
-  const [scope, setScope] = useState<CalendarScope>("ALL")
-  const [actionType, setActionType] = useState<CalendarActionType>("Notice")
-  const [serviceLink, setServiceLink] = useState("")
-  const [externalLink, setExternalLink] = useState("")
-  const [notificationEnabled, setNotificationEnabled] = useState(false)
+  const [type, setType] = useState<CalendarType>("ACADEMIC")
+  const [startDate, setStartDate] = useState("")
+  const [startTime, setStartTime] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [endTime, setEndTime] = useState("")
 
   useEffect(() => {
     if (event) {
       setTitle(event.title)
-      setDescription(event.description || "")
-      const eventDate = new Date(event.date)
-      setDate(eventDate.toISOString().split("T")[0])
-      setTime(
-        `${String(eventDate.getHours()).padStart(2, "0")}:${String(eventDate.getMinutes()).padStart(2, "0")}`
+      setType(event.type)
+      
+      const startDateTime = new Date(event.start)
+      setStartDate(startDateTime.toISOString().split("T")[0])
+      setStartTime(
+        `${String(startDateTime.getHours()).padStart(2, "0")}:${String(startDateTime.getMinutes()).padStart(2, "0")}`
       )
-      setScope(event.scope)
-      setActionType(event.actionType)
-      setServiceLink(event.serviceLink || "")
-      setExternalLink(event.externalLink || "")
-      setNotificationEnabled(event.notificationEnabled)
+      
+      const endDateTime = new Date(event.end)
+      setEndDate(endDateTime.toISOString().split("T")[0])
+      setEndTime(
+        `${String(endDateTime.getHours()).padStart(2, "0")}:${String(endDateTime.getMinutes()).padStart(2, "0")}`
+      )
     } else {
       // 초기화
       setTitle("")
-      setDescription("")
-      setDate("")
-      setTime("")
-      setScope("ALL")
-      setActionType("Notice")
-      setServiceLink("")
-      setExternalLink("")
-      setNotificationEnabled(false)
+      setType("ACADEMIC")
+      setStartDate("")
+      setStartTime("")
+      setEndDate("")
+      setEndTime("")
     }
   }, [event, open])
 
   const handleSubmit = () => {
-    if (!title.trim() || !date || !time) {
+    if (!title.trim() || !startDate || !startTime || !endDate || !endTime) {
       return
     }
 
-    const dateTime = new Date(`${date}T${time}`)
+    const start = new Date(`${startDate}T${startTime}`)
+    const end = new Date(`${endDate}T${endTime}`)
+    
     const data: CreateCalendarEventRequest | UpdateCalendarEventRequest = {
       title: title.trim(),
-      description: description.trim() || undefined,
-      date: dateTime.toISOString(),
-      scope,
-      actionType,
-      serviceLink: actionType === "Service" ? serviceLink.trim() || undefined : undefined,
-      externalLink: actionType === "Link" ? externalLink.trim() || undefined : undefined,
-      notificationEnabled,
+      type,
+      start: start.toISOString(),
+      end: end.toISOString(),
     }
 
     onSubmit(data)
@@ -121,102 +112,52 @@ export function CalendarFormDialog({
         </div>
 
         <div>
-          <Label htmlFor="description">설명</Label>
-          <Textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="일정 설명을 입력하세요"
-            rows={3}
-          />
+          <Label htmlFor="type">일정 타입 *</Label>
+          <Select value={type} onValueChange={(value) => setType(value as CalendarType)}>
+            <SelectTrigger id="type">
+              <SelectValue placeholder="일정 타입 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACADEMIC">학사일정</SelectItem>
+              <SelectItem value="DEPARTMENT">학부행사</SelectItem>
+              <SelectItem value="CCSSAA">CCSSAA</SelectItem>
+              <SelectItem value="STUDENT_COUNCIL">학생회</SelectItem>
+              <SelectItem value="COMPETITION">대회</SelectItem>
+              <SelectItem value="HOLIDAY">공휴일</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="date">날짜 *</Label>
+        <div>
+          <Label>시작 일시 *</Label>
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              id="date"
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
             />
-          </div>
-          <div>
-            <Label htmlFor="time">시간 *</Label>
             <Input
-              id="time"
               type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="scope">스코프 *</Label>
-            <Select value={scope} onValueChange={(value) => setScope(value as CalendarScope)}>
-              <SelectTrigger id="scope">
-                <SelectValue placeholder="스코프 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="STUDENT">재학생</SelectItem>
-                <SelectItem value="ALUMNI">졸업생</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="actionType">액션 타입 *</Label>
-            <Select
-              value={actionType}
-              onValueChange={(value) => setActionType(value as CalendarActionType)}
-            >
-              <SelectTrigger id="actionType">
-                <SelectValue placeholder="액션 타입 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Notice">일반</SelectItem>
-                <SelectItem value="Service">서비스연결</SelectItem>
-                <SelectItem value="Link">외부링크</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {actionType === "Service" && (
-          <div>
-            <Label htmlFor="serviceLink">서비스 연결</Label>
+        <div>
+          <Label>종료 일시 *</Label>
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              id="serviceLink"
-              value={serviceLink}
-              onChange={(e) => setServiceLink(e.target.value)}
-              placeholder="/lockers/apply"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+            <Input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
             />
           </div>
-        )}
-
-        {actionType === "Link" && (
-          <div>
-            <Label htmlFor="externalLink">외부 링크</Label>
-            <Input
-              id="externalLink"
-              value={externalLink}
-              onChange={(e) => setExternalLink(e.target.value)}
-              placeholder="https://example.com"
-            />
-          </div>
-        )}
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="notification"
-            checked={notificationEnabled}
-            onCheckedChange={(checked) => setNotificationEnabled(checked === true)}
-          />
-          <Label htmlFor="notification" className="cursor-pointer">
-            알림 설정 (일정 시작 전 알림 발송)
-          </Label>
         </div>
       </div>
     </FormDialog>

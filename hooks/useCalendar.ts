@@ -17,7 +17,7 @@ export function useCalendarEvents(params: CalendarListParams) {
 }
 
 // 캘린더 일정 상세 조회
-export function useCalendarEventDetail(eventId: number) {
+export function useCalendarEventDetail(eventId: string) {
   return useQuery({
     queryKey: ["admin-calendar-event", eventId],
     queryFn: () => calendarApi.getCalendarEventDetail(eventId),
@@ -49,7 +49,7 @@ export function useUpdateCalendarEvent() {
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: ({ eventId, data }: { eventId: number; data: UpdateCalendarEventRequest }) =>
+    mutationFn: ({ eventId, data }: { eventId: string; data: UpdateCalendarEventRequest }) =>
       calendarApi.updateCalendarEvent(eventId, data),
     onSuccess: (_, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-calendar"] })
@@ -68,28 +68,10 @@ export function useDeleteCalendarEvent() {
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: (eventId: number) => calendarApi.deleteCalendarEvent(eventId),
+    mutationFn: (eventId: string) => calendarApi.deleteCalendarEvent(eventId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-calendar"] })
       toast.success("일정이 삭제되었습니다.")
-    },
-    onError: (error) => {
-      showError?.(error)
-    },
-  })
-}
-
-// 사물함 기간 캘린더 동기화
-export function useSyncLockerPeriodToCalendar() {
-  const queryClient = useQueryClient()
-  const showError = useApiErrorDialog()
-
-  return useMutation({
-    mutationFn: ({ startAt, endAt }: { startAt: string; endAt: string }) =>
-      calendarApi.syncLockerPeriodToCalendar(startAt, endAt),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-calendar"] })
-      toast.success("캘린더에 동기화되었습니다.")
     },
     onError: (error) => {
       showError?.(error)

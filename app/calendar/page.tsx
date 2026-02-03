@@ -17,8 +17,7 @@ import { ErrorMessage } from "@/components/ui/error-message"
 import { AlertDialogRoot, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import type {
   CalendarListParams,
-  CalendarScope,
-  CalendarActionType,
+  CalendarType,
   CalendarEvent,
   CreateCalendarEventRequest,
   UpdateCalendarEventRequest,
@@ -27,19 +26,15 @@ import { Plus } from "lucide-react"
 
 function CalendarPageContent() {
   const searchParams = useSearchParams()
-  const [page, setPage] = useState(1)
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
-  const [deleteEventId, setDeleteEventId] = useState<number | null>(null)
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null)
 
   const params: CalendarListParams = {
-    page: page - 1, // API는 0-based
-    size: 10,
     startDate: searchParams.get("startDate") || undefined,
     endDate: searchParams.get("endDate") || undefined,
-    scope: (searchParams.get("scope") as CalendarScope) || undefined,
-    actionType: (searchParams.get("actionType") as CalendarActionType) || undefined,
+    type: (searchParams.get("type") as CalendarType) || undefined,
     keyword: searchParams.get("keyword") || undefined,
   }
 
@@ -47,11 +42,6 @@ function CalendarPageContent() {
   const createMutation = useCreateCalendarEvent()
   const updateMutation = useUpdateCalendarEvent()
   const deleteMutation = useDeleteCalendarEvent()
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
 
   const handleCreate = () => {
     setSelectedEvent(null)
@@ -63,7 +53,7 @@ function CalendarPageContent() {
     setIsFormDialogOpen(true)
   }
 
-  const handleDelete = (eventId: number) => {
+  const handleDelete = (eventId: string) => {
     setDeleteEventId(eventId)
     setIsDeleteDialogOpen(true)
   }
@@ -101,10 +91,6 @@ function CalendarPageContent() {
     }
   }
 
-  useEffect(() => {
-    setPage(1) // 필터 변경 시 첫 페이지로
-  }, [searchParams])
-
   if (error) {
     return <ErrorMessage message="데이터를 불러오는 중 오류가 발생했습니다." />
   }
@@ -128,12 +114,7 @@ function CalendarPageContent() {
 
       {data && (
         <CalendarTable
-          data={data.content}
-          currentPage={page}
-          totalPages={data.totalPages}
-          totalElements={data.totalElements}
-          pageSize={data.size}
-          onPageChange={handlePageChange}
+          data={data.data}
           onEdit={handleEdit}
           onDelete={handleDelete}
           isLoading={isLoading}
@@ -178,9 +159,8 @@ function CalendarPageContent() {
  * 캘린더 일정을 조회하고 관리할 수 있는 페이지입니다.
  * 
  * 기능:
- * - 일정 검색 (날짜 범위, 스코프, 액션 타입, 키워드)
+ * - 일정 검색 (날짜 범위, 타입, 키워드)
  * - 일정 목록 표시
- * - 페이지네이션
  * - 일정 등록/수정/삭제
  */
 export default function CalendarPage() {
