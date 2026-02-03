@@ -16,7 +16,7 @@ export function useUsers(params: UserListParams) {
   })
 }
 
-// v2 관리자 유저 검색 — GET /api/v2/admin/users (관리자 지정 모달용)
+// v2 관리자 유저 검색 — GET /api/v2/admin/users/search (관리자 지정 모달용)
 export function useAdminUsersV2(params: AdminUsersSearchParamsV2 | undefined) {
   return useQuery({
     queryKey: ["admin-users-v2", params],

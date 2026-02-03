@@ -1,6 +1,6 @@
 /**
  * v2 관리자 유저 검색 API
- * GET /api/v2/admin/users — 관리자 지정 모달용 (userState, userRole, keyword)
+ * GET /api/v2/admin/users/search — 관리자 지정 모달용 (userState, userRole, keyword)
  */
 
 import { apiV2 } from "./client"
@@ -29,7 +29,7 @@ function normalizeToAdminUserItem(raw: RawUserItem): AdminUserItemV2 {
   return { id, adminName, adminEmail: adminEmail || undefined }
 }
 
-/** v2 관리자 유저 검색 — GET /api/v2/admin/users */
+/** v2 관리자 유저 검색 — GET /api/v2/admin/users/search */
 export async function getAdminUsersV2(
   params?: AdminUsersSearchParamsV2
 ): Promise<AdminUserItemV2[]> {
@@ -41,7 +41,7 @@ export async function getAdminUsersV2(
 
   const res = await apiV2.get<
     ApiResponse<{ users?: RawUserItem[]; content?: RawUserItem[] } | RawUserItem[]>
-  >("/admin/users", { params: query })
+  >("/admin/users/search", { params: query })
   const data = unwrapV2(res) as
     | { users?: RawUserItem[]; content?: RawUserItem[] }
     | RawUserItem[]
