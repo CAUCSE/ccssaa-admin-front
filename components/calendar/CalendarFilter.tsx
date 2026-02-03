@@ -22,17 +22,17 @@ const CALENDAR_TYPES: { value: CalendarType; label: string }[] = [
 const getTypeColor = (type: CalendarType): string => {
   switch (type) {
     case "ACADEMIC":
-      return "#6B7280"
+      return "#9CA3AF"
     case "DEPARTMENT":
-      return "#10B981"
+      return "#60A5FA"
     case "CCSSAA":
-      return "#F59E0B"
+      return "#7DD3FC"
     case "STUDENT_COUNCIL":
-      return "#2563EB"
+      return "#FB923C"
     case "COMPETITION":
-      return "#EF4444"
+      return "#A78BFA"
     case "HOLIDAY":
-      return "#7C3AED"
+      return "#F87171"
     default:
       return "#6B7280"
   }

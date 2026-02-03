@@ -40,23 +40,23 @@ interface CalendarViewProps {
   isLoading?: boolean
 }
 
-type CalendarRbcEvent = RBCEvent & { resource: CalendarEvent }
+type CalendarRbcEvent = RBCEvent & { resource: CalendarEvent; order: number }
 
 // 타입별 색상 매핑 (기존 Badge와 동일)
 const getEventColor = (type: CalendarType): string => {
   switch (type) {
     case "ACADEMIC":
-      return "#6B7280" // gray
+      return "#9CA3AF" // gray
     case "DEPARTMENT":
-      return "#10B981" // success (green)
+      return "#60A5FA" // blue
     case "CCSSAA":
-      return "#F59E0B" // warning (amber)
+      return "#7DD3FC" // sky
     case "STUDENT_COUNCIL":
-      return "#2563EB" // blue
+      return "#FB923C" // orange
     case "COMPETITION":
-      return "#EF4444" // destructive (red)
+      return "#A78BFA" // purple
     case "HOLIDAY":
-      return "#7C3AED" // purple
+      return "#F87171" // red
     default:
       return "#6B7280"
   }
@@ -100,13 +100,22 @@ export function CalendarView({
       ? data.filter(event => selectedTypes.includes(event.type))
       : data
     
-    return filteredData.map((event): CalendarRbcEvent => ({
+    const mappedEvents = filteredData.map((event, index): CalendarRbcEvent => ({
       id: event.id,
       title: event.title,
       start: new Date(event.start),
       end: new Date(event.end),
       resource: event, // 원본 데이터 저장
+      order: index,
     }))
+
+    return mappedEvents.sort((a, b) => {
+      const startDiff = a.start.getTime() - b.start.getTime()
+      if (startDiff !== 0) return startDiff
+      const endDiff = a.end.getTime() - b.end.getTime()
+      if (endDiff !== 0) return endDiff
+      return a.title.localeCompare(b.title, "ko")
+    })
   }, [data, selectedTypes])
 
   const handleSelectEvent = useCallback((event: CalendarRbcEvent) => {
@@ -245,6 +254,7 @@ export function CalendarView({
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
           selectable
+          popup
           eventPropGetter={eventStyleGetter}
           messages={messages}
           formats={formats}
