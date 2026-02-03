@@ -49,17 +49,14 @@ export function CalendarFormDialog({
       setTitle(event.title)
       setType(event.type)
       
-      const startDateTime = new Date(event.start)
-      setStartDate(startDateTime.toISOString().split("T")[0])
-      setStartTime(
-        `${String(startDateTime.getHours()).padStart(2, "0")}:${String(startDateTime.getMinutes()).padStart(2, "0")}`
-      )
+      // ISO 문자열에서 날짜/시간 직접 추출 (타임존 변환 방지)
+      const startParts = event.start.split("T")
+      setStartDate(startParts[0])
+      setStartTime(startParts[1].substring(0, 5))
       
-      const endDateTime = new Date(event.end)
-      setEndDate(endDateTime.toISOString().split("T")[0])
-      setEndTime(
-        `${String(endDateTime.getHours()).padStart(2, "0")}:${String(endDateTime.getMinutes()).padStart(2, "0")}`
-      )
+      const endParts = event.end.split("T")
+      setEndDate(endParts[0])
+      setEndTime(endParts[1].substring(0, 5))
     } else {
       // 초기화
       setTitle("")

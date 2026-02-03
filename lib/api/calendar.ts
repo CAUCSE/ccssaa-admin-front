@@ -1,4 +1,4 @@
-import { api } from "../api"
+import { apiV2 } from "../api"
 import type {
   CalendarEvent,
   CalendarListParams,
@@ -15,19 +15,19 @@ const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 const realCalendarApi = {
   // 캘린더 일정 목록 조회
   getCalendarEvents: async (params: CalendarListParams): Promise<CalendarListResponse> => {
-    const response = await api.get<{ data: CalendarListResponse }>("/admin/calendar", { params })
+    const response = await apiV2.get<{ data: CalendarListResponse }>("/schedules", { params })
     return response.data.data
   },
 
   // 캘린더 일정 상세 조회
   getCalendarEventDetail: async (eventId: string): Promise<CalendarEvent> => {
-    const response = await api.get<{ data: CalendarEvent }>(`/admin/calendar/${eventId}`)
+    const response = await apiV2.get<{ data: CalendarEvent }>(`/schedules/${eventId}`)
     return response.data.data
   },
 
   // 일정 생성
   createCalendarEvent: async (data: CreateCalendarEventRequest): Promise<CalendarEvent> => {
-    const response = await api.post<{ data: CalendarEvent }>("/admin/calendar", data)
+    const response = await apiV2.post<{ data: CalendarEvent }>("/admin/schedules", data)
     return response.data.data
   },
 
@@ -36,13 +36,13 @@ const realCalendarApi = {
     eventId: string,
     data: UpdateCalendarEventRequest
   ): Promise<CalendarEvent> => {
-    const response = await api.patch<{ data: CalendarEvent }>(`/admin/calendar/${eventId}`, data)
+    const response = await apiV2.put<{ data: CalendarEvent }>(`/admin/schedules/${eventId}`, data)
     return response.data.data
   },
 
   // 일정 삭제
   deleteCalendarEvent: async (eventId: string): Promise<void> => {
-    await api.delete(`/admin/calendar/${eventId}`)
+    await apiV2.delete(`/admin/schedules/${eventId}`)
   },
 }
 
