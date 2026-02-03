@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, dateFnsLocalizer, View, ToolbarProps, Navigate } from "react-big-calendar"
+import { Calendar, dateFnsLocalizer, View, ToolbarProps, Navigate, type Event as RBCEvent } from "react-big-calendar"
 import { format, parse, startOfWeek, getDay } from "date-fns"
 import { ko } from "date-fns/locale"
 import type { CalendarEvent, CalendarType } from "@/types/calendar"
@@ -39,6 +39,8 @@ interface CalendarViewProps {
   selectedTypes?: CalendarType[]
   isLoading?: boolean
 }
+
+type CalendarRbcEvent = RBCEvent & { resource: CalendarEvent }
 
 // 타입별 색상 매핑 (기존 Badge와 동일)
 const getEventColor = (type: CalendarType): string => {
@@ -98,7 +100,7 @@ export function CalendarView({
       ? data.filter(event => selectedTypes.includes(event.type))
       : data
     
-    return filteredData.map((event) => ({
+    return filteredData.map((event): CalendarRbcEvent => ({
       id: event.id,
       title: event.title,
       start: new Date(event.start),
@@ -107,7 +109,7 @@ export function CalendarView({
     }))
   }, [data, selectedTypes])
 
-  const handleSelectEvent = useCallback((event: any) => {
+  const handleSelectEvent = useCallback((event: CalendarRbcEvent) => {
     setSelectedEvent(event.resource)
     setIsEventDialogOpen(true)
   }, [])
@@ -136,7 +138,7 @@ export function CalendarView({
   }
 
   // 이벤트 스타일링
-  const eventStyleGetter = useCallback((event: any) => {
+  const eventStyleGetter = useCallback((event: CalendarRbcEvent) => {
     const backgroundColor = getEventColor(event.resource.type)
     return {
       style: {
