@@ -81,20 +81,20 @@ export const mockCalendarApi = {
 
     let filteredEvents = [...mockCalendarEvents]
 
-    // 날짜 범위 필터링 (from)
-    if (params.from) {
-      const fromDate = new Date(params.from)
-      filteredEvents = filteredEvents.filter(
-        (event) => new Date(event.start) >= fromDate
-      )
-    }
-    // 날짜 범위 필터링 (to)
-    if (params.to) {
-      const toDate = new Date(params.to)
+    // 날짜 범위 필터링 (overlap)
+    const fromDate = params.from ? new Date(params.from) : null
+    const toDate = params.to ? new Date(params.to) : null
+    if (toDate) {
       toDate.setHours(23, 59, 59, 999)
-      filteredEvents = filteredEvents.filter(
-        (event) => new Date(event.end) <= toDate
-      )
+    }
+    if (fromDate || toDate) {
+      filteredEvents = filteredEvents.filter((event) => {
+        const eventStart = new Date(event.start)
+        const eventEnd = new Date(event.end)
+        const afterFrom = fromDate ? eventEnd >= fromDate : true
+        const beforeTo = toDate ? eventStart <= toDate : true
+        return afterFrom && beforeTo
+      })
     }
 
     // 타입 필터링 (복수 선택)
