@@ -22,6 +22,7 @@ interface CalendarFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   event?: CalendarEvent
+  initialDates?: { start: Date; end: Date }
   onSubmit: (data: CreateCalendarEventRequest | UpdateCalendarEventRequest) => void
   isLoading?: boolean
 }
@@ -34,6 +35,7 @@ export function CalendarFormDialog({
   open,
   onOpenChange,
   event,
+  initialDates,
   onSubmit,
   isLoading,
 }: CalendarFormDialogProps) {
@@ -43,6 +45,8 @@ export function CalendarFormDialog({
   const [startTime, setStartTime] = useState("")
   const [endDate, setEndDate] = useState("")
   const [endTime, setEndTime] = useState("")
+
+  const isValidTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value)
 
   useEffect(() => {
     if (event) {
@@ -57,8 +61,29 @@ export function CalendarFormDialog({
       const endParts = event.end.split("T")
       setEndDate(endParts[0])
       setEndTime(endParts[1].substring(0, 5))
+    } else if (initialDates) {
+      // 달력에서 날짜 클릭 시 초기값 설정
+      setTitle("")
+      setType("ACADEMIC")
+      
+      const startYear = initialDates.start.getFullYear()
+      const startMonth = String(initialDates.start.getMonth() + 1).padStart(2, '0')
+      const startDay = String(initialDates.start.getDate()).padStart(2, '0')
+      setStartDate(`${startYear}-${startMonth}-${startDay}`)
+      
+      const startHours = String(initialDates.start.getHours()).padStart(2, '0')
+      const startMinutes = String(initialDates.start.getMinutes()).padStart(2, '0')
+      setStartTime(`${startHours}:${startMinutes}`)
+      
+      const endYear = initialDates.end.getFullYear()
+      const endMonth = String(initialDates.end.getMonth() + 1).padStart(2, '0')
+      const endDay = String(initialDates.end.getDate()).padStart(2, '0')
+      const endHours = String(initialDates.end.getHours()).padStart(2, '0')
+      const endMinutes = String(initialDates.end.getMinutes()).padStart(2, '0')
+      setEndDate(`${endYear}-${endMonth}-${endDay}`)
+      setEndTime(`${endHours}:${endMinutes}`)
     } else {
-      // 초기화
+      // 완전 초기화
       setTitle("")
       setType("ACADEMIC")
       setStartDate("")
@@ -66,10 +91,14 @@ export function CalendarFormDialog({
       setEndDate("")
       setEndTime("")
     }
-  }, [event, open])
+  }, [event, initialDates, open])
 
   const handleSubmit = () => {
     if (!title.trim() || !startDate || !startTime || !endDate || !endTime) {
+      return
+    }
+
+    if (!isValidTime(startTime) || !isValidTime(endTime)) {
       return
     }
 
@@ -134,7 +163,10 @@ export function CalendarFormDialog({
               onChange={(e) => setStartDate(e.target.value)}
             />
             <Input
-              type="time"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-2][0-9]:[0-5][0-9]"
+              placeholder="HH:MM"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
             />
@@ -150,7 +182,10 @@ export function CalendarFormDialog({
               onChange={(e) => setEndDate(e.target.value)}
             />
             <Input
-              type="time"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-2][0-9]:[0-5][0-9]"
+              placeholder="HH:MM"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
             />

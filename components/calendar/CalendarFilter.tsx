@@ -11,15 +11,21 @@ import { Search } from "lucide-react"
 import type { CalendarType } from "@/types/calendar"
 
 const CALENDAR_TYPES: { value: CalendarType; label: string }[] = [
-  { value: "ACADEMIC", label: "학사일정" },
-  { value: "DEPARTMENT", label: "학부행사" },
+  { value: "ACADEMIC", label: "학사" },
+  { value: "DEPARTMENT", label: "학부" },
   { value: "CCSSAA", label: "CCSSAA" },
   { value: "STUDENT_COUNCIL", label: "학생회" },
   { value: "COMPETITION", label: "대회" },
   { value: "HOLIDAY", label: "공휴일" },
 ]
 
-export function CalendarFilter() {
+interface CalendarFilterProps {
+  hideDateFilter?: boolean
+  hideSearchButton?: boolean
+  onTypeChange?: (types: CalendarType[]) => void
+}
+
+export function CalendarFilter({ hideDateFilter = false, hideSearchButton = false, onTypeChange }: CalendarFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -31,11 +37,18 @@ export function CalendarFilter() {
   })
 
   const handleTypeToggle = (type: CalendarType) => {
-    setSelectedTypes((prev) =>
-      prev.includes(type)
+    setSelectedTypes((prev) => {
+      const newTypes = prev.includes(type)
         ? prev.filter((t) => t !== type)
         : [...prev, type]
-    )
+      
+      // 달력 뷰일 때는 즉시 콜백 호출
+      if (onTypeChange) {
+        onTypeChange(newTypes)
+      }
+      
+      return newTypes
+    })
   }
 
   const handleSearch = () => {
@@ -58,24 +71,26 @@ export function CalendarFilter() {
     <Card>
       <CardContent className="pt-6">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                type="date"
-                placeholder="시작일"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-              />
+          {!hideDateFilter && (
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  type="date"
+                  placeholder="시작일"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </div>
+              <div className="flex-1">
+                <Input
+                  type="date"
+                  placeholder="종료일"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <Input
-                type="date"
-                placeholder="종료일"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-              />
-            </div>
-          </div>
+          )}
           
           <div>
             <Label className="text-sm font-medium mb-2 block">일정 타입</Label>
@@ -98,12 +113,14 @@ export function CalendarFilter() {
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button onClick={handleSearch} className="w-full sm:w-auto">
-              <Search className="mr-2 h-4 w-4" />
-              검색
-            </Button>
-          </div>
+          {!hideSearchButton && (
+            <div className="flex justify-end">
+              <Button onClick={handleSearch} className="w-full sm:w-auto">
+                <Search className="mr-2 h-4 w-4" />
+                검색
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useMemo } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { CalendarFilter } from "@/components/calendar/CalendarFilter"
 import { CalendarTable } from "@/components/calendar/CalendarTable"
+import { CalendarView } from "@/components/calendar/CalendarView"
 import { CalendarFormDialog } from "@/components/calendar/CalendarFormDialog"
 import {
   useCalendarEvents,
@@ -22,7 +23,7 @@ import type {
   CreateCalendarEventRequest,
   UpdateCalendarEventRequest,
 } from "@/types/calendar"
-import { Plus } from "lucide-react"
+import { Plus, List, Calendar } from "lucide-react"
 
 function CalendarPageContent() {
   const router = useRouter()
@@ -31,6 +32,10 @@ function CalendarPageContent() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar")
+  const [initialDates, setInitialDates] = useState<{ start: Date; end: Date } | undefined>(undefined)
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [selectedTypes, setSelectedTypes] = useState<CalendarType[]>([])
 
   // 기본 검색 조건: 이번 달 + 다음 달
   const getDefaultDateRange = () => {
@@ -49,27 +54,64 @@ function CalendarPageContent() {
   // 초기 진입 시 기본 날짜를 URL에 설정
   useEffect(() => {
     const hasParams = searchParams.toString()
-    if (!hasParams) {
+    if (!hasParams && viewMode === "list") {
       const params = new URLSearchParams()
       params.set("from", defaultDates.from)
       params.set("to", defaultDates.to)
       router.replace(`/calendar?${params.toString()}`)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const params: CalendarListParams = {
-    from: searchParams.get("from") || defaultDates.from,
-    to: searchParams.get("to") || defaultDates.to,
-    types: searchParams.get("types")?.split(",") as CalendarType[] | undefined,
+  // 달력 뷰일 때는 currentMonth 기준으로 from/to 계산
+  const getMonthRange = (date: Date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    
+    return {
+      from: firstDay.toISOString().split('T')[0],
+      to: lastDay.toISOString().split('T')[0],
+    }
   }
+
+  const monthRange = viewMode === "calendar" ? getMonthRange(currentMonth) : null
+
+  const params: CalendarListParams = useMemo(() => ({
+    from: viewMode === "calendar" && monthRange
+      ? monthRange.from
+      : (searchParams.get("from") || defaultDates.from),
+    to: viewMode === "calendar" && monthRange
+      ? monthRange.to
+      : (searchParams.get("to") || defaultDates.to),
+    // 달력 뷰일 때는 타입 필터링을 클라이언트에서 처리
+    types: viewMode === "list" 
+      ? (searchParams.get("types")?.split(",") as CalendarType[] | undefined)
+      : undefined,
+  }), [viewMode, monthRange, searchParams, defaultDates.from, defaultDates.to])
 
   const { data, isLoading, error } = useCalendarEvents(params)
   const createMutation = useCreateCalendarEvent()
   const updateMutation = useUpdateCalendarEvent()
   const deleteMutation = useDeleteCalendarEvent()
+  const calendarData = data?.data ?? []
 
   const handleCreate = () => {
     setSelectedEvent(null)
+    setInitialDates(undefined)
+    setIsFormDialogOpen(true)
+  }
+
+  const handleCreateWithDate = (slotInfo: { start: Date; end: Date }) => {
+    setSelectedEvent(null)
+    // 선택한 날짜의 정오(12:00)부터 다음날 자정(00:00)까지 설정
+    const start = new Date(slotInfo.start)
+    start.setHours(12, 0, 0, 0)
+    const end = new Date(slotInfo.start)
+    end.setDate(end.getDate() + 1)
+    end.setHours(0, 0, 0, 0)
+    setInitialDates({ start, end })
     setIsFormDialogOpen(true)
   }
 
@@ -129,19 +171,59 @@ function CalendarPageContent() {
             일정을 등록하고 관리할 수 있습니다.
           </p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          일정 등록
-        </Button>
+        <div className="flex gap-2">
+          <div className="flex border rounded-lg">
+            <Button
+              variant={viewMode === "calendar" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("calendar")}
+              className="rounded-r-none"
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              달력
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="rounded-l-none"
+            >
+              <List className="mr-2 h-4 w-4" />
+              리스트
+            </Button>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            일정 등록
+          </Button>
+        </div>
       </div>
 
-      <CalendarFilter />
+      <CalendarFilter 
+        hideDateFilter={viewMode === "calendar"} 
+        hideSearchButton={viewMode === "calendar"}
+        onTypeChange={viewMode === "calendar" ? setSelectedTypes : undefined}
+      />
 
-      {data && (
-        <CalendarTable
-          data={data.data}
+      {viewMode === "list" ? (
+        data ? (
+          <CalendarTable
+            data={data.data}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            isLoading={isLoading}
+          />
+        ) : (
+          <Skeleton className="h-64 w-full" />
+        )
+      ) : (
+        <CalendarView
+          data={calendarData}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onSelectSlot={handleCreateWithDate}
+          onMonthChange={(date) => setCurrentMonth(date)}
+          selectedTypes={selectedTypes}
           isLoading={isLoading}
         />
       )}
@@ -151,6 +233,7 @@ function CalendarPageContent() {
         open={isFormDialogOpen}
         onOpenChange={setIsFormDialogOpen}
         event={selectedEvent || undefined}
+        initialDates={initialDates}
         onSubmit={handleSubmit}
         isLoading={createMutation.isPending || updateMutation.isPending}
       />
