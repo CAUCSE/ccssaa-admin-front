@@ -75,9 +75,9 @@ export function UserFilter() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="전체">전체</SelectItem>
-              {DEPARTMENTS.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
+              {Object.entries(DEPARTMENTS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -105,6 +105,7 @@ export function UserFilter() {
               <SelectItem value="ALL">전체</SelectItem>
               <SelectItem value="ENROLLED">재적</SelectItem>
               <SelectItem value="GRADUATED">졸업</SelectItem>
+              <SelectItem value="UNDETERMINED">미정</SelectItem>
             </SelectContent>
           </Select>
 

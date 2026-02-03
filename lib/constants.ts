@@ -30,11 +30,11 @@ export const USER_ROLE_CONFIG = {
 } as const
 
 // 학과 목록
-export const DEPARTMENTS = [
-  "AI학과",
-  "소프트웨어학부",
-  "컴퓨터공학부",
-  "컴퓨터공학과",
-  "전자계산학과",
-] as const
+export const DEPARTMENTS = {
+  DEPT_OF_AI: "AI학과",
+  SCHOOL_OF_SW: "소프트웨어학부",
+  SCHOOL_OF_CSE: "컴퓨터공학부",
+  DEPT_OF_CSE: "컴퓨터공학과",
+  DEPT_OF_CS: "전자계산학과",
+} as const
 

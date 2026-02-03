@@ -19,7 +19,16 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   }
 
   const getAcademicStatusLabel = (status: AcademicStatus) => {
-    return status === "ENROLLED" ? "재적" : "졸업"
+    switch (status) {
+      case "ENROLLED":
+        return "재적"
+      case "GRADUATED":
+        return "졸업"
+      case "UNDETERMINED":
+        return "미정"
+      default:
+        return ""
+    }
   }
 
   return (

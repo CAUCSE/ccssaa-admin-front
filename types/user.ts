@@ -1,12 +1,16 @@
+import { DEPARTMENTS } from "@/lib/constants"
+
 export type UserStatus = "AWAIT" | "ACTIVE" | "DROP" | "INACTIVE" | "REJECT"
 export type UserRole = "USER" | "ADMIN" | "MASTER"
-export type AcademicStatus = "ENROLLED" | "GRADUATED"
+export type AcademicStatus = "ENROLLED" | "GRADUATED" | "UNDETERMINED"
+
+export type Department = keyof typeof DEPARTMENTS
 
 export interface UserSummary {
   id: string
   studentNo: string
   name: string
-  department: string
+  department: Department
   status: UserStatus
   academicStatus: AcademicStatus
   joinedAt: string
@@ -22,7 +26,7 @@ export interface UserDetail {
   state: UserStatus
   nickname: string
   major: string
-  department: string
+  department: Department
   academicStatus: AcademicStatus
   phoneNumber: string
   rejectionOrDropReason: string | null
@@ -33,7 +37,7 @@ export interface UserListParams {
   page?: number
   size?: number
   keyword?: string
-  department?: string
+  department?: Department
   status?: UserStatus | "ALL"
   academicStatus?: AcademicStatus | "ALL"
 }

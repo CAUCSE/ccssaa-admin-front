@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { UserFilter } from "@/components/user/UserFilter"
 import { UserTable } from "@/components/user/UserTable"
 import { useUsers } from "@/hooks/useUsers"
-import type { UserListParams, UserStatus } from "@/types/user"
+import type { UserListParams, UserStatus, AcademicStatus, Department } from "@/types/user"
 import { Skeleton } from "@/components/ui/skeleton"
 
 function UsersPageContent() {
@@ -18,8 +18,9 @@ function UsersPageContent() {
     page: page - 1, // API는 0-based
     size: 10,
     keyword: searchParams.get("keyword") || undefined,
-    department: searchParams.get("department") || undefined,
+    department: (searchParams.get("department") as Department) || undefined,
     status: (searchParams.get("status") as UserStatus) || undefined,
+    academicStatus: (searchParams.get("academicStatus") as AcademicStatus) || undefined,
   }
 
   const { data, isLoading, error } = useUsers(params)

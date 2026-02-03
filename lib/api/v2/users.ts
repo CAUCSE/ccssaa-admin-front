@@ -9,6 +9,7 @@ import type { ApiResponse } from "@/types/api-v2"
 import type {
   AdminUserItemV2,
   AdminUsersSearchParamsV2,
+  Department,
   UserDetail,
   UserListParams,
   UserListResponse,
@@ -97,7 +98,7 @@ function normalizeUserListResponseV2(
       id: item.id,
       studentNo: item.studentId,
       name: item.name,
-      department: mapDepartmentLabel(item.department),
+      department: mapDepartmentLabel(item.department) as Department,
       status: item.state as any, // 백엔드 state 문자열을 UserStatus로 사용
       academicStatus: item.academicStatus as any,
       joinedAt: item.createdAt,
@@ -150,6 +151,6 @@ export async function getAdminUserDetailV2(
   const data = unwrapV2(res) as UserDetail
   return {
     ...data,
-    department: data.department ? mapDepartmentLabel(data.department) : data.department,
+    department: (data.department ? mapDepartmentLabel(data.department) : data.department) as Department,
   }
 }
