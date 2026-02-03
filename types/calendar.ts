@@ -15,10 +15,9 @@ export interface CalendarEvent {
 }
 
 export interface CalendarListParams {
-  type?: CalendarType
-  startDate?: string
-  endDate?: string
-  keyword?: string
+  types?: CalendarType[]
+  from?: string
+  to?: string
 }
 
 export interface CalendarListResponse {

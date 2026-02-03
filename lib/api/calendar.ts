@@ -15,7 +15,17 @@ const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 const realCalendarApi = {
   // 캘린더 일정 목록 조회
   getCalendarEvents: async (params: CalendarListParams): Promise<CalendarListResponse> => {
-    const response = await apiV2.get<{ data: CalendarListResponse }>("/schedules", { params })
+    // types 배열을 쉼표로 구분된 문자열로 변환
+    const queryParams: Record<string, any> = {}
+    if (params.from) queryParams.from = `${params.from}T00:00:00`
+    if (params.to) queryParams.to = `${params.to}T23:59:59`
+    if (params.types && params.types.length > 0) {
+      queryParams.types = params.types.join(',')
+    }
+
+    const response = await apiV2.get<{ data: CalendarListResponse }>("/schedules", { 
+      params: queryParams 
+    })
     return response.data.data
   },
 

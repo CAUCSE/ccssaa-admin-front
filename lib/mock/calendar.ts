@@ -81,33 +81,26 @@ export const mockCalendarApi = {
 
     let filteredEvents = [...mockCalendarEvents]
 
-    // 날짜 범위 필터링
-    if (params.startDate) {
-      const startDate = new Date(params.startDate)
+    // 날짜 범위 필터링 (from)
+    if (params.from) {
+      const fromDate = new Date(params.from)
       filteredEvents = filteredEvents.filter(
-        (event) => new Date(event.start) >= startDate
+        (event) => new Date(event.start) >= fromDate
       )
     }
-    if (params.endDate) {
-      const endDate = new Date(params.endDate)
-      endDate.setHours(23, 59, 59, 999)
+    // 날짜 범위 필터링 (to)
+    if (params.to) {
+      const toDate = new Date(params.to)
+      toDate.setHours(23, 59, 59, 999)
       filteredEvents = filteredEvents.filter(
-        (event) => new Date(event.end) <= endDate
-      )
-    }
-
-    // 타입 필터링
-    if (params.type) {
-      filteredEvents = filteredEvents.filter(
-        (event) => event.type === params.type
+        (event) => new Date(event.end) <= toDate
       )
     }
 
-    // 키워드 검색
-    if (params.keyword) {
-      const keyword = params.keyword.toLowerCase()
+    // 타입 필터링 (복수 선택)
+    if (params.types && params.types.length > 0) {
       filteredEvents = filteredEvents.filter(
-        (event) => event.title.toLowerCase().includes(keyword)
+        (event) => params.types!.includes(event.type)
       )
     }
 

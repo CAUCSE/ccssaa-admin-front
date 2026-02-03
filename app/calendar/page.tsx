@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { CalendarFilter } from "@/components/calendar/CalendarFilter"
 import { CalendarTable } from "@/components/calendar/CalendarTable"
 import { CalendarFormDialog } from "@/components/calendar/CalendarFormDialog"
@@ -25,17 +25,42 @@ import type {
 import { Plus } from "lucide-react"
 
 function CalendarPageContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null)
 
+  // 기본 검색 조건: 이번 달 + 다음 달
+  const getDefaultDateRange = () => {
+    const now = new Date()
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const nextMonthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0)
+    
+    const from = thisMonthStart.toISOString().split('T')[0]
+    const to = nextMonthEnd.toISOString().split('T')[0]
+    
+    return { from, to }
+  }
+
+  const defaultDates = getDefaultDateRange()
+
+  // 초기 진입 시 기본 날짜를 URL에 설정
+  useEffect(() => {
+    const hasParams = searchParams.toString()
+    if (!hasParams) {
+      const params = new URLSearchParams()
+      params.set("from", defaultDates.from)
+      params.set("to", defaultDates.to)
+      router.replace(`/calendar?${params.toString()}`)
+    }
+  }, [])
+
   const params: CalendarListParams = {
-    startDate: searchParams.get("startDate") || undefined,
-    endDate: searchParams.get("endDate") || undefined,
-    type: (searchParams.get("type") as CalendarType) || undefined,
-    keyword: searchParams.get("keyword") || undefined,
+    from: searchParams.get("from") || defaultDates.from,
+    to: searchParams.get("to") || defaultDates.to,
+    types: searchParams.get("types")?.split(",") as CalendarType[] | undefined,
   }
 
   const { data, isLoading, error } = useCalendarEvents(params)
