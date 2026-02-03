@@ -49,7 +49,7 @@ export function CalendarTable({
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="rounded-md border">
+        <div className="rounded-md border max-h-[600px] overflow-y-auto overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -89,7 +89,7 @@ export function CalendarTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border overflow-x-auto">
+      <div className="rounded-md border max-h-[600px] overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
