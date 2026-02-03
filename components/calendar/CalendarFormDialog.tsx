@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { FormDialog } from "@/components/ui/form-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -45,10 +46,13 @@ export function CalendarFormDialog({
   const [startTime, setStartTime] = useState("")
   const [endDate, setEndDate] = useState("")
   const [endTime, setEndTime] = useState("")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const isValidTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value)
 
   useEffect(() => {
+    setErrorMessage(null)
+
     if (event) {
       setTitle(event.title)
       setType(event.type)
@@ -95,12 +99,20 @@ export function CalendarFormDialog({
 
   const handleSubmit = () => {
     if (!title.trim() || !startDate || !startTime || !endDate || !endTime) {
+      const message = "모든 필수 항목을 입력해주세요."
+      setErrorMessage(message)
+      toast.error(message)
       return
     }
 
     if (!isValidTime(startTime) || !isValidTime(endTime)) {
+      const message = "시간 형식이 올바르지 않습니다. HH:MM 형식으로 입력해주세요."
+      setErrorMessage(message)
+      toast.error(message)
       return
     }
+
+    setErrorMessage(null)
 
     const start = new Date(`${startDate}T${startTime}`)
     const end = new Date(`${endDate}T${endTime}`)
@@ -127,6 +139,7 @@ export function CalendarFormDialog({
       isLoading={isLoading}
     >
       <div className="space-y-4">
+        {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
         <div>
           <Label htmlFor="title">일정명 *</Label>
           <Input
