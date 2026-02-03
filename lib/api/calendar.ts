@@ -1,4 +1,4 @@
-import { apiV2 } from "../api"
+import { apiV2 } from "./v2/client"
 import type {
   CalendarEvent,
   CalendarListParams,
