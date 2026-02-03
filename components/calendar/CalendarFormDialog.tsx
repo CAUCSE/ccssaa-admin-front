@@ -112,10 +112,17 @@ export function CalendarFormDialog({
       return
     }
 
-    setErrorMessage(null)
-
     const start = new Date(`${startDate}T${startTime}`)
     const end = new Date(`${endDate}T${endTime}`)
+
+    if (start > end) {
+      const message = "시작 일시는 종료 일시보다 늦을 수 없습니다."
+      setErrorMessage(message)
+      toast.error(message)
+      return
+    }
+
+    setErrorMessage(null)
     
     const data: CreateCalendarEventRequest | UpdateCalendarEventRequest = {
       title: title.trim(),
