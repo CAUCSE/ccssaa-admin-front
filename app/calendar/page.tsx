@@ -49,7 +49,7 @@ function CalendarPageContent() {
     return { from, to }
   }
 
-  const defaultDates = getDefaultDateRange()
+  const defaultDates = useMemo(() => getDefaultDateRange(), [])
 
   // 초기 진입 시 기본 날짜를 URL에 설정
   useEffect(() => {
