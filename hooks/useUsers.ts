@@ -26,7 +26,7 @@ export function useAdminUsersV2(params: AdminUsersSearchParamsV2 | undefined) {
 }
 
 // 회원 상세 조회
-export function useUserDetail(userId: number) {
+export function useUserDetail(userId: string) {
   return useQuery({
     queryKey: ["admin-user", userId],
     queryFn: () => userApi.getUserDetail(userId),
@@ -87,13 +87,47 @@ export function useBanUser() {
   })
 }
 
+// 목록에서 삭제
+export function useDeleteUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: userApi.deleteUser,
+    onSuccess: (_, userId) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
+      toast.success("목록에서 삭제되었습니다.")
+    },
+    onError: () => {
+      toast.error("삭제에 실패했습니다.")
+    },
+  })
+}
+
+// 추방 사용자 복구
+export function useRestoreUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: userApi.restoreUser,
+    onSuccess: (_, userId) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
+      toast.success("복구가 완료되었습니다.")
+    },
+    onError: () => {
+      toast.error("복구에 실패했습니다.")
+    },
+  })
+}
+
 // 역할 변경
 export function useUpdateUserRole() {
   const queryClient = useQueryClient()
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: ({ userId, role }: { userId: number; role: "USER" | "ADMIN" | "MASTER" }) =>
+    mutationFn: ({ userId, role }: { userId: string; role: "USER" | "ADMIN" | "MASTER" }) =>
       userApi.updateUserRole(userId, role),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })

@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { useUpdateUserRole } from "@/hooks/useUsers"
 import { USER_ROLE_CONFIG } from "@/lib/constants"
 import type { UserDetail, UserRole } from "@/types/user"
@@ -20,16 +21,19 @@ interface UserRoleBoxProps {
 }
 
 export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
-  const [selectedRole, setSelectedRole] = useState<UserRole>(user.role)
+  // roles 배열의 첫 번째 역할을 기본값으로 사용 (또는 가장 높은 권한)
+  const primaryRole = user.roles[0] || "USER"
+  const [selectedRole, setSelectedRole] = useState<UserRole>(primaryRole as UserRole)
   const [isEditing, setIsEditing] = useState(false)
   const updateRole = useUpdateUserRole()
 
   const handleSave = () => {
-    if (selectedRole === user.role) {
+    if (selectedRole === primaryRole) {
       setIsEditing(false)
       return
     }
 
+    // TODO: API가 string ID를 받도록 수정 필요
     updateRole.mutate(
       { userId: user.id, role: selectedRole },
       {
@@ -41,7 +45,7 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
   }
 
   const handleCancel = () => {
-    setSelectedRole(user.role)
+    setSelectedRole(primaryRole as UserRole)
     setIsEditing(false)
   }
 
@@ -53,7 +57,13 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-2">현재 역할</p>
-          <p className="font-medium">{USER_ROLE_CONFIG[user.role]}</p>
+          <div className="flex flex-wrap gap-1">
+            {user.roles.map((role) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
         </CardContent>
       </Card>
     )
@@ -66,6 +76,14 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
+          <p className="text-sm text-muted-foreground mb-2">현재 역할</p>
+          <div className="flex flex-wrap gap-1 mb-4">
+            {user.roles.map((role) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
           <p className="text-sm text-muted-foreground mb-2">역할 선택</p>
           <Select
             value={selectedRole}

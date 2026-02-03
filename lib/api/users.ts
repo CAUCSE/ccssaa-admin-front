@@ -18,29 +18,39 @@ const realUserApi = {
   },
 
   // 회원 상세 조회
-  getUserDetail: async (userId: number): Promise<UserDetail> => {
+  getUserDetail: async (userId: string): Promise<UserDetail> => {
     const response = await api.get<UserDetail>(`/admin/users/${userId}`)
     return response.data
   },
 
   // 회원 승인
-  approveUser: async (userId: number): Promise<void> => {
+  approveUser: async (userId: string): Promise<void> => {
     await api.post(`/admin/users/${userId}/approve`)
   },
 
   // 회원 거부
-  rejectUser: async (userId: number): Promise<void> => {
+  rejectUser: async (userId: string): Promise<void> => {
     await api.post(`/admin/users/${userId}/reject`)
   },
 
   // 회원 추방
-  banUser: async (userId: number): Promise<void> => {
+  banUser: async (userId: string): Promise<void> => {
     await api.post(`/admin/users/${userId}/ban`)
+  },
+
+  // 목록에서 삭제 (관리자)
+  deleteUser: async (userId: string): Promise<void> => {
+    await api.delete(`/admin/users/${userId}`)
+  },
+
+  // 추방 사용자 복구 (관리자)
+  restoreUser: async (userId: string): Promise<void> => {
+    await api.post(`/admin/users/${userId}/restore`)
   },
 
   // 역할 변경
   updateUserRole: async (
-    userId: number,
+    userId: string,
     role: "USER" | "ADMIN" | "MASTER"
   ): Promise<void> => {
     await api.patch(`/admin/users/${userId}/role`, { role })

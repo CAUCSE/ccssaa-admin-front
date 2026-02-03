@@ -3,7 +3,7 @@ export type UserRole = "USER" | "ADMIN" | "MASTER"
 export type AcademicStatus = "ENROLLED" | "GRADUATED"
 
 export interface UserSummary {
-  id: number
+  id: string
   studentNo: string
   name: string
   department: string
@@ -13,15 +13,20 @@ export interface UserSummary {
 }
 
 export interface UserDetail {
-  id: number
-  studentNo: string
-  name: string
-  department: string
-  phone: string
+  id: string
   email: string
-  joinedAt: string
-  status: UserStatus
-  role: UserRole
+  name: string
+  studentId: string
+  roles: string[]
+  profileImageUrl: string | null
+  state: UserStatus
+  nickname: string
+  major: string
+  department: string
+  academicStatus: AcademicStatus
+  phoneNumber: string
+  rejectionOrDropReason: string | null
+  createdAt: string
 }
 
 export interface UserListParams {
