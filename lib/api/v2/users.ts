@@ -9,6 +9,9 @@ import type { ApiResponse } from "@/types/api-v2"
 import type {
   AdminUserItemV2,
   AdminUsersSearchParamsV2,
+  UserDetail,
+  UserListParams,
+  UserListResponse,
 } from "@/types/user"
 
 /** API 응답 항목 — 백엔드가 name/email 또는 adminName/adminEmail 등으로 올 수 있음 */
@@ -47,4 +50,106 @@ export async function getAdminUsersV2(
     | RawUserItem[]
   const rawList = Array.isArray(data) ? data : (data?.users ?? data?.content ?? [])
   return rawList.map(normalizeToAdminUserItem)
+}
+
+/** v2 회원 리스트 응답 Raw 타입 (백엔드 DTO 그대로) */
+type RawUserSummaryV2 = {
+  id: string
+  name: string
+  studentId: string
+  department: string
+  state: string
+  academicStatus: string
+  createdAt: string
+}
+
+type RawUserListResponseV2 = {
+  content: RawUserSummaryV2[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+}
+
+/** 학과 코드 → 한글 라벨 매핑 */
+const DEPARTMENT_LABEL_MAP: Record<string, string> = {
+  DEPT_OF_AI: "AI학과",
+  SCHOOL_OF_SW: "소프트웨어학부",
+  SCHOOL_OF_CSE: "컴퓨터공학부",
+  DEPT_OF_CSE: "컴퓨터공학과",
+  DEPT_OF_CS: "전자계산학과",
+}
+
+function mapDepartmentLabel(code: string): string {
+  return DEPARTMENT_LABEL_MAP[code] ?? code
+}
+
+/** v2 리스트 응답을 기존 UserListResponse/UserSummary 타입으로 매핑 */
+function normalizeUserListResponseV2(
+  raw: RawUserListResponseV2
+): UserListResponse {
+  return {
+    totalElements: raw.totalElements,
+    totalPages: raw.totalPages,
+    size: raw.size,
+    number: raw.number,
+    content: raw.content.map((item) => ({
+      id: item.id,
+      studentNo: item.studentId,
+      name: item.name,
+      department: mapDepartmentLabel(item.department),
+      status: item.state as any, // 백엔드 state 문자열을 UserStatus로 사용
+      academicStatus: item.academicStatus as any,
+      joinedAt: item.createdAt,
+    })),
+  }
+}
+
+/**
+ * v2 전체 회원 리스트 조회
+ * GET /api/v2/admin/users
+ */
+export async function getAdminUserListV2(
+  params: UserListParams
+): Promise<UserListResponse> {
+  const query: Record<string, string | number | undefined> = {
+    page: params.page ?? 0,
+    size: params.size ?? 10,
+    keyword: params.keyword,
+    department: params.department,
+  }
+
+  // v2는 상태 필드명을 state로 사용하고, "ALL" 값은 보내지 않음
+  if (params.status && params.status !== "ALL") {
+    query.state = params.status
+  }
+
+  // academicStatus도 "ALL"은 전송하지 않음
+  if (params.academicStatus && params.academicStatus !== "ALL") {
+    query.academicStatus = params.academicStatus
+  }
+
+  const res = await apiV2.get<ApiResponse<RawUserListResponseV2>>(
+    "/admin/users",
+    { params: query }
+  )
+  const data = unwrapV2(res) as RawUserListResponseV2
+  return normalizeUserListResponseV2(data)
+}
+
+/**
+ * v2 회원 상세 조회
+ * GET /api/v2/admin/users/{userId}
+ */
+export async function getAdminUserDetailV2(
+  userId: string
+): Promise<UserDetail> {
+  const res = await apiV2.get<ApiResponse<UserDetail>>(
+    `/admin/users/${userId}`
+  )
+  const data = unwrapV2(res) as UserDetail
+  return {
+    ...data,
+    department: data.department ? mapDepartmentLabel(data.department) : data.department,
+  }
 }
