@@ -77,8 +77,8 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
 
   const dialogContent = getDialogContent()
 
-  // PENDING 상태
-  if (user.status === "PENDING") {
+  // AWAIT 상태
+  if (user.status === "AWAIT") {
     return (
       <>
         <div className="flex gap-4 justify-end pt-6 border-t">
@@ -149,7 +149,7 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
     )
   }
 
-  // BANNED 상태 - 액션 없음
+  // DROP, INACTIVE, REJECT 상태 - 액션 없음
   return null
 }
 

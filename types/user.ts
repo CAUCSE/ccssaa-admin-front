@@ -1,5 +1,6 @@
-export type UserStatus = "PENDING" | "ACTIVE" | "BANNED"
+export type UserStatus = "AWAIT" | "ACTIVE" | "DROP" | "INACTIVE" | "REJECT"
 export type UserRole = "USER" | "ADMIN" | "MASTER"
+export type AcademicStatus = "ENROLLED" | "GRADUATED"
 
 export interface UserSummary {
   id: number
@@ -7,6 +8,7 @@ export interface UserSummary {
   name: string
   department: string
   status: UserStatus
+  academicStatus: AcademicStatus
   joinedAt: string
 }
 
@@ -28,6 +30,7 @@ export interface UserListParams {
   keyword?: string
   department?: string
   status?: UserStatus | "ALL"
+  academicStatus?: AcademicStatus | "ALL"
 }
 
 export interface UserListResponse {

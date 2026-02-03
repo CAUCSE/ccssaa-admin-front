@@ -4,18 +4,20 @@ import type {
   UserListParams,
   UserListResponse,
   UserStatus,
+  AcademicStatus,
 } from "@/types/user"
 
 // Mock 데이터 생성
 const generateMockUsers = (): UserSummary[] => {
   const departments = [
+    "AI학과",
     "소프트웨어학부",
     "컴퓨터공학부",
-    "전자공학부",
-    "기계공학부",
-    "화학공학부",
+    "컴퓨터공학과",
+    "전자계산학과",
   ]
-  const statuses: UserStatus[] = ["PENDING", "ACTIVE", "BANNED"]
+  const statuses: UserStatus[] = ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"]
+  const academicStatuses: AcademicStatus[] = ["ENROLLED", "GRADUATED"]
   const names = [
     "김철수",
     "이영희",
@@ -33,6 +35,7 @@ const generateMockUsers = (): UserSummary[] => {
     const year = 2020 + Math.floor(Math.random() * 5)
     const studentNo = `${year}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`
     const status = statuses[Math.floor(Math.random() * statuses.length)]
+    const academicStatus = academicStatuses[Math.floor(Math.random() * academicStatuses.length)]
     const joinedDate = new Date(2023 + Math.floor(Math.random() * 2), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1)
 
     return {
@@ -41,6 +44,7 @@ const generateMockUsers = (): UserSummary[] => {
       name: names[Math.floor(Math.random() * names.length)],
       department: departments[Math.floor(Math.random() * departments.length)],
       status,
+      academicStatus,
       joinedAt: joinedDate.toISOString(),
     }
   })
@@ -78,6 +82,13 @@ export const mockUserApi = {
     if (params.status && params.status !== "ALL") {
       filteredUsers = filteredUsers.filter(
         (user) => user.status === params.status
+      )
+    }
+
+    // 학적 상태 필터링
+    if (params.academicStatus && params.academicStatus !== "ALL") {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.academicStatus === params.academicStatus
       )
     }
 
@@ -134,7 +145,7 @@ export const mockUserApi = {
     await new Promise((resolve) => setTimeout(resolve, 300))
     const user = mockUsers.find((u) => u.id === userId)
     if (user) {
-      user.status = "BANNED"
+      user.status = "REJECT"
     }
   },
 
@@ -143,7 +154,7 @@ export const mockUserApi = {
     await new Promise((resolve) => setTimeout(resolve, 300))
     const user = mockUsers.find((u) => u.id === userId)
     if (user) {
-      user.status = "BANNED"
+      user.status = "DROP"
     }
   },
 

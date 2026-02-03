@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
-import type { UserSummary } from "@/types/user"
+import type { UserSummary, AcademicStatus } from "@/types/user"
 import { ChevronUp, ChevronDown, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -35,8 +35,8 @@ interface UserTableProps {
  * 회원 목록을 테이블 형태로 표시하는 컴포넌트입니다.
  * 
  * 기능:
- * - 회원 목록 표시 (학번, 이름, 학과, 상태, 가입일)
- * - 정렬 기능 (학번, 이름, 학과, 상태, 가입일)
+ * - 회원 목록 표시 (학번, 이름, 학과, 상태, 학적 상태)
+ * - 정렬 기능 (학번, 이름, 학과, 상태, 학적 상태)
  * - 페이지네이션
  * - 로딩 상태 표시
  * - Empty State 처리
@@ -67,9 +67,8 @@ export function UserTable({
 }: UserTableProps) {
   const router = useRouter()
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
+  const getAcademicStatusLabel = (status: AcademicStatus) => {
+    return status === "ENROLLED" ? "재적" : "졸업"
   }
 
   const getSortIcon = (field: string) => {
@@ -175,11 +174,11 @@ export function UserTable({
               </TableHead>
               <TableHead className="text-center">
                 <button
-                  onClick={() => handleSort("joinedAt")}
+                  onClick={() => handleSort("academicStatus")}
                   className="flex items-center justify-center gap-1 hover:text-foreground"
                 >
-                  가입일
-                  {getSortIcon("joinedAt")}
+                  학적 상태
+                  {getSortIcon("academicStatus")}
                 </button>
               </TableHead>
               <TableHead className="text-center">관리</TableHead>
@@ -208,7 +207,7 @@ export function UserTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    {formatDate(user.joinedAt)}
+                    {getAcademicStatusLabel(user.academicStatus)}
                   </TableCell>
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     <Button
