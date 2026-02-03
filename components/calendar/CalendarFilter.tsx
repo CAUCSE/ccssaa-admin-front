@@ -19,6 +19,25 @@ const CALENDAR_TYPES: { value: CalendarType; label: string }[] = [
   { value: "HOLIDAY", label: "공휴일" },
 ]
 
+const getTypeColor = (type: CalendarType): string => {
+  switch (type) {
+    case "ACADEMIC":
+      return "#6B7280"
+    case "DEPARTMENT":
+      return "#10B981"
+    case "CCSSAA":
+      return "#F59E0B"
+    case "STUDENT_COUNCIL":
+      return "#2563EB"
+    case "COMPETITION":
+      return "#EF4444"
+    case "HOLIDAY":
+      return "#7C3AED"
+    default:
+      return "#6B7280"
+  }
+}
+
 interface CalendarFilterProps {
   hideDateFilter?: boolean
   hideSearchButton?: boolean
@@ -101,6 +120,11 @@ export function CalendarFilter({ hideDateFilter = false, hideSearchButton = fals
                     id={type.value}
                     checked={selectedTypes.includes(type.value)}
                     onCheckedChange={() => handleTypeToggle(type.value)}
+                  />
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: getTypeColor(type.value) }}
+                    aria-hidden="true"
                   />
                   <Label
                     htmlFor={type.value}

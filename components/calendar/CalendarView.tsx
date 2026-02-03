@@ -46,17 +46,17 @@ type CalendarRbcEvent = RBCEvent & { resource: CalendarEvent }
 const getEventColor = (type: CalendarType): string => {
   switch (type) {
     case "ACADEMIC":
-      return "#6B7280" // default (gray)
+      return "#6B7280" // gray
     case "DEPARTMENT":
       return "#10B981" // success (green)
     case "CCSSAA":
       return "#F59E0B" // warning (amber)
     case "STUDENT_COUNCIL":
-      return "#9CA3AF" // secondary (gray)
+      return "#2563EB" // blue
     case "COMPETITION":
       return "#EF4444" // destructive (red)
     case "HOLIDAY":
-      return "#6366F1" // indigo
+      return "#7C3AED" // purple
     default:
       return "#6B7280"
   }
