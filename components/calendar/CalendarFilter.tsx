@@ -23,8 +23,8 @@ export function CalendarFilter() {
     searchParams.get("startDate") || ""
   )
   const [endDate, setEndDate] = useState(searchParams.get("endDate") || "")
-  const [type, setType] = useState<CalendarType | "">(
-    (searchParams.get("type") as CalendarType) || ""
+  const [type, setType] = useState<CalendarType | "ALL">(
+    (searchParams.get("type") as CalendarType) || "ALL"
   )
   const [keyword, setKeyword] = useState(searchParams.get("keyword") || "")
 
@@ -37,7 +37,7 @@ export function CalendarFilter() {
     if (endDate) {
       params.set("endDate", endDate)
     }
-    if (type) {
+    if (type && type !== "ALL") {
       params.set("type", type)
     }
     if (keyword.trim()) {
@@ -76,13 +76,13 @@ export function CalendarFilter() {
             </div>
             <Select
               value={type}
-              onValueChange={(value) => setType(value as CalendarType | "")}
+              onValueChange={(value) => setType(value as CalendarType | "ALL")}
             >
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="일정 타입" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">전체</SelectItem>
+                <SelectItem value="ALL">전체</SelectItem>
                 <SelectItem value="ACADEMIC">학사일정</SelectItem>
                 <SelectItem value="DEPARTMENT">학부행사</SelectItem>
                 <SelectItem value="CCSSAA">CCSSAA</SelectItem>
