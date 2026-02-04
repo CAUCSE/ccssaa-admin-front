@@ -58,9 +58,9 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
         <CardContent>
           <p className="text-sm text-muted-foreground mb-2">현재 역할</p>
           <div className="flex flex-wrap gap-1">
-            {user.roles.map((role) => (
+            {(user.roles ?? []).map((role) => (
               <Badge key={role} variant="secondary">
-                {role}
+                {USER_ROLE_CONFIG[role] ?? role}
               </Badge>
             ))}
           </div>
