@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Search } from "lucide-react"
-import { DEPARTMENTS } from "@/lib/constants"
+import { DEPARTMENT_CONFIG } from "@/types/user"
 import type { UserStatus, AcademicStatus } from "@/types/user"
 
 export function UserFilter() {
@@ -75,7 +75,7 @@ export function UserFilter() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="전체">전체</SelectItem>
-              {Object.entries(DEPARTMENTS).map(([key, label]) => (
+              {Object.entries(DEPARTMENT_CONFIG).map(([key, label]) => (
                 <SelectItem key={key} value={key}>
                   {label}
                 </SelectItem>

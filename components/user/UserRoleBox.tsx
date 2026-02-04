@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useUpdateUserRole } from "@/hooks/useUsers"
-import { USER_ROLE_CONFIG } from "@/lib/constants"
+import { USER_ROLE_CONFIG } from "@/types/user"
 import type { UserDetail, UserRole } from "@/types/user"
 
 interface UserRoleBoxProps {

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserSummary, AcademicStatus } from "@/types/user"
-import { DEPARTMENTS, ACADEMIC_STATUS_CONFIG } from "@/lib/constants"
+import { ACADEMIC_STATUS_CONFIG, DEPARTMENT_CONFIG } from "@/types/user"
 import { ChevronUp, ChevronDown, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -69,7 +69,7 @@ export function UserTable({
   const router = useRouter()
 
   const getDepartmentLabel = (code: string) => {
-    return DEPARTMENTS[code as keyof typeof DEPARTMENTS] ?? code
+    return DEPARTMENT_CONFIG[code as keyof typeof DEPARTMENT_CONFIG] ?? code
   }
 
   const getAcademicStatusLabel = (status: AcademicStatus) => {

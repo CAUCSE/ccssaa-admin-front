@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserDetail, AcademicStatus } from "@/types/user"
-import { DEPARTMENTS, ACADEMIC_STATUS_CONFIG } from "@/lib/constants"
+import { ACADEMIC_STATUS_CONFIG, DEPARTMENT_CONFIG } from "@/types/user"
 import Image from "next/image"
 
 interface UserProfileCardProps {
@@ -20,7 +20,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   }
 
   const getDepartmentLabel = (code: string) => {
-    return DEPARTMENTS[code as keyof typeof DEPARTMENTS] ?? code
+    return DEPARTMENT_CONFIG[code as keyof typeof DEPARTMENT_CONFIG] ?? code
   }
 
   const getAcademicStatusLabel = (status: AcademicStatus) => {

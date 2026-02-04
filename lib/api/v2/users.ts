@@ -16,6 +16,7 @@ import type {
   UserListResponse,
   UserStatus,
 } from "@/types/user"
+import { isUserStatus, isAcademicStatus } from "@/types/user"
 
 /** API 응답 항목 — 백엔드가 name/email 또는 adminName/adminEmail 등으로 올 수 있음 */
 type RawUserItem = Record<string, unknown> & {
@@ -74,15 +75,6 @@ type RawUserListResponseV2 = {
   number: number
 }
 
-/** UserStatus 타입 가드 */
-function isUserStatus(value: unknown): value is UserStatus {
-  return typeof value === "string" && ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"].includes(value)
-}
-
-/** AcademicStatus 타입 가드 */
-function isAcademicStatus(value: unknown): value is AcademicStatus {
-  return typeof value === "string" && ["ENROLLED", "GRADUATED", "UNDETERMINED"].includes(value)
-}
 
 /** v2 리스트 응답을 기존 UserListResponse/UserSummary 타입으로 매핑 */
 function normalizeUserListResponseV2(
