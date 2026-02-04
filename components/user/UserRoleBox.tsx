@@ -22,8 +22,8 @@ interface UserRoleBoxProps {
 
 export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
   // roles 배열의 첫 번째 역할을 기본값으로 사용 (또는 가장 높은 권한)
-  const primaryRole = user.roles[0] || "USER"
-  const [selectedRole, setSelectedRole] = useState<UserRole>(primaryRole as UserRole)
+  const primaryRole: UserRole = (user.roles && user.roles.length > 0 ? user.roles[0] : "USER") as UserRole
+  const [selectedRole, setSelectedRole] = useState<UserRole>(primaryRole)
   const [isEditing, setIsEditing] = useState(false)
   const updateRole = useUpdateUserRole()
 
