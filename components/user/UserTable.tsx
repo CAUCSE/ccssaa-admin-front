@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserSummary, AcademicStatus } from "@/types/user"
+import { DEPARTMENTS, ACADEMIC_STATUS_CONFIG } from "@/lib/constants"
 import { ChevronUp, ChevronDown, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -67,17 +68,12 @@ export function UserTable({
 }: UserTableProps) {
   const router = useRouter()
 
+  const getDepartmentLabel = (code: string) => {
+    return DEPARTMENTS[code as keyof typeof DEPARTMENTS] ?? code
+  }
+
   const getAcademicStatusLabel = (status: AcademicStatus) => {
-    switch (status) {
-      case "ENROLLED":
-        return "재적"
-      case "GRADUATED":
-        return "졸업"
-      case "UNDETERMINED":
-        return "미정"
-      default:
-        return ""
-    }
+    return ACADEMIC_STATUS_CONFIG[status] ?? ""
   }
 
   const getSortIcon = (field: string) => {
@@ -209,7 +205,7 @@ export function UserTable({
                     {user.studentNo}
                   </TableCell>
                   <TableCell className="text-left">{user.name}</TableCell>
-                  <TableCell className="text-left">{user.department}</TableCell>
+                  <TableCell className="text-left">{getDepartmentLabel(user.department)}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant={statusBadge.variant}>
                       {statusBadge.label}

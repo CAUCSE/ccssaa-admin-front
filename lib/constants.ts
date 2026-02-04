@@ -29,6 +29,13 @@ export const USER_ROLE_CONFIG = {
   MASTER: "마스터",
 } as const
 
+// 학적 상태 라벨 매핑
+export const ACADEMIC_STATUS_CONFIG = {
+  ENROLLED: "재적",
+  GRADUATED: "졸업",
+  UNDETERMINED: "미정",
+} as const
+
 // 학과 목록
 export const DEPARTMENTS = {
   DEPT_OF_AI: "AI학과",

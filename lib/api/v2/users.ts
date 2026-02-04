@@ -9,10 +9,12 @@ import type { ApiResponse } from "@/types/api-v2"
 import type {
   AdminUserItemV2,
   AdminUsersSearchParamsV2,
+  AcademicStatus,
   Department,
   UserDetail,
   UserListParams,
   UserListResponse,
+  UserStatus,
 } from "@/types/user"
 
 /** API 응답 항목 — 백엔드가 name/email 또는 adminName/adminEmail 등으로 올 수 있음 */
@@ -72,17 +74,14 @@ type RawUserListResponseV2 = {
   number: number
 }
 
-/** 학과 코드 → 한글 라벨 매핑 */
-const DEPARTMENT_LABEL_MAP: Record<string, string> = {
-  DEPT_OF_AI: "AI학과",
-  SCHOOL_OF_SW: "소프트웨어학부",
-  SCHOOL_OF_CSE: "컴퓨터공학부",
-  DEPT_OF_CSE: "컴퓨터공학과",
-  DEPT_OF_CS: "전자계산학과",
+/** UserStatus 타입 가드 */
+function isUserStatus(value: unknown): value is UserStatus {
+  return typeof value === "string" && ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"].includes(value)
 }
 
-function mapDepartmentLabel(code: string): string {
-  return DEPARTMENT_LABEL_MAP[code] ?? code
+/** AcademicStatus 타입 가드 */
+function isAcademicStatus(value: unknown): value is AcademicStatus {
+  return typeof value === "string" && ["ENROLLED", "GRADUATED", "UNDETERMINED"].includes(value)
 }
 
 /** v2 리스트 응답을 기존 UserListResponse/UserSummary 타입으로 매핑 */
@@ -94,15 +93,27 @@ function normalizeUserListResponseV2(
     totalPages: raw.totalPages,
     size: raw.size,
     number: raw.number,
-    content: raw.content.map((item) => ({
-      id: item.id,
-      studentNo: item.studentId,
-      name: item.name,
-      department: mapDepartmentLabel(item.department) as Department,
-      status: item.state as any, // 백엔드 state 문자열을 UserStatus로 사용
-      academicStatus: item.academicStatus as any,
-      joinedAt: item.createdAt,
-    })),
+    content: raw.content.map((item) => {
+      // 타입 가드로 UserStatus 검증
+      if (!isUserStatus(item.state)) {
+        console.warn(`Invalid UserStatus value: ${item.state}, defaulting to ACTIVE`)
+      }
+      
+      // 타입 가드로 AcademicStatus 검증
+      if (!isAcademicStatus(item.academicStatus)) {
+        console.warn(`Invalid AcademicStatus value: ${item.academicStatus}, defaulting to UNDETERMINED`)
+      }
+      
+      return {
+        id: item.id,
+        studentNo: item.studentId,
+        name: item.name,
+        department: item.department as Department,
+        status: isUserStatus(item.state) ? item.state : "ACTIVE",
+        academicStatus: isAcademicStatus(item.academicStatus) ? item.academicStatus : "UNDETERMINED",
+        joinedAt: item.createdAt,
+      }
+    }),
   }
 }
 
@@ -151,6 +162,6 @@ export async function getAdminUserDetailV2(
   const data = unwrapV2(res) as UserDetail
   return {
     ...data,
-    department: (data.department ? mapDepartmentLabel(data.department) : data.department) as Department,
+    department: data.department as Department,
   }
 }

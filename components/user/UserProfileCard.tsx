@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserDetail, AcademicStatus } from "@/types/user"
+import { DEPARTMENTS, ACADEMIC_STATUS_CONFIG } from "@/lib/constants"
 import Image from "next/image"
 
 interface UserProfileCardProps {
@@ -18,17 +19,12 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
   }
 
+  const getDepartmentLabel = (code: string) => {
+    return DEPARTMENTS[code as keyof typeof DEPARTMENTS] ?? code
+  }
+
   const getAcademicStatusLabel = (status: AcademicStatus) => {
-    switch (status) {
-      case "ENROLLED":
-        return "재적"
-      case "GRADUATED":
-        return "졸업"
-      case "UNDETERMINED":
-        return "미정"
-      default:
-        return ""
-    }
+    return ACADEMIC_STATUS_CONFIG[status] ?? ""
   }
 
   return (
@@ -66,7 +62,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-1">학부</p>
-            <p className="font-medium">{user.department}</p>
+            <p className="font-medium">{getDepartmentLabel(user.department)}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-1">학적 상태</p>
