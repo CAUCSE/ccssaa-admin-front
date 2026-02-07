@@ -5,19 +5,20 @@ import type {
   UserListResponse,
   UserStatus,
   AcademicStatus,
+  Department,
 } from "@/types/user"
 
 // Mock 데이터 생성
 const generateMockUsers = (): UserSummary[] => {
-  const departments = [
-    "AI학과",
-    "소프트웨어학부",
-    "컴퓨터공학부",
-    "컴퓨터공학과",
-    "전자계산학과",
+  const departments: Department[] = [
+    "DEPT_OF_AI",
+    "SCHOOL_OF_SW",
+    "SCHOOL_OF_CSE",
+    "DEPT_OF_CSE",
+    "DEPT_OF_CS",
   ]
   const statuses: UserStatus[] = ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"]
-  const academicStatuses: AcademicStatus[] = ["ENROLLED", "GRADUATED"]
+  const academicStatuses: AcademicStatus[] = ["ENROLLED", "GRADUATED", "UNDETERMINED"]
   const names = [
     "김철수",
     "이영희",
@@ -72,7 +73,7 @@ export const mockUserApi = {
     }
 
     // 학과 필터링
-    if (params.department && params.department !== "전체") {
+    if (params.department) {
       filteredUsers = filteredUsers.filter(
         (user) => user.department === params.department
       )
@@ -191,7 +192,7 @@ export const mockUserApi = {
 
   // 역할 변경
   updateUserRole: async (
-    userId: number,
+    userId: string,
     role: "USER" | "ADMIN" | "MASTER"
   ): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 300))

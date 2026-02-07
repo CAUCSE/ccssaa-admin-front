@@ -5,23 +5,20 @@ import type {
   UserDetail,
 } from "@/types/user"
 import { mockUserApi } from "../mock/users"
+import { getAdminUserListV2, getAdminUserDetailV2 } from "./v2/users"
 
 // 환경 변수로 Mock 모드 제어
 const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 
 // 실제 API 함수들
 const realUserApi = {
-  // 회원 리스트 조회
-  getUsers: async (params: UserListParams): Promise<UserListResponse> => {
-    const response = await api.get<UserListResponse>("/admin/users", { params })
-    return response.data
-  },
+  // 회원 리스트 조회 (v2)
+  getUsers: (params: UserListParams): Promise<UserListResponse> =>
+    getAdminUserListV2(params),
 
-  // 회원 상세 조회
-  getUserDetail: async (userId: string): Promise<UserDetail> => {
-    const response = await api.get<UserDetail>(`/admin/users/${userId}`)
-    return response.data
-  },
+  // 회원 상세 조회 (v2)
+  getUserDetail: (userId: string): Promise<UserDetail> =>
+    getAdminUserDetailV2(userId),
 
   // 회원 승인
   approveUser: async (userId: string): Promise<void> => {

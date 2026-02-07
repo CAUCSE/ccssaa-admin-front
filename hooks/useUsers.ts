@@ -1,10 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { userApi } from "@/lib/api/users"
-import {
-  getAdminUserDetailV2,
-  getAdminUserListV2,
-  getAdminUsersV2,
-} from "@/lib/api/v2/users"
+import { getAdminUsersV2 } from "@/lib/api/v2/users"
 import type {
   AdminUsersSearchParamsV2,
   UserListParams,
@@ -12,11 +8,11 @@ import type {
 import { toast } from "sonner"
 import { useApiErrorDialog } from "@/components/ApiErrorDialog"
 
-// 회원 리스트 조회 (v2)
+// 회원 리스트 조회
 export function useUsers(params: UserListParams) {
   return useQuery({
     queryKey: ["admin-users", params],
-    queryFn: () => getAdminUserListV2(params),
+    queryFn: () => userApi.getUsers(params),
   })
 }
 
@@ -29,11 +25,11 @@ export function useAdminUsersV2(params: AdminUsersSearchParamsV2 | undefined) {
   })
 }
 
-// 회원 상세 조회 (v2)
+// 회원 상세 조회
 export function useUserDetail(userId: string) {
   return useQuery({
     queryKey: ["admin-user", userId],
-    queryFn: () => getAdminUserDetailV2(userId),
+    queryFn: () => userApi.getUserDetail(userId),
     enabled: !!userId,
   })
 }
