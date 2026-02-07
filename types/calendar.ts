@@ -1,47 +1,40 @@
-export type CalendarScope = "ALL" | "STUDENT" | "ALUMNI"
-export type CalendarActionType = "Notice" | "Service" | "Link"
+export type CalendarType = 
+  | "ACADEMIC" 
+  | "DEPARTMENT" 
+  | "CCSSAA" 
+  | "STUDENT_COUNCIL" 
+  | "COMPETITION" 
+  | "HOLIDAY"
 
 export interface CalendarEvent {
-  id: number
+  id: string
   title: string
-  description?: string
-  date: string
-  scope: CalendarScope
-  actionType: CalendarActionType
-  serviceLink?: string
-  externalLink?: string
-  notificationEnabled: boolean
-  createdAt: string
-  updatedAt: string
+  type: CalendarType
+  start: string
+  end: string
 }
 
 export interface CalendarListParams {
-  page?: number
-  size?: number
-  startDate?: string
-  endDate?: string
-  scope?: CalendarScope | "ALL"
-  actionType?: CalendarActionType | "ALL"
-  keyword?: string
+  types?: CalendarType[]
+  from?: string
+  to?: string
 }
 
 export interface CalendarListResponse {
-  content: CalendarEvent[]
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
+  count: number
+  data: CalendarEvent[]
 }
 
 export interface CreateCalendarEventRequest {
   title: string
-  description?: string
-  date: string
-  scope: CalendarScope
-  actionType: CalendarActionType
-  serviceLink?: string
-  externalLink?: string
-  notificationEnabled: boolean
+  type: CalendarType
+  start: string
+  end: string
 }
 
-export interface UpdateCalendarEventRequest extends CreateCalendarEventRequest {}
+export interface UpdateCalendarEventRequest {
+  title: string
+  type: CalendarType
+  start: string
+  end: string
+}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { FormDialog } from "@/components/ui/form-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,20 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import type {
   CalendarEvent,
   CreateCalendarEventRequest,
   UpdateCalendarEventRequest,
-  CalendarScope,
-  CalendarActionType,
+  CalendarType,
 } from "@/types/calendar"
 
 interface CalendarFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   event?: CalendarEvent
+  initialDates?: { start: Date; end: Date }
   onSubmit: (data: CreateCalendarEventRequest | UpdateCalendarEventRequest) => void
   isLoading?: boolean
 }
@@ -37,62 +36,99 @@ export function CalendarFormDialog({
   open,
   onOpenChange,
   event,
+  initialDates,
   onSubmit,
   isLoading,
 }: CalendarFormDialogProps) {
   const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [date, setDate] = useState("")
-  const [time, setTime] = useState("")
-  const [scope, setScope] = useState<CalendarScope>("ALL")
-  const [actionType, setActionType] = useState<CalendarActionType>("Notice")
-  const [serviceLink, setServiceLink] = useState("")
-  const [externalLink, setExternalLink] = useState("")
-  const [notificationEnabled, setNotificationEnabled] = useState(false)
+  const [type, setType] = useState<CalendarType>("ACADEMIC")
+  const [startDate, setStartDate] = useState("")
+  const [startTime, setStartTime] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [endTime, setEndTime] = useState("")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const isValidTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value)
 
   useEffect(() => {
+    setErrorMessage(null)
+
     if (event) {
       setTitle(event.title)
-      setDescription(event.description || "")
-      const eventDate = new Date(event.date)
-      setDate(eventDate.toISOString().split("T")[0])
-      setTime(
-        `${String(eventDate.getHours()).padStart(2, "0")}:${String(eventDate.getMinutes()).padStart(2, "0")}`
-      )
-      setScope(event.scope)
-      setActionType(event.actionType)
-      setServiceLink(event.serviceLink || "")
-      setExternalLink(event.externalLink || "")
-      setNotificationEnabled(event.notificationEnabled)
-    } else {
-      // 초기화
+      setType(event.type)
+      
+      // ISO 문자열에서 날짜/시간 직접 추출 (타임존 변환 방지)
+      const startParts = event.start.split("T")
+      setStartDate(startParts[0])
+      setStartTime(startParts[1].substring(0, 5))
+      
+      const endParts = event.end.split("T")
+      setEndDate(endParts[0])
+      setEndTime(endParts[1].substring(0, 5))
+    } else if (initialDates) {
+      // 달력에서 날짜 클릭 시 초기값 설정
       setTitle("")
-      setDescription("")
-      setDate("")
-      setTime("")
-      setScope("ALL")
-      setActionType("Notice")
-      setServiceLink("")
-      setExternalLink("")
-      setNotificationEnabled(false)
+      setType("ACADEMIC")
+      
+      const startYear = initialDates.start.getFullYear()
+      const startMonth = String(initialDates.start.getMonth() + 1).padStart(2, '0')
+      const startDay = String(initialDates.start.getDate()).padStart(2, '0')
+      setStartDate(`${startYear}-${startMonth}-${startDay}`)
+      
+      const startHours = String(initialDates.start.getHours()).padStart(2, '0')
+      const startMinutes = String(initialDates.start.getMinutes()).padStart(2, '0')
+      setStartTime(`${startHours}:${startMinutes}`)
+      
+      const endYear = initialDates.end.getFullYear()
+      const endMonth = String(initialDates.end.getMonth() + 1).padStart(2, '0')
+      const endDay = String(initialDates.end.getDate()).padStart(2, '0')
+      const endHours = String(initialDates.end.getHours()).padStart(2, '0')
+      const endMinutes = String(initialDates.end.getMinutes()).padStart(2, '0')
+      setEndDate(`${endYear}-${endMonth}-${endDay}`)
+      setEndTime(`${endHours}:${endMinutes}`)
+    } else {
+      // 완전 초기화
+      setTitle("")
+      setType("ACADEMIC")
+      setStartDate("")
+      setStartTime("")
+      setEndDate("")
+      setEndTime("")
     }
-  }, [event, open])
+  }, [event, initialDates, open])
 
   const handleSubmit = () => {
-    if (!title.trim() || !date || !time) {
+    if (!title.trim() || !startDate || !startTime || !endDate || !endTime) {
+      const message = "모든 필수 항목을 입력해주세요."
+      setErrorMessage(message)
+      toast.error(message)
       return
     }
 
-    const dateTime = new Date(`${date}T${time}`)
+    if (!isValidTime(startTime) || !isValidTime(endTime)) {
+      const message = "시간 형식이 올바르지 않습니다. HH:MM 형식으로 입력해주세요."
+      setErrorMessage(message)
+      toast.error(message)
+      return
+    }
+
+    const start = new Date(`${startDate}T${startTime}`)
+    const end = new Date(`${endDate}T${endTime}`)
+
+    if (start > end) {
+      const message = "시작 일시는 종료 일시보다 늦을 수 없습니다."
+      setErrorMessage(message)
+      toast.error(message)
+      return
+    }
+
+    setErrorMessage(null)
+    
     const data: CreateCalendarEventRequest | UpdateCalendarEventRequest = {
       title: title.trim(),
-      description: description.trim() || undefined,
-      date: dateTime.toISOString(),
-      scope,
-      actionType,
-      serviceLink: actionType === "Service" ? serviceLink.trim() || undefined : undefined,
-      externalLink: actionType === "Link" ? externalLink.trim() || undefined : undefined,
-      notificationEnabled,
+      type,
+      start: start.toISOString(),
+      end: end.toISOString(),
     }
 
     onSubmit(data)
@@ -110,6 +146,7 @@ export function CalendarFormDialog({
       isLoading={isLoading}
     >
       <div className="space-y-4">
+        {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
         <div>
           <Label htmlFor="title">일정명 *</Label>
           <Input
@@ -121,102 +158,58 @@ export function CalendarFormDialog({
         </div>
 
         <div>
-          <Label htmlFor="description">설명</Label>
-          <Textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="일정 설명을 입력하세요"
-            rows={3}
-          />
+          <Label htmlFor="type">일정 타입 *</Label>
+          <Select value={type} onValueChange={(value) => setType(value as CalendarType)}>
+            <SelectTrigger id="type">
+              <SelectValue placeholder="일정 타입 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACADEMIC">학사일정</SelectItem>
+              <SelectItem value="DEPARTMENT">학부행사</SelectItem>
+              <SelectItem value="CCSSAA">CCSSAA</SelectItem>
+              <SelectItem value="STUDENT_COUNCIL">학생회</SelectItem>
+              <SelectItem value="COMPETITION">대회</SelectItem>
+              <SelectItem value="HOLIDAY">공휴일</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="date">날짜 *</Label>
+        <div>
+          <Label>시작 일시 *</Label>
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              id="date"
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
             />
-          </div>
-          <div>
-            <Label htmlFor="time">시간 *</Label>
             <Input
-              id="time"
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-2][0-9]:[0-5][0-9]"
+              placeholder="HH:MM"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="scope">스코프 *</Label>
-            <Select value={scope} onValueChange={(value) => setScope(value as CalendarScope)}>
-              <SelectTrigger id="scope">
-                <SelectValue placeholder="스코프 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="STUDENT">재학생</SelectItem>
-                <SelectItem value="ALUMNI">졸업생</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="actionType">액션 타입 *</Label>
-            <Select
-              value={actionType}
-              onValueChange={(value) => setActionType(value as CalendarActionType)}
-            >
-              <SelectTrigger id="actionType">
-                <SelectValue placeholder="액션 타입 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Notice">일반</SelectItem>
-                <SelectItem value="Service">서비스연결</SelectItem>
-                <SelectItem value="Link">외부링크</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {actionType === "Service" && (
-          <div>
-            <Label htmlFor="serviceLink">서비스 연결</Label>
+        <div>
+          <Label>종료 일시 *</Label>
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              id="serviceLink"
-              value={serviceLink}
-              onChange={(e) => setServiceLink(e.target.value)}
-              placeholder="/lockers/apply"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-2][0-9]:[0-5][0-9]"
+              placeholder="HH:MM"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
             />
           </div>
-        )}
-
-        {actionType === "Link" && (
-          <div>
-            <Label htmlFor="externalLink">외부 링크</Label>
-            <Input
-              id="externalLink"
-              value={externalLink}
-              onChange={(e) => setExternalLink(e.target.value)}
-              placeholder="https://example.com"
-            />
-          </div>
-        )}
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="notification"
-            checked={notificationEnabled}
-            onCheckedChange={(checked) => setNotificationEnabled(checked === true)}
-          />
-          <Label htmlFor="notification" className="cursor-pointer">
-            알림 설정 (일정 시작 전 알림 발송)
-          </Label>
         </div>
       </div>
     </FormDialog>

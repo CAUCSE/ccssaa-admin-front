@@ -3,127 +3,148 @@
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import { Search } from "lucide-react"
-import type { CalendarScope, CalendarActionType } from "@/types/calendar"
+import type { CalendarType } from "@/types/calendar"
 
-export function CalendarFilter() {
+const CALENDAR_TYPES: { value: CalendarType; label: string }[] = [
+  { value: "ACADEMIC", label: "학사" },
+  { value: "DEPARTMENT", label: "학부" },
+  { value: "CCSSAA", label: "CCSSAA" },
+  { value: "STUDENT_COUNCIL", label: "학생회" },
+  { value: "COMPETITION", label: "대회" },
+  { value: "HOLIDAY", label: "공휴일" },
+]
+
+const getTypeColor = (type: CalendarType): string => {
+  switch (type) {
+    case "ACADEMIC":
+      return "#9CA3AF"
+    case "DEPARTMENT":
+      return "#60A5FA"
+    case "CCSSAA":
+      return "#7DD3FC"
+    case "STUDENT_COUNCIL":
+      return "#FB923C"
+    case "COMPETITION":
+      return "#A78BFA"
+    case "HOLIDAY":
+      return "#F87171"
+    default:
+      return "#6B7280"
+  }
+}
+
+interface CalendarFilterProps {
+  hideDateFilter?: boolean
+  hideSearchButton?: boolean
+  onTypeChange?: (types: CalendarType[]) => void
+}
+
+export function CalendarFilter({ hideDateFilter = false, hideSearchButton = false, onTypeChange }: CalendarFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [startDate, setStartDate] = useState(
-    searchParams.get("startDate") || ""
-  )
-  const [endDate, setEndDate] = useState(searchParams.get("endDate") || "")
-  const [scope, setScope] = useState<CalendarScope | "ALL">(
-    (searchParams.get("scope") as CalendarScope | "ALL") || "ALL"
-  )
-  const [actionType, setActionType] = useState<CalendarActionType | "ALL">(
-    (searchParams.get("actionType") as CalendarActionType | "ALL") || "ALL"
-  )
-  const [keyword, setKeyword] = useState(searchParams.get("keyword") || "")
+  const [from, setFrom] = useState(searchParams.get("from") || "")
+  const [to, setTo] = useState(searchParams.get("to") || "")
+  const [selectedTypes, setSelectedTypes] = useState<CalendarType[]>(() => {
+    const types = searchParams.get("types")
+    return types ? types.split(",") as CalendarType[] : []
+  })
+
+  const handleTypeToggle = (type: CalendarType) => {
+    setSelectedTypes((prev) => {
+      const newTypes = prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type]
+      
+      // 달력 뷰일 때는 즉시 콜백 호출
+      if (onTypeChange) {
+        onTypeChange(newTypes)
+      }
+      
+      return newTypes
+    })
+  }
 
   const handleSearch = () => {
     const params = new URLSearchParams()
 
-    if (startDate) {
-      params.set("startDate", startDate)
+    if (from) {
+      params.set("from", from)
     }
-    if (endDate) {
-      params.set("endDate", endDate)
+    if (to) {
+      params.set("to", to)
     }
-    if (scope && scope !== "ALL") {
-      params.set("scope", scope)
-    }
-    if (actionType && actionType !== "ALL") {
-      params.set("actionType", actionType)
-    }
-    if (keyword.trim()) {
-      params.set("keyword", keyword.trim())
+    if (selectedTypes.length > 0) {
+      params.set("types", selectedTypes.join(","))
     }
 
     router.push(`/calendar?${params.toString()}`)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch()
-    }
   }
 
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                type="date"
-                placeholder="시작일"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
+          {!hideDateFilter && (
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  type="date"
+                  placeholder="시작일"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </div>
+              <div className="flex-1">
+                <Input
+                  type="date"
+                  placeholder="종료일"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <Input
-                type="date"
-                placeholder="종료일"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+          )}
+          
+          <div>
+            <Label className="text-sm font-medium mb-2 block">일정 타입</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {CALENDAR_TYPES.map((type) => (
+                <div key={type.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={type.value}
+                    checked={selectedTypes.includes(type.value)}
+                    onCheckedChange={() => handleTypeToggle(type.value)}
+                  />
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: getTypeColor(type.value) }}
+                    aria-hidden="true"
+                  />
+                  <Label
+                    htmlFor={type.value}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {type.label}
+                  </Label>
+                </div>
+              ))}
             </div>
-            <Select
-              value={scope}
-              onValueChange={(value) => setScope(value as CalendarScope | "ALL")}
-            >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue placeholder="스코프" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="STUDENT">재학생</SelectItem>
-                <SelectItem value="ALUMNI">졸업생</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={actionType}
-              onValueChange={(value) =>
-                setActionType(value as CalendarActionType | "ALL")
-              }
-            >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue placeholder="액션 타입" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="Notice">일반</SelectItem>
-                <SelectItem value="Service">서비스연결</SelectItem>
-                <SelectItem value="Link">외부링크</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="키워드 검색"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
+
+          {!hideSearchButton && (
+            <div className="flex justify-end">
+              <Button onClick={handleSearch} className="w-full sm:w-auto">
+                <Search className="mr-2 h-4 w-4" />
+                검색
+              </Button>
             </div>
-            <Button onClick={handleSearch} className="w-full sm:w-auto">
-              <Search className="mr-2 h-4 w-4" />
-              검색
-            </Button>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
