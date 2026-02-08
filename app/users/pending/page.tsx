@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { UserFilter } from "@/components/user/UserFilter"
 import { UserTable } from "@/components/user/UserTable"
 import { useUsers } from "@/hooks/useUsers"
-import type { UserListParams, UserStatus } from "@/types/user"
+import type { UserListParams, UserStatus, AcademicStatus, Department } from "@/types/user"
 import { Skeleton } from "@/components/ui/skeleton"
 
 function PendingUsersPageContent() {
@@ -14,13 +14,14 @@ function PendingUsersPageContent() {
   const [sortBy, setSortBy] = useState<string>("")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
 
-  // 기본 필터: 상태=PENDING
+  // 기본 필터: 상태=AWAIT
   const params: UserListParams = {
     page: page - 1, // API는 0-based
     size: 10,
     keyword: searchParams.get("keyword") || undefined,
-    department: searchParams.get("department") || undefined,
-    status: "PENDING" as UserStatus, // 항상 PENDING으로 고정
+    department: (searchParams.get("department") as Department) || undefined,
+    status: "AWAIT" as UserStatus, // 항상 AWAIT으로 고정
+    academicStatus: (searchParams.get("academicStatus") as AcademicStatus) || undefined,
   }
 
   const { data, isLoading, error } = useUsers(params)
