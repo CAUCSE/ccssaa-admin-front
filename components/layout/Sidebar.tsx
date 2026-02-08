@@ -57,6 +57,11 @@ const getSidebarItems = (
         icon: <ChevronRight className="h-4 w-4" />,
         badge: pendingReports,
       },
+      {
+        title: "학적 상태 변경",
+        href: "/users/academic-records",
+        icon: <ChevronRight className="h-4 w-4" />,
+      },
     ],
   },
   {
