@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
-  getAcademicRecordApplications,
-  getAcademicRecordApplicationDetail,
-  approveAcademicRecordApplication,
-  rejectAcademicRecordApplication,
-} from "@/lib/api/v2/academic-records"
+  getApplications,
+  getApplicationDetail,
+  approveApplication,
+  rejectApplication,
+} from "@/lib/api/academic-records"
 import type { AcademicRecordListParams } from "@/types/academic-record"
 import { useApiErrorDialog } from "@/components/ApiErrorDialog"
 import { toast } from "sonner"
@@ -17,7 +17,7 @@ export function useAcademicRecordApplications(params?: AcademicRecordListParams)
     queryKey: ["academic-record-applications", params],
     queryFn: async () => {
       try {
-        return await getAcademicRecordApplications(params)
+        return await getApplications(params)
       } catch (error) {
         showError?.(error)
         throw error
@@ -34,7 +34,7 @@ export function useAcademicRecordApplicationDetail(applicationId: string | undef
     queryKey: ["academic-record-application", applicationId],
     queryFn: async () => {
       try {
-        return await getAcademicRecordApplicationDetail(applicationId!)
+        return await getApplicationDetail(applicationId!)
       } catch (error) {
         showError?.(error)
         throw error
@@ -51,7 +51,7 @@ export function useApproveAcademicRecord() {
 
   return useMutation({
     mutationFn: (applicationId: string) =>
-      approveAcademicRecordApplication(applicationId),
+      approveApplication(applicationId),
     onSuccess: (_, applicationId) => {
       queryClient.invalidateQueries({ queryKey: ["academic-record-applications"] })
       queryClient.invalidateQueries({ queryKey: ["academic-record-application", applicationId] })
@@ -70,7 +70,7 @@ export function useRejectAcademicRecord() {
 
   return useMutation({
     mutationFn: ({ applicationId, rejectReason }: { applicationId: string; rejectReason: string }) =>
-      rejectAcademicRecordApplication(applicationId, rejectReason),
+      rejectApplication(applicationId, rejectReason),
     onSuccess: (_, { applicationId }) => {
       queryClient.invalidateQueries({ queryKey: ["academic-record-applications"] })
       queryClient.invalidateQueries({ queryKey: ["academic-record-application", applicationId] })
