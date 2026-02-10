@@ -25,11 +25,9 @@ const generateMockApplications = (): AcademicRecordApplication[] => {
   return Array.from({ length: 30 }, (_, i) => {
     const year = 2020 + Math.floor(Math.random() * 5)
     const studentId = `${year}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`
-    const current = academicStatuses[Math.floor(Math.random() * academicStatuses.length)]
-    let target = academicStatuses[Math.floor(Math.random() * academicStatuses.length)]
-    while (target === current) {
-      target = academicStatuses[Math.floor(Math.random() * academicStatuses.length)]
-    }
+    const validStatuses: AcademicStatus[] = ["ENROLLED", "GRADUATED"]
+    const current = validStatuses[Math.floor(Math.random() * validStatuses.length)]
+    const target: AcademicStatus = current === "ENROLLED" ? "GRADUATED" : "ENROLLED"
     const createdDate = new Date(
       2025 + Math.floor(Math.random() * 2),
       Math.floor(Math.random() * 12),

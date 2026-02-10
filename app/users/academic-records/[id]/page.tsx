@@ -8,6 +8,7 @@ import {
   useRejectAcademicRecord,
 } from "@/hooks/useAcademicRecords"
 import { ACADEMIC_REQUEST_STATUS_CONFIG } from "@/types/academic-record"
+import type { AcademicRequestStatus } from "@/types/academic-record"
 import { DEPARTMENT_CONFIG, ACADEMIC_STATUS_CONFIG } from "@/types/user"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Badge } from "@/components/ui/badge"
@@ -33,7 +34,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { X } from "lucide-react"
+import { X, ArrowRight, Clock, CheckCircle2, XCircle, Ban } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+/** 상태별 배너 설정 */
+const STATUS_BANNER_CONFIG: Record<
+  AcademicRequestStatus,
+  { bg: string; icon: React.ReactNode; message: (name: string, sid: string) => string }
+> = {
+  AWAIT: {
+    bg: "bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-200",
+    icon: <Clock className="h-5 w-5 shrink-0" />,
+    message: (name, sid) => `${name}(${sid})님의 요청이 처리 대기 중입니다.`,
+  },
+  ACCEPT: {
+    bg: "bg-green-50 border-green-200 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-200",
+    icon: <CheckCircle2 className="h-5 w-5 shrink-0" />,
+    message: () => "승인 완료된 요청입니다.",
+  },
+  REJECT: {
+    bg: "bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200",
+    icon: <XCircle className="h-5 w-5 shrink-0" />,
+    message: () => "거절된 요청입니다.",
+  },
+  CLOSE: {
+    bg: "bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300",
+    icon: <Ban className="h-5 w-5 shrink-0" />,
+    message: () => "종료된 요청입니다.",
+  },
+}
 
 export default function AcademicRecordDetailPage() {
   const params = useParams()
@@ -64,6 +93,7 @@ export default function AcademicRecordDetailPage() {
     return (
       <div className="space-y-6">
         <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+        <div className="h-12 bg-muted animate-pulse rounded" />
         <div className="h-64 bg-muted animate-pulse rounded" />
       </div>
     )
@@ -85,6 +115,8 @@ export default function AcademicRecordDetailPage() {
     variant: "neutral" as const,
   }
 
+  const bannerConfig = STATUS_BANNER_CONFIG[detail.requestStatus] ?? STATUS_BANNER_CONFIG.CLOSE
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -95,45 +127,66 @@ export default function AcademicRecordDetailPage() {
         breadcrumbs={[{ label: "요청 상세" }]}
       />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* 요청자 정보 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">요청자 정보</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <InfoRow label="이름" value={detail.userName} />
-            <InfoRow label="학번" value={detail.studentId} />
-            <InfoRow
-              label="학과"
-              value={DEPARTMENT_CONFIG[detail.department] ?? detail.department}
-            />
-            <InfoRow label="요청일시" value={formatDateTime(detail.createdAt)} />
-            <InfoRow label="수정일시" value={formatDateTime(detail.updatedAt)} />
-          </CardContent>
-        </Card>
-
-        {/* 학적 변경 정보 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">학적 변경 정보</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <InfoRow
-              label="변경 전 학적 상태"
-              value={ACADEMIC_STATUS_CONFIG[detail.currentAcademicStatus] ?? detail.currentAcademicStatus}
-            />
-            <InfoRow
-              label="변경 요청 학적"
-              value={ACADEMIC_STATUS_CONFIG[detail.targetAcademicStatus] ?? detail.targetAcademicStatus}
-            />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">처리 상태</span>
-              <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-            </div>
-          </CardContent>
-        </Card>
+      {/* 1. 상태 요약 배너 */}
+      <div className={cn("flex items-center gap-3 rounded-lg border px-4 py-3", bannerConfig.bg)}>
+        {bannerConfig.icon}
+        <span className="text-sm font-medium">
+          {bannerConfig.message(detail.userName, detail.studentId)}
+        </span>
+        <Badge variant={statusConfig.variant} className="ml-auto">
+          {statusConfig.label}
+        </Badge>
       </div>
+
+      {/* 2+3. 요청 정보 통합 카드 */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* 좌측: 요청자 기본 정보 */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                요청자 정보
+              </h3>
+              <InfoRow label="이름" value={detail.userName} />
+              <InfoRow label="학번" value={detail.studentId} />
+              <InfoRow
+                label="학과"
+                value={DEPARTMENT_CONFIG[detail.department] ?? detail.department}
+              />
+            </div>
+
+            {/* 우측: 학적 변경 정보 */}
+            <div className="space-y-4 md:border-l md:pl-6">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                학적 변경 내용
+              </h3>
+              {/* 화살표 시각화 */}
+              <div className="flex items-center justify-center gap-3 py-2">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xs text-muted-foreground">현재</span>
+                  <span className="rounded-md border bg-muted px-4 py-2 text-sm font-semibold">
+                    {ACADEMIC_STATUS_CONFIG[detail.currentAcademicStatus] ?? detail.currentAcademicStatus}
+                  </span>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0 mt-4" />
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xs text-muted-foreground">변경 요청</span>
+                  <span className="rounded-md border border-primary bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+                    {ACADEMIC_STATUS_CONFIG[detail.targetAcademicStatus] ?? detail.targetAcademicStatus}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. 일시 정보 (카드 푸터) */}
+          <Separator className="my-4" />
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+            <span>요청일시: {formatDateTime(detail.createdAt)}</span>
+            <span>수정일시: {formatDateTime(detail.updatedAt)}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 유저 작성 특이사항 */}
       {detail.note && (
@@ -159,11 +212,16 @@ export default function AcademicRecordDetailPage() {
         </Card>
       )}
 
-      {/* 첨부 이미지 */}
+      {/* 5. 첨부 이미지 (개수 표시) */}
       {detail.attachImageUrls && detail.attachImageUrls.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">첨부 서류</CardTitle>
+            <CardTitle className="text-lg">
+              첨부 서류
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({detail.attachImageUrls.length})
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
