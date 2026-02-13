@@ -5,6 +5,7 @@ import type {
   LockerListResponse,
   AssignLockerRequest,
   LockerApplicationPeriod,
+  ExtendLockerRequest,
 } from "@/types/locker"
 import { mockLockerApi } from "../mock/lockers"
 
@@ -28,6 +29,11 @@ const realLockerApi = {
   // 수동 배정
   assignLocker: async (lockerId: number, data: AssignLockerRequest): Promise<void> => {
     await api.post(`/admin/lockers/${lockerId}/assign`, data)
+  },
+
+  // 만료일 연장
+  extendLocker: async (lockerId: number, data: ExtendLockerRequest): Promise<void> => {
+    await api.post(`/admin/lockers/${lockerId}/extend`, data)
   },
 
   // 개별 회수

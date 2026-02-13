@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -13,78 +12,72 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Search } from "lucide-react"
-import type { LockerStatus } from "@/types/locker"
+import type { LockerNameV2 } from "@/types/locker"
+
+const LOCATION_OPTIONS: { value: "ALL" | LockerNameV2; label: string }[] = [
+  { value: "ALL", label: "전체 위치" },
+  { value: "SECOND", label: "2층" },
+  { value: "THIRD", label: "3층" },
+  { value: "FOURTH", label: "4층" },
+]
 
 export function LockerFilter() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [number, setNumber] = useState(searchParams.get("number") || "")
-  const [status, setStatus] = useState<LockerStatus | "ALL">(
-    (searchParams.get("status") as LockerStatus | "ALL") || "ALL"
+  const [location, setLocation] = useState<"ALL" | LockerNameV2>(
+    (searchParams.get("location") as "ALL" | LockerNameV2) || "ALL"
   )
-  const [userKeyword, setUserKeyword] = useState(
-    searchParams.get("userKeyword") || ""
-  )
+  const [isActive, setIsActive] = useState(searchParams.get("isActive") ?? "")
+  const [isOccupied, setIsOccupied] = useState(searchParams.get("isOccupied") ?? "")
 
   const handleSearch = () => {
     const params = new URLSearchParams()
-
-    if (number.trim()) {
-      params.set("number", number.trim())
-    }
-    if (status && status !== "ALL") {
-      params.set("status", status)
-    }
-    if (userKeyword.trim()) {
-      params.set("userKeyword", userKeyword.trim())
-    }
-
+    if (location && location !== "ALL") params.set("location", location)
+    if (isActive === "true" || isActive === "false") params.set("isActive", isActive)
+    if (isOccupied === "true" || isOccupied === "false") params.set("isOccupied", isOccupied)
     router.push(`/lockers?${params.toString()}`)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch()
-    }
   }
 
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="사물함 번호 검색"
-              value={number}
-              onChange={(e) => setNumber(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-          </div>
-
           <Select
-            value={status}
-            onValueChange={(value) => setStatus(value as LockerStatus | "ALL")}
+            value={location}
+            onValueChange={(v) => setLocation(v as "" | LockerNameV2)}
           >
-            <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue placeholder="상태" />
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="위치" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">전체</SelectItem>
-              <SelectItem value="AVAILABLE">사용가능</SelectItem>
-              <SelectItem value="OCCUPIED">사용중</SelectItem>
+              {LOCATION_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-
-          <div className="flex-1">
-            <Input
-              placeholder="사용자 검색 (이름, 학번)"
-              value={userKeyword}
-              onChange={(e) => setUserKeyword(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-          </div>
-
+          <Select value={isActive || "all"} onValueChange={(v) => setIsActive(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-[120px]">
+              <SelectValue placeholder="활성 상태" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="true">활성</SelectItem>
+              <SelectItem value="false">비활성</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={isOccupied || "all"} onValueChange={(v) => setIsOccupied(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-[120px]">
+              <SelectValue placeholder="사용중 여부" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="true">사용중</SelectItem>
+              <SelectItem value="false">비어있음</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={handleSearch} className="w-full sm:w-auto">
             <Search className="mr-2 h-4 w-4" />
             검색

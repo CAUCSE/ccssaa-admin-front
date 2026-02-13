@@ -186,7 +186,7 @@ export default function LockerDetailPage() {
         >
           수동 배정
         </Button>
-        {locker.status === "OCCUPIED" && (
+        {locker.status === "IN_USE" && (
           <Button
             variant="destructive"
             onClick={() => setIsReleaseDialogOpen(true)}

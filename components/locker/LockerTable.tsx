@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import {
   Table,
   TableBody,
@@ -11,7 +10,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import type { Locker } from "@/types/locker"
+import type { Locker, LockerUsageStatus } from "@/types/locker"
 import { ArrowRight } from "lucide-react"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 
@@ -23,6 +22,10 @@ interface LockerTableProps {
   pageSize: number
   onPageChange: (page: number) => void
   isLoading?: boolean
+  onAssignClick?: (locker: Locker) => void
+  onExtendClick?: (locker: Locker) => void
+  onRevokeClick?: (locker: Locker) => void
+  onCleanupClick?: (locker: Locker) => void
 }
 
 /**
@@ -37,12 +40,24 @@ export function LockerTable({
   pageSize,
   onPageChange,
   isLoading,
+  onAssignClick,
+  onExtendClick,
+  onRevokeClick,
+  onCleanupClick,
 }: LockerTableProps) {
-  const router = useRouter()
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
+  }
+
+  const getUsageStatus = (locker: Locker): LockerUsageStatus => {
+    if (locker.status === "DISABLED") return "EMPTY" // 비활성은 액션 없음으로만 구분
+    if (!locker.currentUserId) return "EMPTY"
+    if (locker.expiredAt) {
+      const t = new Date(locker.expiredAt).getTime()
+      if (!Number.isNaN(t) && t < Date.now()) return "EXPIRED"
+    }
+    return "IN_USE"
   }
 
   const startIndex = (currentPage - 1) * pageSize
@@ -94,25 +109,44 @@ export function LockerTable({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="text-center w-[140px]">위치</TableHead>
               <TableHead className="text-center w-[80px]">번호</TableHead>
-              <TableHead className="text-center">현재 사용자</TableHead>
-              <TableHead className="text-center">이전 사용자</TableHead>
-              <TableHead className="text-center w-[120px]">상태</TableHead>
-              <TableHead className="text-center w-[120px]">배정일</TableHead>
-              <TableHead className="text-center w-[100px]">관리</TableHead>
+              <TableHead className="text-center w-[100px]">상태</TableHead>
+              <TableHead className="text-center">사용자</TableHead>
+              <TableHead className="text-center w-[140px]">만료일</TableHead>
+              <TableHead className="text-center w-[180px]">액션</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((locker) => {
-              const statusBadge = getStatusBadge(locker.status)
+              const isDisabled = locker.status === "DISABLED"
+              const usageStatus = getUsageStatus(locker)
+              const statusBadge = isDisabled
+                ? getStatusBadge("DISABLED")
+                : usageStatus === "EMPTY"
+                  ? getStatusBadge("AVAILABLE")
+                  : usageStatus === "IN_USE"
+                    ? getStatusBadge("IN_USE")
+                    : getStatusBadge("INACTIVE")
+              const statusLabel = isDisabled
+                ? "비활성"
+                : usageStatus === "EMPTY"
+                  ? "비어있음"
+                  : usageStatus === "IN_USE"
+                    ? "사용중"
+                    : "만료됨"
               return (
-                <TableRow
-                  key={locker.id}
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => router.push(`/lockers/${locker.id}`)}
-                >
+                <TableRow key={locker.id ?? `${locker.location ?? ""}-${locker.number}`}>
+                  <TableCell className="text-center">
+                    {locker.location || "-"}
+                  </TableCell>
                   <TableCell className="text-center font-medium">
                     {locker.number}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={statusBadge.variant}>
+                      {statusLabel}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     {locker.currentUserName && locker.currentUserStudentNo ? (
@@ -124,34 +158,47 @@ export function LockerTable({
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {locker.previousUserName && locker.previousUserStudentNo ? (
-                      <div>
-                        {locker.previousUserName} ({locker.previousUserStudentNo})
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
+                    {locker.expiredAt ? formatDate(locker.expiredAt) : "-"}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={statusBadge.variant}>
-                      {statusBadge.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {locker.assignedAt ? formatDate(locker.assignedAt) : "-"}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        router.push(`/lockers/${locker.id}`)
-                      }}
-                    >
-                      상세보기
-                      <ArrowRight className="ml-1 h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center justify-center gap-2">
+                      {!isDisabled && usageStatus === "EMPTY" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onAssignClick?.(locker)}
+                        >
+                          배정
+                        </Button>
+                      )}
+                      {!isDisabled && usageStatus === "IN_USE" && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onExtendClick?.(locker)}
+                          >
+                            연장
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => onRevokeClick?.(locker)}
+                          >
+                            회수
+                          </Button>
+                        </>
+                      )}
+                      {!isDisabled && usageStatus === "EXPIRED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onCleanupClick?.(locker)}
+                        >
+                          정리
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               )

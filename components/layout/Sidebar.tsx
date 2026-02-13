@@ -91,6 +91,23 @@ const getSidebarItems = (
     title: "사물함 관리",
     href: "/lockers",
     icon: <Lock className="h-5 w-5" />,
+    children: [
+      {
+        title: "사물함 현황",
+        href: "/lockers",
+        icon: <ChevronRight className="h-4 w-4" />,
+      },
+    ],
+  },
+  {
+    title: "신청 정책 관리",
+    href: "/lockers/policies",
+    icon: <FileText className="h-5 w-5" />,
+  },
+  {
+    title: "로그 조회",
+    href: "/lockers/logs",
+    icon: <FileText className="h-5 w-5" />,
   },
   {
     title: "캘린더 관리",
