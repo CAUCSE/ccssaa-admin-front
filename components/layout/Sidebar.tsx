@@ -97,16 +97,16 @@ const getSidebarItems = (
         href: "/lockers",
         icon: <ChevronRight className="h-4 w-4" />,
       },
+      {
+        title: "로그 조회",
+        href: "/lockers/logs",
+        icon: <ChevronRight className="h-4 w-4" />,
+      },
     ],
   },
   {
     title: "신청 정책 관리",
     href: "/lockers/policies",
-    icon: <FileText className="h-5 w-5" />,
-  },
-  {
-    title: "로그 조회",
-    href: "/lockers/logs",
     icon: <FileText className="h-5 w-5" />,
   },
   {

@@ -70,7 +70,10 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "신청 정책 관리", href: "/lockers/policies" },
     { label: "정책 등록", href: "/lockers/policies/new" },
   ],
-  "/lockers/logs": [{ label: "로그 조회", href: "/lockers/logs" }],
+  "/lockers/logs": [
+    { label: "사물함 관리", href: "/lockers" },
+    { label: "로그 조회", href: "/lockers/logs" },
+  ],
   "/settings": [{ label: "시스템 설정", href: "/settings" }],
   "/settings/roles": [
     { label: "시스템 설정", href: "/settings" },

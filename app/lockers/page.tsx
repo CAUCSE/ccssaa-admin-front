@@ -14,9 +14,23 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import type { LockerListParams, LockerNameV2, Locker } from "@/types/locker"
 import type { AdminUserItemV2 } from "@/types/user"
+import { toast } from "sonner"
 import { X } from "lucide-react"
 
 const ASSIGN_SEARCH_DEBOUNCE_MS = 300
+
+/** datetime-local value 기본값: 오늘 기준 90일 후 */
+function defaultExpiredAtDatetimeLocal(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 90)
+  const y = d.getFullYear()
+  const M = String(d.getMonth() + 1).padStart(2, "0")
+  const D = String(d.getDate()).padStart(2, "0")
+  const h = String(d.getHours()).padStart(2, "0")
+  const m = String(d.getMinutes()).padStart(2, "0")
+  return `${y}-${M}-${D}T${h}:${m}`
+}
+
 import {
   AlertDialogRoot,
   AlertDialogAction,
@@ -39,6 +53,7 @@ function LockersPageContent() {
   const [assignSearchKeyword, setAssignSearchKeyword] = useState("")
   const [assignDebouncedKeyword, setAssignDebouncedKeyword] = useState("")
   const [assignSelectedUser, setAssignSelectedUser] = useState<AdminUserItemV2 | null>(null)
+  const [assignExpiredAt, setAssignExpiredAt] = useState("")
   const [extendExpiredAt, setExtendExpiredAt] = useState("")
 
   useEffect(() => {
@@ -50,6 +65,7 @@ function LockersPageContent() {
     return () => clearTimeout(t)
   }, [assignDialogOpen, assignSearchKeyword])
 
+  const userKeywordParam = searchParams.get("userKeyword")
   const locationParam = searchParams.get("location")
   const isActiveParam = searchParams.get("isActive")
   const isOccupiedParam = searchParams.get("isOccupied")
@@ -57,6 +73,7 @@ function LockersPageContent() {
   const params: LockerListParams = {
     page: page - 1, // API는 0-based
     size: 10,
+    userKeyword: userKeywordParam?.trim() || undefined,
     locationV2:
       locationParam === "SECOND" || locationParam === "THIRD" || locationParam === "FOURTH"
         ? (locationParam as LockerNameV2)
@@ -93,6 +110,7 @@ function LockersPageContent() {
     setAssignSearchKeyword("")
     setAssignDebouncedKeyword("")
     setAssignSelectedUser(null)
+    setAssignExpiredAt(defaultExpiredAtDatetimeLocal())
     setAssignDialogOpen(true)
   }
 
@@ -113,14 +131,32 @@ function LockersPageContent() {
   }
 
   const handleAssign = () => {
-    if (!selectedLocker?.id || !assignSelectedUser) return
-    const userId = Number(assignSelectedUser.id)
-    if (Number.isNaN(userId)) return
+    if (!selectedLocker) {
+      toast.error("사물함을 선택해 주세요.")
+      return
+    }
+    if (selectedLocker.id === undefined || selectedLocker.id === null || selectedLocker.id === "") {
+      toast.error(
+        "이 사물함은 배정할 수 없습니다. 목록 API에서 사물함 ID(id)를 반환하는지 확인해 주세요."
+      )
+      return
+    }
+    if (!assignSelectedUser) {
+      toast.error("배정할 사용자를 검색 후 선택해 주세요.")
+      return
+    }
+    if (!assignExpiredAt.trim()) {
+      toast.error("만료일을 입력해 주세요.")
+      return
+    }
 
     assignMutation.mutate(
       {
         lockerId: selectedLocker.id,
-        data: { userId },
+        data: {
+          userId: assignSelectedUser.id,
+          expiredAt: new Date(assignExpiredAt).toISOString(),
+        },
       },
       {
         onSuccess: () => {
@@ -128,6 +164,7 @@ function LockersPageContent() {
           setAssignSearchKeyword("")
           setAssignDebouncedKeyword("")
           setAssignSelectedUser(null)
+          setAssignExpiredAt("")
           setSelectedLocker(null)
         },
       }
@@ -240,40 +277,49 @@ function LockersPageContent() {
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-            ) : (
-              <>
-                <Input
-                  placeholder="이름 또는 이메일로 검색"
-                  value={assignSearchKeyword}
-                  onChange={(e) => setAssignSearchKeyword(e.target.value)}
-                  className="rounded-b-none border-b-0"
-                />
-                <ul className="max-h-40 overflow-y-auto rounded-b-md border border-t-0 divide-y bg-muted/30">
-                  {!assignDebouncedKeyword ? (
-                    <li className="px-3 py-4 text-center text-sm text-muted-foreground">
-                      검색어를 입력하세요.
-                    </li>
-                  ) : assignSearchUsers.length === 0 ? (
-                    <li className="px-3 py-4 text-center text-sm text-muted-foreground">
-                      검색 결과가 없습니다.
-                    </li>
                   ) : (
-                    assignSearchUsers.map((user) => (
-                      <li
-                        key={user.id}
-                        className="px-3 py-2 text-sm cursor-pointer hover:bg-muted/50"
-                        onClick={() => setAssignSelectedUser(user)}
-                      >
-                        {assignUserDisplayLabel(user)}
-                      </li>
-                    ))
+                    <>
+                      <Input
+                        placeholder="이름 또는 이메일로 검색"
+                        value={assignSearchKeyword}
+                        onChange={(e) => setAssignSearchKeyword(e.target.value)}
+                        className="rounded-b-none border-b-0"
+                      />
+                      <ul className="max-h-40 overflow-y-auto rounded-b-md border border-t-0 divide-y bg-muted/30">
+                        {!assignDebouncedKeyword ? (
+                          <li className="px-3 py-4 text-center text-sm text-muted-foreground">
+                            검색어를 입력하세요.
+                          </li>
+                        ) : assignSearchUsers.length === 0 ? (
+                          <li className="px-3 py-4 text-center text-sm text-muted-foreground">
+                            검색 결과가 없습니다.
+                          </li>
+                        ) : (
+                          assignSearchUsers.map((user) => (
+                            <li
+                              key={user.id}
+                              className="px-3 py-2 text-sm cursor-pointer hover:bg-muted/50"
+                              onClick={() => setAssignSelectedUser(user)}
+                            >
+                              {assignUserDisplayLabel(user)}
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                    </>
                   )}
-                </ul>
-              </>
-            )}
-          </div>
-        </div>
-      </FormDialog>
+                </div>
+                <div>
+                  <Label htmlFor="assignExpiredAt">만료일 *</Label>
+                  <Input
+                    id="assignExpiredAt"
+                    type="datetime-local"
+                    value={assignExpiredAt}
+                    onChange={(e) => setAssignExpiredAt(e.target.value)}
+                  />
+                </div>
+              </div>
+            </FormDialog>
 
       {/* 연장 모달 */}
       <FormDialog

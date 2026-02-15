@@ -149,9 +149,11 @@ export function LockerTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    {locker.currentUserName && locker.currentUserStudentNo ? (
+                    {locker.currentUserName ? (
                       <div>
-                        {locker.currentUserName} ({locker.currentUserStudentNo})
+                        {locker.currentUserStudentNo
+                          ? `${locker.currentUserName} (${locker.currentUserStudentNo})`
+                          : locker.currentUserName}
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>

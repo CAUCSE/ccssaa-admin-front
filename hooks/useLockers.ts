@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { lockerApi } from "@/lib/api/lockers"
-import { getLockersV2, mapLockerItemV2ToLocker } from "@/lib/api/v2/lockers"
+import {
+  getLockersV2,
+  mapLockerItemV2ToLocker,
+  assignLockerV2,
+  extendLockerV2,
+  releaseLockerV2,
+} from "@/lib/api/v2/lockers"
 import type {
   LockerListParams,
   AssignLockerRequest,
@@ -19,6 +25,7 @@ export function useLockers(params: LockerListParams) {
       const page = params.page ?? 0
       const size = params.size ?? 10
       const payload = await getLockersV2({
+        userKeyword: params.userKeyword?.trim() || undefined,
         location: params.locationV2 as LockerNameV2 | undefined,
         isActive: params.isActive,
         isOccupied: params.isOccupied,
@@ -53,14 +60,19 @@ export function useLockerApplicationPeriod() {
   })
 }
 
-// 수동 배정
+// 수동 배정 (v2: POST /api/v2/admin/lockers/{id}/assign)
 export function useAssignLocker() {
   const queryClient = useQueryClient()
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: ({ lockerId, data }: { lockerId: number; data: AssignLockerRequest }) =>
-      lockerApi.assignLocker(lockerId, data),
+    mutationFn: ({
+      lockerId,
+      data,
+    }: {
+      lockerId: number | string
+      data: AssignLockerRequest
+    }) => assignLockerV2(lockerId, data),
     onSuccess: (_, { lockerId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
       queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })
@@ -72,14 +84,19 @@ export function useAssignLocker() {
   })
 }
 
-// 만료일 연장
+// 만료일 연장 (v2: POST /api/v2/admin/lockers/{id}/extend)
 export function useExtendLocker() {
   const queryClient = useQueryClient()
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: ({ lockerId, data }: { lockerId: number; data: ExtendLockerRequest }) =>
-      lockerApi.extendLocker(lockerId, data),
+    mutationFn: ({
+      lockerId,
+      data,
+    }: {
+      lockerId: number | string
+      data: ExtendLockerRequest
+    }) => extendLockerV2(lockerId, data),
     onSuccess: (_, { lockerId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
       queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })
@@ -91,13 +108,13 @@ export function useExtendLocker() {
   })
 }
 
-// 개별 회수
+// 개별 회수 (v2: POST /api/v2/admin/lockers/{id}/release)
 export function useReleaseLocker() {
   const queryClient = useQueryClient()
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: (lockerId: number) => lockerApi.releaseLocker(lockerId),
+    mutationFn: (lockerId: number | string) => releaseLockerV2(lockerId),
     onSuccess: (_, lockerId) => {
       queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
       queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })

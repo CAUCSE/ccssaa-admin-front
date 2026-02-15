@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -25,6 +26,7 @@ export function LockerFilter() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const [userKeyword, setUserKeyword] = useState(searchParams.get("userKeyword") ?? "")
   const [location, setLocation] = useState<"ALL" | LockerNameV2>(
     (searchParams.get("location") as "ALL" | LockerNameV2) || "ALL"
   )
@@ -33,6 +35,7 @@ export function LockerFilter() {
 
   const handleSearch = () => {
     const params = new URLSearchParams()
+    if (userKeyword.trim()) params.set("userKeyword", userKeyword.trim())
     if (location && location !== "ALL") params.set("location", location)
     if (isActive === "true" || isActive === "false") params.set("isActive", isActive)
     if (isOccupied === "true" || isOccupied === "false") params.set("isOccupied", isOccupied)
@@ -42,7 +45,14 @@ export function LockerFilter() {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+          <Input
+            className="flex-1 min-w-[160px]"
+            placeholder="이름, 이메일, 학번 검색"
+            value={userKeyword}
+            onChange={(e) => setUserKeyword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
           <Select
             value={location}
             onValueChange={(v) => setLocation(v as "" | LockerNameV2)}
