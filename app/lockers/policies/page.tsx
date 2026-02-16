@@ -115,82 +115,88 @@ export default function LockerPoliciesPage() {
               </CardTitle>
               <CardDescription>조회된 정책 값입니다. 아래 카드에서 수정할 수 있습니다.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            <CardContent className="space-y-4 text-sm">
+              {/* 1줄: 신청 기간, 만료일 */}
+              <div className="flex flex-wrap items-start gap-6">
                 <div>
                   <span className="text-muted-foreground">신청 기간</span>
-                  <p className="font-medium mt-0.5 tabular-nums">
+                  <p className="font-medium mt-0.5 tabular-nums whitespace-nowrap">
                     {formatDateTime(policy.registerStartAt)} ~ {formatDateTime(policy.registerEndAt)}
                   </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">만료일</span>
-                  <p className="font-medium mt-0.5 tabular-nums">
+                  <p className="font-medium mt-0.5 tabular-nums whitespace-nowrap">
                     {formatDateTime(policy.expiredAt)}
                   </p>
                 </div>
+              </div>
+              {/* 2줄: 사물함 신청 상태 */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">사물함 신청</span>
+                  <Badge variant={policy.isLockerAccessEnabled ? "default" : "secondary"}>
+                    {policy.isLockerAccessEnabled ? (
+                      <><Unlock className="h-3 w-3 mr-1" /> 사용 가능</>
+                    ) : (
+                      <><Lock className="h-3 w-3 mr-1" /> 중지</>
+                    )}
+                  </Badge>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-fit"
+                  disabled={registerStatusMutation.isPending}
+                  onClick={() =>
+                    registerStatusMutation.mutate({
+                      status: !policy.isLockerAccessEnabled,
+                    })
+                  }
+                >
+                  {policy.isLockerAccessEnabled ? "중지하기" : "활성화"}
+                </Button>
+              </div>
+              {/* 3줄: 연장 기간, 연장 시 만료일 */}
+              <div className="flex flex-wrap items-start gap-6">
                 <div>
                   <span className="text-muted-foreground">연장 기간</span>
-                  <p className="font-medium mt-0.5 tabular-nums">
+                  <p className="font-medium mt-0.5 tabular-nums whitespace-nowrap">
                     {formatDateTime(policy.extendStartAt)} ~ {formatDateTime(policy.extendEndAt)}
                   </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">연장 시 만료일</span>
-                  <p className="font-medium mt-0.5 tabular-nums">
+                  <p className="font-medium mt-0.5 tabular-nums whitespace-nowrap">
                     {formatDateTime(policy.nextExpiredAt)}
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">사물함 신청</span>
-                    <Badge variant={policy.isLockerAccessEnabled ? "default" : "secondary"}>
-                      {policy.isLockerAccessEnabled ? (
-                        <><Unlock className="h-3 w-3 mr-1" /> 사용 가능</>
-                      ) : (
-                        <><Lock className="h-3 w-3 mr-1" /> 중지</>
-                      )}
-                    </Badge>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-fit"
-                    disabled={registerStatusMutation.isPending}
-                    onClick={() =>
-                      registerStatusMutation.mutate({
-                        status: !policy.isLockerAccessEnabled,
-                      })
-                    }
-                  >
-                    {policy.isLockerAccessEnabled ? "중지하기" : "활성화"}
-                  </Button>
+              </div>
+              {/* 4줄: 사물함 연장 상태 */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">사물함 연장</span>
+                  <Badge variant={policy.isLockerExtendEnabled ? "default" : "secondary"}>
+                    {policy.isLockerExtendEnabled ? (
+                      <><Unlock className="h-3 w-3 mr-1" /> 사용 가능</>
+                    ) : (
+                      <><Lock className="h-3 w-3 mr-1" /> 중지</>
+                    )}
+                  </Badge>
                 </div>
-                <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">사물함 연장</span>
-                    <Badge variant={policy.isLockerExtendEnabled ? "default" : "secondary"}>
-                      {policy.isLockerExtendEnabled ? (
-                        <><Unlock className="h-3 w-3 mr-1" /> 사용 가능</>
-                      ) : (
-                        <><Lock className="h-3 w-3 mr-1" /> 중지</>
-                      )}
-                    </Badge>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-fit"
-                    disabled={extendStatusMutation.isPending}
-                    onClick={() =>
-                      extendStatusMutation.mutate({
-                        status: !policy.isLockerExtendEnabled,
-                      })
-                    }
-                  >
-                    {policy.isLockerExtendEnabled ? "중지하기" : "활성화"}
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-fit"
+                  disabled={extendStatusMutation.isPending}
+                  onClick={() =>
+                    extendStatusMutation.mutate({
+                      status: !policy.isLockerExtendEnabled,
+                    })
+                  }
+                >
+                  {policy.isLockerExtendEnabled ? "중지하기" : "활성화"}
+                </Button>
               </div>
             </CardContent>
           </Card>
