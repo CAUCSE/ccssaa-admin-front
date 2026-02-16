@@ -194,3 +194,36 @@ export interface LockerLogListResponse {
   size: number
   number: number
 }
+
+// ----- v2 사물함 정책 (GET /api/v2/admin/lockers/policy) -----
+
+/** v2 사물함 정책 응답 (단일) */
+export interface LockerPolicyV2 {
+  expiredAt: string
+  registerStartAt: string
+  registerEndAt: string
+  extendStartAt: string
+  extendEndAt: string
+  nextExpiredAt: string
+  isLockerAccessEnabled: boolean
+  isLockerExtendEnabled: boolean
+}
+
+/** PUT register-period 요청 (신청 기간 + 만료일) */
+export interface LockerPolicyRegisterPeriodRequest {
+  registerStartAt: string
+  registerEndAt: string
+  expiredAt: string
+}
+
+/** PUT extend-period 요청 */
+export interface LockerPolicyExtendPeriodRequest {
+  extendStartAt: string
+  extendEndAt: string
+  nextExpiredAt: string
+}
+
+/** PUT register-status 요청 (사물함 신청 가능 여부) */
+export interface LockerPolicyStatusRequest {
+  status: boolean
+}

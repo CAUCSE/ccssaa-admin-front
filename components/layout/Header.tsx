@@ -65,7 +65,10 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
   ],
   "/reports": [{ label: "신고 관리", href: "/reports" }],
   "/lockers": [{ label: "사물함 현황", href: "/lockers" }],
-  "/lockers/policies": [{ label: "신청 정책 관리", href: "/lockers/policies" }],
+  "/lockers/policies": [
+    { label: "사물함 관리", href: "/lockers" },
+    { label: "신청 정책 관리", href: "/lockers/policies" },
+  ],
   "/lockers/policies/new": [
     { label: "신청 정책 관리", href: "/lockers/policies" },
     { label: "정책 등록", href: "/lockers/policies/new" },
