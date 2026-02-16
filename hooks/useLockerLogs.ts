@@ -4,9 +4,18 @@ import type { LockerLogListParams } from "@/types/locker"
 
 const QUERY_KEY = "admin-locker-logs"
 
-export function useLockerLogs(params: LockerLogListParams) {
+export interface UseLockerLogsOptions {
+  /** false면 요청하지 않음 (모달 닫힌 상태 등) */
+  enabled?: boolean
+}
+
+export function useLockerLogs(
+  params: LockerLogListParams,
+  options?: UseLockerLogsOptions
+) {
   return useQuery({
     queryKey: [QUERY_KEY, params],
+    enabled: options?.enabled !== false,
     queryFn: async () => {
       const page = params.page ?? 0
       const size = params.size ?? 20

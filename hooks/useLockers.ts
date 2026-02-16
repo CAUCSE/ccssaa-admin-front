@@ -6,6 +6,8 @@ import {
   assignLockerV2,
   extendLockerV2,
   releaseLockerV2,
+  enableLockerV2,
+  disableLockerV2,
 } from "@/lib/api/v2/lockers"
 import type {
   LockerListParams,
@@ -119,6 +121,42 @@ export function useReleaseLocker() {
       queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
       queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })
       toast.success("사물함 회수가 완료되었습니다.")
+    },
+    onError: (error) => {
+      showError?.(error)
+    },
+  })
+}
+
+// 활성화 (v2: POST /api/v2/admin/lockers/{id}/enable)
+export function useEnableLocker() {
+  const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
+
+  return useMutation({
+    mutationFn: (lockerId: number | string) => enableLockerV2(lockerId),
+    onSuccess: (_, lockerId) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })
+      toast.success("사물함이 활성화되었습니다.")
+    },
+    onError: (error) => {
+      showError?.(error)
+    },
+  })
+}
+
+// 비활성화 (v2: POST /api/v2/admin/lockers/{id}/disable, 사용 중이면 함께 해제)
+export function useDisableLocker() {
+  const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
+
+  return useMutation({
+    mutationFn: (lockerId: number | string) => disableLockerV2(lockerId),
+    onSuccess: (_, lockerId) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-locker", lockerId] })
+      toast.success("사물함이 비활성화되었습니다.")
     },
     onError: (error) => {
       showError?.(error)

@@ -93,3 +93,13 @@ export async function extendLockerV2(
 export async function releaseLockerV2(id: number | string): Promise<void> {
   await apiV2.post(`/admin/lockers/${id}/release`)
 }
+
+/** v2 활성화 — POST /api/v2/admin/lockers/{id}/enable */
+export async function enableLockerV2(id: number | string): Promise<void> {
+  await apiV2.post(`/admin/lockers/${id}/enable`)
+}
+
+/** v2 비활성화 — POST /api/v2/admin/lockers/{id}/disable (사용 중이면 함께 해제) */
+export async function disableLockerV2(id: number | string): Promise<void> {
+  await apiV2.post(`/admin/lockers/${id}/disable`)
+}

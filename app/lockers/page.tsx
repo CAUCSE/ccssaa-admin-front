@@ -4,7 +4,15 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { LockerFilter } from "@/components/locker/LockerFilter"
 import { LockerTable } from "@/components/locker/LockerTable"
-import { useLockers, useAssignLocker, useExtendLocker, useReleaseLocker } from "@/hooks/useLockers"
+import { LockerLogsModal } from "@/components/locker/LockerLogsModal"
+import {
+  useLockers,
+  useAssignLocker,
+  useExtendLocker,
+  useReleaseLocker,
+  useEnableLocker,
+  useDisableLocker,
+} from "@/hooks/useLockers"
 import { useAdminUsersV2 } from "@/hooks/useUsers"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorMessage } from "@/components/ui/error-message"
@@ -49,7 +57,10 @@ function LockersPageContent() {
   const [extendDialogOpen, setExtendDialogOpen] = useState(false)
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false)
   const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false)
+  const [disableDialogOpen, setDisableDialogOpen] = useState(false)
+  const [logsModalOpen, setLogsModalOpen] = useState(false)
   const [selectedLocker, setSelectedLocker] = useState<Locker | null>(null)
+  const [selectedLockerForLogs, setSelectedLockerForLogs] = useState<Locker | null>(null)
   const [assignSearchKeyword, setAssignSearchKeyword] = useState("")
   const [assignDebouncedKeyword, setAssignDebouncedKeyword] = useState("")
   const [assignSelectedUser, setAssignSelectedUser] = useState<AdminUserItemV2 | null>(null)
@@ -88,6 +99,8 @@ function LockersPageContent() {
   const assignMutation = useAssignLocker()
   const extendMutation = useExtendLocker()
   const releaseMutation = useReleaseLocker()
+  const enableMutation = useEnableLocker()
+  const disableMutation = useDisableLocker()
 
   const { data: assignSearchUsers = [] } = useAdminUsersV2(
     assignDialogOpen
@@ -128,6 +141,31 @@ function LockersPageContent() {
   const openCleanupDialog = (locker: Locker) => {
     setSelectedLocker(locker)
     setCleanupDialogOpen(true)
+  }
+
+  const openLogsModal = (locker: Locker) => {
+    setSelectedLockerForLogs(locker)
+    setLogsModalOpen(true)
+  }
+
+  const openDisableDialog = (locker: Locker) => {
+    setSelectedLocker(locker)
+    setDisableDialogOpen(true)
+  }
+
+  const handleEnable = (locker: Locker) => {
+    if (locker.id == null || locker.id === "") return
+    enableMutation.mutate(locker.id)
+  }
+
+  const handleDisableConfirm = () => {
+    if (!selectedLocker || selectedLocker.id == null || selectedLocker.id === "") return
+    disableMutation.mutate(selectedLocker.id, {
+      onSuccess: () => {
+        setDisableDialogOpen(false)
+        setSelectedLocker(null)
+      },
+    })
   }
 
   const handleAssign = () => {
@@ -238,6 +276,9 @@ function LockersPageContent() {
           onExtendClick={openExtendDialog}
           onRevokeClick={openRevokeDialog}
           onCleanupClick={openCleanupDialog}
+          onLogsClick={openLogsModal}
+          onEnableClick={handleEnable}
+          onDisableClick={openDisableDialog}
         />
       )}
 
@@ -380,6 +421,29 @@ function LockersPageContent() {
         </AlertDialogContent>
       </AlertDialogRoot>
 
+      {/* 비활성화 확인 모달 */}
+      <AlertDialogRoot open={disableDialogOpen} onOpenChange={setDisableDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>사물함 비활성화</AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedLocker?.currentUserName
+                ? "선택한 사물함을 비활성화하면 현재 배정된 사용자도 함께 해제됩니다. 계속하시겠습니까?"
+                : "선택한 사물함을 비활성화하시겠습니까? 비활성화된 사물함은 배정·연장·회수 대상에서 제외됩니다."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDisableConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              비활성화
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogRoot>
+
       {/* 만료 정리 확인 모달 */}
       <AlertDialogRoot open={cleanupDialogOpen} onOpenChange={setCleanupDialogOpen}>
         <AlertDialogContent>
@@ -400,6 +464,13 @@ function LockersPageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogRoot>
+
+      {/* 관련 로그 모달 */}
+      <LockerLogsModal
+        open={logsModalOpen}
+        onOpenChange={setLogsModalOpen}
+        locker={selectedLockerForLogs}
+      />
     </div>
   )
 }
