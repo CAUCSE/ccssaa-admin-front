@@ -83,6 +83,7 @@ function LockersPageContent() {
   const locationParam = searchParams.get("location")
   const isActiveParam = searchParams.get("isActive")
   const isOccupiedParam = searchParams.get("isOccupied")
+  const isExpiredParam = searchParams.get("isExpired")
 
   const params: LockerListParams = {
     page: page - 1, // API는 0-based
@@ -96,6 +97,8 @@ function LockersPageContent() {
       isActiveParam === "true" ? true : isActiveParam === "false" ? false : undefined,
     isOccupied:
       isOccupiedParam === "true" ? true : isOccupiedParam === "false" ? false : undefined,
+    isExpired:
+      isExpiredParam === "true" ? true : isExpiredParam === "false" ? false : undefined,
   }
 
   const { data, isLoading, error } = useLockers(params)

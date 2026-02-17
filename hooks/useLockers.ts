@@ -32,6 +32,7 @@ export function useLockers(params: LockerListParams) {
         location: params.locationV2 as LockerNameV2 | undefined,
         isActive: params.isActive,
         isOccupied: params.isOccupied,
+        isExpired: params.isExpired,
         page,
         size,
       })

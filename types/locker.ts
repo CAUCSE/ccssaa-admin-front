@@ -20,6 +20,8 @@ export interface LockerListRequestV2 {
   isActive?: boolean
   /** 사용중 여부 필터 */
   isOccupied?: boolean
+  /** 만료 여부 필터 */
+  isExpired?: boolean
   /** 페이지 번호 (0부터 시작) */
   page: number
   /** 페이지 크기 */
@@ -100,6 +102,8 @@ export interface LockerListParams {
   isActive?: boolean
   /** v2: 사용중 여부 필터 */
   isOccupied?: boolean
+  /** v2: 만료 여부 필터 */
+  isExpired?: boolean
 }
 
 export interface LockerListResponse {

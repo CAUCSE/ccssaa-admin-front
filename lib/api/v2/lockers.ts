@@ -29,6 +29,7 @@ export async function getLockersV2(
       location: params.location,
       isActive: params.isActive,
       isOccupied: params.isOccupied,
+      isExpired: params.isExpired,
       page: params.page,
       size: params.size,
     },

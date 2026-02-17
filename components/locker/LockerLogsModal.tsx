@@ -23,17 +23,25 @@ import type { Locker, LockerNameV2 } from "@/types/locker"
 import { FileText } from "lucide-react"
 
 const ACTION_LABEL: Record<string, string> = {
-  REGISTER: "배정",
-  RETURN: "반납",
-  EXTEND: "연장",
-  REVOKE: "회수",
+  ENABLE: "사물함 활성화",
+  DISABLE: "사물함 비활성화",
+  REGISTER: "사물함 신청",
+  RETURN: "사물함 반납",
+  EXTEND: "사물함 연장",
+  ADMIN_ASSIGN: "관리자 사물함 배정",
+  ADMIN_EXTEND: "관리자 사물함 연장",
+  ADMIN_RELEASE: "관리자 사물함 회수",
 }
 
 const ACTION_BADGE_VARIANT: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+  ENABLE: "default",
+  DISABLE: "secondary",
   REGISTER: "default",
   RETURN: "secondary",
   EXTEND: "outline",
-  REVOKE: "destructive",
+  ADMIN_ASSIGN: "default",
+  ADMIN_EXTEND: "outline",
+  ADMIN_RELEASE: "destructive",
 }
 
 function formatDateTime(iso: string): string {
@@ -145,7 +153,7 @@ export function LockerLogsModal({
                   <TableHeader>
                     <TableRow>
                       <TableHead className={headClass} style={{ width: "22%" }}>시간</TableHead>
-                      <TableHead className={headClass} style={{ width: "14%" }}>액션</TableHead>
+                      <TableHead className={headClass} style={{ width: "14%", minWidth: "140px" }}>액션</TableHead>
                       <TableHead className={headClass} style={{ width: "28%" }}>사용자</TableHead>
                       <TableHead className={headClass} style={{ width: "36%" }}>메시지</TableHead>
                     </TableRow>
@@ -156,8 +164,11 @@ export function LockerLogsModal({
                         <TableCell className={`${cellClass} text-muted-foreground tabular-nums whitespace-nowrap`}>
                           {formatDateTime(log.createdAt)}
                         </TableCell>
-                        <TableCell className={cellClass}>
-                          <Badge variant={getActionBadgeVariant(log.action)} className="font-normal text-xs">
+                        <TableCell className={`${cellClass} whitespace-nowrap`}>
+                          <Badge
+                            variant={getActionBadgeVariant(log.action)}
+                            className="font-normal text-xs whitespace-nowrap"
+                          >
                             {getActionLabel(log.action)}
                           </Badge>
                         </TableCell>
