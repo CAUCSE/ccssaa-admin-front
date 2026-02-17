@@ -42,6 +42,23 @@ function toDatetimeLocal(iso: string): string {
   return `${y}-${M}-${D}T${h}:${m}`
 }
 
+/** datetime-local 값(로컬 시간)을 타임존 보정 없이 ISO(Z) 문자열로 변환 */
+function fromDatetimeLocal(value: string): string {
+  if (!value) return ""
+  // value 예: "2026-02-16T22:54" 또는 "2026-02-16T22:54:00"
+  const [date, time] = value.split("T")
+  if (!date || !time) return value
+
+  const [y, M, D] = date.split("-")
+  const [h, m] = time.split(":")
+
+  if (!y || !M || !D || !h || !m) return value
+
+  const mm = m.length === 1 ? m.padStart(2, "0") : m
+  // 서버 예제가 Z(UTC) 포맷을 사용하므로, 로컬 시각 그대로에 'Z'만 붙여 전달
+  return `${y}-${M}-${D}T${h}:${mm}:00Z`
+}
+
 export default function LockerPoliciesPage() {
   const { data: policy, isLoading, error } = useLockerPolicyV2()
   const registerMutation = useUpdateLockerPolicyRegisterPeriodV2()
@@ -69,18 +86,18 @@ export default function LockerPoliciesPage() {
   const handleSaveRegisterPeriod = () => {
     if (!registerStartAt.trim() || !registerEndAt.trim() || !expiredAt.trim()) return
     registerMutation.mutate({
-      registerStartAt: new Date(registerStartAt).toISOString(),
-      registerEndAt: new Date(registerEndAt).toISOString(),
-      expiredAt: new Date(expiredAt).toISOString(),
+      registerStartAt: fromDatetimeLocal(registerStartAt),
+      registerEndAt: fromDatetimeLocal(registerEndAt),
+      expiredAt: fromDatetimeLocal(expiredAt),
     })
   }
 
   const handleSaveExtendPeriod = () => {
     if (!extendStartAt.trim() || !extendEndAt.trim() || !nextExpiredAt.trim()) return
     extendMutation.mutate({
-      extendStartAt: new Date(extendStartAt).toISOString(),
-      extendEndAt: new Date(extendEndAt).toISOString(),
-      nextExpiredAt: new Date(nextExpiredAt).toISOString(),
+      extendStartAt: fromDatetimeLocal(extendStartAt),
+      extendEndAt: fromDatetimeLocal(extendEndAt),
+      nextExpiredAt: fromDatetimeLocal(nextExpiredAt),
     })
   }
 

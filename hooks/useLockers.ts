@@ -8,6 +8,7 @@ import {
   releaseLockerV2,
   enableLockerV2,
   disableLockerV2,
+  releaseAllExpiredLockersV2,
 } from "@/lib/api/v2/lockers"
 import type {
   LockerListParams,
@@ -164,16 +165,16 @@ export function useDisableLocker() {
   })
 }
 
-// 일괄 회수
-export function useReleaseAllLockers() {
+// 만료 사물함 일괄 회수 (v2: POST /api/v2/admin/lockers/release-all-expired)
+export function useReleaseAllExpiredLockers() {
   const queryClient = useQueryClient()
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: () => lockerApi.releaseAllLockers(),
+    mutationFn: () => releaseAllExpiredLockersV2(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-lockers"] })
-      toast.success("모든 사물함 회수가 완료되었습니다.")
+      toast.success("만료된 사물함 일괄 회수가 완료되었습니다.")
     },
     onError: (error) => {
       showError?.(error)

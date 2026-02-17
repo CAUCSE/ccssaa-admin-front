@@ -103,3 +103,8 @@ export async function enableLockerV2(id: number | string): Promise<void> {
 export async function disableLockerV2(id: number | string): Promise<void> {
   await apiV2.post(`/admin/lockers/${id}/disable`)
 }
+
+/** v2 만료 사물함 일괄 회수 — POST /api/v2/admin/lockers/release-all-expired */
+export async function releaseAllExpiredLockersV2(): Promise<void> {
+  await apiV2.post("/admin/lockers/release-all-expired")
+}

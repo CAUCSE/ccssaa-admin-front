@@ -12,6 +12,7 @@ import {
   useReleaseLocker,
   useEnableLocker,
   useDisableLocker,
+  useReleaseAllExpiredLockers,
 } from "@/hooks/useLockers"
 import { useAdminUsersV2 } from "@/hooks/useUsers"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -59,6 +60,8 @@ function LockersPageContent() {
   const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false)
   const [disableDialogOpen, setDisableDialogOpen] = useState(false)
   const [logsModalOpen, setLogsModalOpen] = useState(false)
+  const [bulkReleaseDialogOpen, setBulkReleaseDialogOpen] = useState(false)
+  const [bulkReleaseConfirmText, setBulkReleaseConfirmText] = useState("")
   const [selectedLocker, setSelectedLocker] = useState<Locker | null>(null)
   const [selectedLockerForLogs, setSelectedLockerForLogs] = useState<Locker | null>(null)
   const [assignSearchKeyword, setAssignSearchKeyword] = useState("")
@@ -101,6 +104,7 @@ function LockersPageContent() {
   const releaseMutation = useReleaseLocker()
   const enableMutation = useEnableLocker()
   const disableMutation = useDisableLocker()
+  const releaseAllExpiredMutation = useReleaseAllExpiredLockers()
 
   const { data: assignSearchUsers = [] } = useAdminUsersV2(
     assignDialogOpen
@@ -244,6 +248,24 @@ function LockersPageContent() {
     setCleanupDialogOpen(false)
   }
 
+  const handleOpenBulkReleaseDialog = () => {
+    setBulkReleaseConfirmText("")
+    setBulkReleaseDialogOpen(true)
+  }
+
+  const handleConfirmBulkRelease = () => {
+    if (bulkReleaseConfirmText.trim() !== "일괄회수하겠습니다.") {
+      toast.error("정확히 '일괄회수하겠습니다.' 를 입력해 주세요.")
+      return
+    }
+    releaseAllExpiredMutation.mutate(undefined, {
+      onSuccess: () => {
+        setBulkReleaseDialogOpen(false)
+        setBulkReleaseConfirmText("")
+      },
+    })
+  }
+
   useEffect(() => {
     setPage(1) // 필터 변경 시 첫 페이지로
   }, [searchParams])
@@ -254,11 +276,22 @@ function LockersPageContent() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">사물함 현황</h1>
-        <p className="text-muted-foreground">
-          위치별 사물함 현황을 조회하고, 배정·연장·회수·정리 작업을 수행합니다.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">사물함 현황</h1>
+          <p className="text-muted-foreground">
+            위치별 사물함 현황을 조회하고, 배정·연장·회수·정리 작업을 수행합니다.
+          </p>
+        </div>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="whitespace-nowrap"
+          onClick={handleOpenBulkReleaseDialog}
+          disabled={releaseAllExpiredMutation.isPending}
+        >
+          만료 사물함 일괄 회수
+        </Button>
       </div>
 
       <LockerFilter />
@@ -464,6 +497,36 @@ function LockersPageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialogRoot>
+
+      {/* 만료 사물함 일괄 회수 모달 */}
+      <FormDialog
+        open={bulkReleaseDialogOpen}
+        onOpenChange={setBulkReleaseDialogOpen}
+        title="만료 사물함 일괄 회수"
+        description="만료 상태인 사물함을 모두 회수합니다. 진행 후에는 개별 되돌리기가 어렵습니다."
+        confirmText="일괄 회수 실행"
+        cancelText="취소"
+        onConfirm={handleConfirmBulkRelease}
+        isLoading={releaseAllExpiredMutation.isPending}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            아래 문구를 정확히 입력하면 일괄 회수 요청이 전송됩니다.
+          </p>
+          <div className="rounded-md bg-muted px-3 py-2 text-sm font-mono">
+            일괄회수하겠습니다.
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bulkReleaseConfirm">확인 문구 입력</Label>
+            <Input
+              id="bulkReleaseConfirm"
+              value={bulkReleaseConfirmText}
+              onChange={(e) => setBulkReleaseConfirmText(e.target.value)}
+              placeholder="일괄회수하겠습니다."
+            />
+          </div>
+        </div>
+      </FormDialog>
 
       {/* 관련 로그 모달 */}
       <LockerLogsModal
