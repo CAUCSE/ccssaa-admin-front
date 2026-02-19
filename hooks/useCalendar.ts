@@ -78,3 +78,26 @@ export function useDeleteCalendarEvent() {
     },
   })
 }
+
+// 사물함 신청 기간을 캘린더에 동기화 (일정 생성)
+export function useSyncLockerPeriodToCalendar() {
+  const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
+
+  return useMutation({
+    mutationFn: (data: { startAt: string; endAt: string }) =>
+      calendarApi.createCalendarEvent({
+        title: "사물함 신청 기간",
+        type: "ACADEMIC",
+        start: data.startAt,
+        end: data.endAt,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-calendar"] })
+      toast.success("캘린더에 사물함 신청 기간이 반영되었습니다.")
+    },
+    onError: (error) => {
+      showError?.(error)
+    },
+  })
+}

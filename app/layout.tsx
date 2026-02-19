@@ -1,6 +1,7 @@
 "use client"
 
 import { AuthLayoutProvider } from "@/components/layout/AuthLayout"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import "./globals.css"
 
 export default function RootLayout({
@@ -9,9 +10,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko">
-      <body>
-        <AuthLayoutProvider>{children}</AuthLayoutProvider>
+    <html lang="ko" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <TooltipProvider delayDuration={300}>
+          <AuthLayoutProvider>{children}</AuthLayoutProvider>
+        </TooltipProvider>
       </body>
     </html>
   )

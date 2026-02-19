@@ -77,23 +77,17 @@
   font-weight: 600;
   font-size: 0.875rem;
   border-bottom: 1px solid hsl(var(--border));
-}
-
-.rbc-today {
+}.rbc-today {
   background-color: transparent;
   box-shadow: inset 0 0 0 2px hsl(var(--primary));
-}
-
-.rbc-off-range-bg {
+}.rbc-off-range-bg {
   background-color: hsl(var(--muted));
 }
 
 .rbc-event {
   padding: 2px 4px;
   font-size: 0.875rem;
-}
-
-.rbc-event-label {
+}.rbc-event-label {
   font-size: 0.75rem;
 }
 

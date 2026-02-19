@@ -16,6 +16,10 @@ const pageTitles: Record<string, string> = {
   "/content": "게시판 관리",
   "/content/boards": "게시판 관리",
   "/reports": "신고 관리",
+  "/lockers": "사물함 현황",
+  "/lockers/policies": "신청 정책 관리",
+  "/lockers/policies/new": "정책 등록",
+  "/lockers/logs": "로그 조회",
   "/settings": "시스템 설정",
   "/settings/roles": "권한 및 역할 관리",
   "/settings/design": "디자인 / 배너 관리",
@@ -34,6 +38,10 @@ const getPageTitle = (pathname: string): string => {
   // /reports/[id] 패턴
   if (pathname.startsWith("/reports/") && pathname !== "/reports") {
     return "신고 상세"
+  }
+  // /lockers/policies/[id]/edit 패턴
+  if (pathname.match(/^\/lockers\/policies\/\d+\/edit$/)) {
+    return "정책 수정"
   }
   // 기본 pageTitles에서 찾기
   return pageTitles[pathname] || "관리자 페이지"
@@ -56,6 +64,19 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "게시판 목록", href: "/content/boards" },
   ],
   "/reports": [{ label: "신고 관리", href: "/reports" }],
+  "/lockers": [{ label: "사물함 현황", href: "/lockers" }],
+  "/lockers/policies": [
+    { label: "사물함 관리", href: "/lockers" },
+    { label: "신청 정책 관리", href: "/lockers/policies" },
+  ],
+  "/lockers/policies/new": [
+    { label: "신청 정책 관리", href: "/lockers/policies" },
+    { label: "정책 등록", href: "/lockers/policies/new" },
+  ],
+  "/lockers/logs": [
+    { label: "사물함 관리", href: "/lockers" },
+    { label: "로그 조회", href: "/lockers/logs" },
+  ],
   "/settings": [{ label: "시스템 설정", href: "/settings" }],
   "/settings/roles": [
     { label: "시스템 설정", href: "/settings" },
@@ -88,6 +109,14 @@ const getBreadcrumbForPath = (pathname: string): { label: string; href: string }
     return [
       { label: "신고 관리", href: "/reports" },
       { label: "신고 상세", href: pathname },
+    ]
+  }
+  // /lockers/policies/[id]/edit 패턴
+  const policyEditMatch = pathname.match(/^(\/lockers\/policies\/(\d+)\/edit)$/)
+  if (policyEditMatch) {
+    return [
+      { label: "신청 정책 관리", href: "/lockers/policies" },
+      { label: "정책 수정", href: pathname },
     ]
   }
   // 기본 breadcrumbMap에서 찾기
@@ -152,7 +181,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </Link>
               </li>
               {breadcrumbs.map((crumb, index) => (
-                <li key={crumb.href} className="flex items-center gap-2">
+                <li key={`${index}-${crumb.href}-${crumb.label}`} className="flex items-center gap-2">
                   <ChevronRight className="h-4 w-4" />
                   {index === breadcrumbs.length - 1 ? (
                     <span className="text-foreground font-medium">{crumb.label}</span>

@@ -5,6 +5,7 @@ import type {
   LockerStatus,
   AssignLockerRequest,
   LockerApplicationPeriod,
+  LockerUsageStatus,
 } from "@/types/locker"
 
 // Mock 데이터 생성
@@ -25,13 +26,14 @@ const generateMockLockers = (): Locker[] => {
   return Array.from({ length: 100 }, (_, i) => {
     const number = 101 + i
     const isOccupied = Math.random() > 0.4 // 60% 확률로 사용 중
-    const status: LockerStatus = isOccupied ? "OCCUPIED" : "AVAILABLE"
+    const status: LockerStatus = isOccupied ? "IN_USE" : "AVAILABLE"
 
     let currentUserId: number | undefined
     let currentUserName: string | undefined
     let currentUserStudentNo: string | undefined
     let currentUserPhone: string | undefined
     let assignedAt: string | undefined
+    let expiredAt: string | null = null
 
     if (isOccupied) {
       currentUserId = i + 1
@@ -41,6 +43,10 @@ const generateMockLockers = (): Locker[] => {
       currentUserPhone = `010-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`
       const assignedDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1)
       assignedAt = assignedDate.toISOString()
+      // 배정 후 90일 뒤 만료로 가정
+      const expiredDate = new Date(assignedDate)
+      expiredDate.setDate(expiredDate.getDate() + 90)
+      expiredAt = expiredDate.toISOString()
     }
 
     // 이전 사용자 정보 (50% 확률)
@@ -62,11 +68,13 @@ const generateMockLockers = (): Locker[] => {
       id: i + 1,
       number,
       status,
+      location: `본관 ${1 + (i % 5)}층`,
       currentUserId,
       currentUserName,
       currentUserStudentNo,
       currentUserPhone,
       assignedAt,
+      expiredAt,
       previousUserId,
       previousUserName,
       previousUserStudentNo,
@@ -96,11 +104,47 @@ export const mockLockerApi = {
       )
     }
 
-    // 상태 필터링
+    // 상태 필터링 (기존 status 필터 – 하위 호환)
     if (params.status && params.status !== "ALL") {
       filteredLockers = filteredLockers.filter(
         (locker) => locker.status === params.status
       )
+    }
+
+    // 위치 필터링
+    if (params.location?.trim()) {
+      const keyword = params.location.trim().toLowerCase()
+      filteredLockers = filteredLockers.filter((locker) =>
+        locker.location?.toLowerCase().includes(keyword)
+      )
+    }
+
+    // 사용 상태 필터링 (EMPTY / IN_USE / EXPIRED)
+    const now = Date.now()
+    const getUsageStatus = (locker: Locker): LockerUsageStatus => {
+      if (!locker.currentUserId) return "EMPTY"
+      if (locker.expiredAt) {
+        const expiredTime = new Date(locker.expiredAt).getTime()
+        if (!Number.isNaN(expiredTime) && expiredTime < now) return "EXPIRED"
+      }
+      return "IN_USE"
+    }
+
+    if (params.usageStatus && params.usageStatus !== "ALL") {
+      filteredLockers = filteredLockers.filter(
+        (locker) => getUsageStatus(locker) === params.usageStatus
+      )
+    }
+
+    // 만료 임박 필터 (N일 이내 만료)
+    if (params.expireWithinDays && params.expireWithinDays > 0) {
+      const threshold = Date.now() + params.expireWithinDays * 24 * 60 * 60 * 1000
+      filteredLockers = filteredLockers.filter((locker) => {
+        if (!locker.expiredAt) return false
+        const expiredTime = new Date(locker.expiredAt).getTime()
+        if (Number.isNaN(expiredTime)) return false
+        return expiredTime >= Date.now() && expiredTime <= threshold
+      })
     }
 
     // 사용자 검색
@@ -171,7 +215,7 @@ export const mockLockerApi = {
     }
 
     // 새 사용자 배정
-    locker.status = "OCCUPIED"
+    locker.status = "IN_USE"
     locker.currentUserId = data.userId
     locker.currentUserName = name
     locker.currentUserStudentNo = studentNo
@@ -188,7 +232,7 @@ export const mockLockerApi = {
       throw new Error("사물함을 찾을 수 없습니다.")
     }
 
-    if (locker.status === "AVAILABLE") {
+    if (locker.status !== "IN_USE") {
       throw new Error("이미 사용 가능한 사물함입니다.")
     }
 
@@ -214,7 +258,7 @@ export const mockLockerApi = {
     await new Promise((resolve) => setTimeout(resolve, 500))
 
     mockLockers.forEach((locker) => {
-      if (locker.status === "OCCUPIED") {
+      if (locker.status === "IN_USE") {
         // 이전 사용자 정보 저장
         if (locker.currentUserId) {
           locker.previousUserId = locker.currentUserId

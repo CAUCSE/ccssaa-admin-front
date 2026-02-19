@@ -12,7 +12,9 @@ export const statusBadgeMap: Record<
   APPROVED: { variant: "success", label: "승인" },
   RESOLVED: { variant: "success", label: "완료" },
   PUBLIC: { variant: "success", label: "공개" },
-  AVAILABLE: { variant: "success", label: "사용가능" },
+  AVAILABLE: { variant: "success", label: "사용 가능" },
+  IN_USE: { variant: "neutral", label: "사용중" },
+  DISABLED: { variant: "neutral", label: "비활성" },
 
   // Warning (Orange)
   AWAIT: { variant: "warning", label: "대기" },
@@ -31,7 +33,8 @@ export const statusBadgeMap: Record<
   WITHDRAWN: { variant: "neutral", label: "탈퇴" }, // 다른 도메인에서 사용 가능
   HIDDEN: { variant: "neutral", label: "숨김" },
   DISMISSED: { variant: "neutral", label: "취소" },
-  OCCUPIED: { variant: "neutral", label: "사용중" },
+  OCCUPIED: { variant: "neutral", label: "사용중" }, // 하위 호환
+  INACTIVE: { variant: "neutral", label: "비활성" },
 }
 
 /**
