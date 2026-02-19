@@ -269,9 +269,25 @@ function LockersPageContent() {
   }
 
   const handleCleanup = () => {
+    if (!selectedLocker) {
+      toast.error("사물함을 선택해 주세요.")
+      return
+    }
+    if (selectedLocker.id === undefined || selectedLocker.id === null || selectedLocker.id === "") {
+      toast.error(
+        "이 사물함은 정리할 수 없습니다. 목록 API에서 사물함 ID(id)를 반환하는지 확인해 주세요."
+      )
+      return
+    }
+
+    const lockerId = selectedLocker.id
     // 만료 정리도 회수 API를 사용 (만료 상태에 한정)
-    handleRevoke()
-    setCleanupDialogOpen(false)
+    releaseMutation.mutate(lockerId, {
+      onSuccess: () => {
+        setCleanupDialogOpen(false)
+        setSelectedLocker(null)
+      },
+    })
   }
 
   const handleOpenBulkReleaseDialog = () => {
