@@ -49,8 +49,8 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
-# Logs
-logs
+# Logs (루트의 logs 폴더만 무시, app/lockers/logs 라우트는 제외)
+/logs
 *.log
 npm-debug.log*
 yarn-debug.log*
