@@ -1,6 +1,6 @@
 "use client"
-
-import { Calendar, dateFnsLocalizer, View, ToolbarProps, Navigate, type Event as RBCEvent } from "react-big-calendar"
+ 
+import { Calendar, dateFnsLocalizer, View, ToolbarProps, Navigate } from "react-big-calendar"
 import { format, parse, startOfWeek, getDay } from "date-fns"
 import { ko } from "date-fns/locale"
 import type { CalendarEvent, CalendarType } from "@/types/calendar"
@@ -40,8 +40,11 @@ interface CalendarViewProps {
   isLoading?: boolean
 }
 
-type CalendarRbcEvent = Omit<RBCEvent, "start" | "end"> & {
+// react-big-calendar 이벤트에 사용하는 로컬 타입
+// (start/end/title 필수, 추가로 resource/order/id를 포함)
+type CalendarRbcEvent = {
   id: string
+  title: string
   start: Date
   end: Date
   resource: CalendarEvent
@@ -106,7 +109,7 @@ export function CalendarView({
       ? data.filter(event => selectedTypes.includes(event.type))
       : data
     
-    const mappedEvents = filteredData.map((event, index): CalendarRbcEvent => ({
+    const mappedEvents: CalendarRbcEvent[] = filteredData.map((event, index) => ({
       id: event.id,
       title: event.title,
       start: new Date(event.start),
