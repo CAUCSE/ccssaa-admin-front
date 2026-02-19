@@ -40,8 +40,10 @@ interface CalendarViewProps {
   isLoading?: boolean
 }
 
-type CalendarRbcEvent = RBCEvent & {
+type CalendarRbcEvent = Omit<RBCEvent, "start" | "end"> & {
   id: string
+  start: Date
+  end: Date
   resource: CalendarEvent
   order: number
 }
