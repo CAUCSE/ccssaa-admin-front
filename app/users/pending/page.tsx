@@ -44,9 +44,9 @@ function PendingUsersPageContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-2">가입 인증 심사</h1>
+        <h1 className="text-2xl font-bold mb-2">재학 정보 심사</h1>
         <p className="text-muted-foreground">
-          회원가입 후 인증 신청한 유저를 확인하고 승인 또는 거절할 수 있습니다.
+          회원가입 후 재학 인증 신청한 유저를 확인하고 승인 또는 거절할 수 있습니다.
         </p>
       </div>
 
