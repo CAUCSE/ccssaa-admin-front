@@ -214,9 +214,13 @@ export const mockLockerApi = {
       locker.releasedAt = new Date().toISOString()
     }
 
-    // 새 사용자 배정
+    // 새 사용자 배정 (Locker.currentUserId는 number; API는 userId를 string으로 받음)
     locker.status = "IN_USE"
-    locker.currentUserId = data.userId
+    const userIdNum =
+      typeof data.userId === "number"
+        ? data.userId
+        : parseInt(String(data.userId), 10)
+    locker.currentUserId = Number.isNaN(userIdNum) ? 0 : userIdNum
     locker.currentUserName = name
     locker.currentUserStudentNo = studentNo
     locker.currentUserPhone = phone

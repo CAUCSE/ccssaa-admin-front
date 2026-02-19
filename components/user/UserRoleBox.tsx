@@ -60,7 +60,7 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
           <div className="flex flex-wrap gap-1">
             {(user.roles ?? []).map((role) => (
               <Badge key={role} variant="secondary">
-                {USER_ROLE_CONFIG[role] ?? role}
+                {USER_ROLE_CONFIG[role as UserRole] ?? role}
               </Badge>
             ))}
           </div>
