@@ -47,15 +47,6 @@ export function useLockers(params: LockerListParams) {
   })
 }
 
-// 사물함 상세 조회
-export function useLockerDetail(lockerId: number) {
-  return useQuery({
-    queryKey: ["admin-locker", lockerId],
-    queryFn: () => lockerApi.getLockerDetail(lockerId),
-    enabled: !!lockerId,
-  })
-}
-
 // 신청 기간 조회
 export function useLockerApplicationPeriod() {
   return useQuery({
