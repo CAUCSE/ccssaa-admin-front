@@ -32,6 +32,12 @@ export interface AdmissionListParams {
   sort?: string
 }
 
+// ============ 거절 요청 ============
+
+export interface RejectAdmissionRequest {
+  rejectReason: string
+}
+
 // ============ 목록 조회 응답 (페이지네이션) ============
 
 export interface AdmissionListResponse {

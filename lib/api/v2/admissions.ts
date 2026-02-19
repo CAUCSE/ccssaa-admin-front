@@ -6,6 +6,7 @@ import type {
   AdmissionListResponse,
   AdmissionDetail,
   AdmissionSummary,
+  RejectAdmissionRequest,
 } from "@/types/admission"
 
 type RawAdmissionListResponse = {
@@ -50,4 +51,25 @@ export async function getAdmissionDetail(
     `/admin/users/admissions/${admissionId}`
   )
   return unwrapV2(res) as AdmissionDetail
+}
+
+/**
+ * 인증 신청 승인
+ * POST /api/v2/admin/users/admissions/{admissionId}/approve
+ */
+export async function approveAdmission(
+  admissionId: string
+): Promise<void> {
+  await apiV2.post(`/admin/users/admissions/${admissionId}/approve`)
+}
+
+/**
+ * 인증 신청 거절
+ * POST /api/v2/admin/users/admissions/{admissionId}/reject
+ */
+export async function rejectAdmission(
+  admissionId: string,
+  data: RejectAdmissionRequest
+): Promise<void> {
+  await apiV2.post(`/admin/users/admissions/${admissionId}/reject`, data)
 }

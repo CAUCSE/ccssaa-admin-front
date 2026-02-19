@@ -3,6 +3,7 @@ import type {
   AdmissionDetail,
   AdmissionListParams,
   AdmissionListResponse,
+  RejectAdmissionRequest,
 } from "@/types/admission"
 import type { UserStatus, AcademicStatus, Department } from "@/types/user"
 
@@ -106,6 +107,25 @@ export const mockAdmissionApi = {
         "https://placehold.co/600x400?text=학생증+뒷면",
       ],
       updatedAt: admission.createdAt,
+    }
+  },
+
+  approveAdmission: async (admissionId: string): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    const admission = mockAdmissions.find((a) => a.id === admissionId)
+    if (admission) {
+      admission.userState = "ACTIVE"
+    }
+  },
+
+  rejectAdmission: async (
+    admissionId: string,
+    _data: RejectAdmissionRequest
+  ): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    const admission = mockAdmissions.find((a) => a.id === admissionId)
+    if (admission) {
+      admission.userState = "REJECT"
     }
   },
 }
