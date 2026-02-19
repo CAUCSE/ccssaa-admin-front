@@ -1,7 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios"
 import { getAccessToken, removeTokens } from "@/lib/auth"
 import { refreshTokens } from "@/lib/api/auth"
-import { apiV2 } from "@/lib/api/v2/client"
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080"
 
@@ -10,9 +9,6 @@ export const apiV1 = axios.create({
   baseURL: baseURL + "/api/v1",
   withCredentials: false,
 })
-
-// v2 API 클라이언트 (v2 전용 클라이언트에서 가져옴)
-export { apiV2 }
 
 // 하위 호환성을 위한 기본 export (v1 사용)
 export const api = apiV1
@@ -46,7 +42,6 @@ const requestInterceptor = (config: InternalAxiosRequestConfig) => {
 }
 
 apiV1.interceptors.request.use(requestInterceptor, (error) => Promise.reject(error))
-apiV2.interceptors.request.use(requestInterceptor, (error) => Promise.reject(error))
 
 // Response interceptor: 401 시 토큰 재발급 시도 → 성공 시 재시도, 실패 시 로그아웃
 const responseInterceptor = async (error: any) => {
@@ -73,18 +68,13 @@ const responseInterceptor = async (error: any) => {
     return Promise.reject(error)
   }
 
-  const isV2Request =
-    originalRequest.baseURL?.includes("/api/v2") ||
-    originalRequest.url?.includes("/api/v2")
-  const retryClient = isV2Request ? apiV2 : apiV1
-
   if (!originalRequest._retry) {
     if (isRefreshing) {
       // 이미 재발급 중이면 완료 후 새 accessToken으로 재시도
       return new Promise((resolve) => {
         addRefreshSubscriber((accessToken: string) => {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
-          resolve(retryClient(originalRequest))
+          resolve(apiV1(originalRequest))
         })
       })
     }
@@ -97,7 +87,7 @@ const responseInterceptor = async (error: any) => {
       if (res?.accessToken) {
         onRefreshed(res.accessToken)
         originalRequest.headers.Authorization = `Bearer ${res.accessToken}`
-        return retryClient(originalRequest)
+        return apiV1(originalRequest)
       }
     } catch {
       // refresh 실패 시 무시하고 아래에서 로그아웃
@@ -114,4 +104,3 @@ const responseInterceptor = async (error: any) => {
 }
 
 apiV1.interceptors.response.use((response) => response, responseInterceptor)
-apiV2.interceptors.response.use((response) => response, responseInterceptor)

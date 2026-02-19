@@ -205,17 +205,6 @@ export default function LockerPoliciesPage() {
                 >
                   {policy.isLockerAccessEnabled ? "중지하기" : "활성화"}
                 </Button>
-                {registerStatusMutation.isError && (
-                  <div className="mt-1">
-                    <ErrorMessage
-                      message={
-                        registerStatusMutation.error instanceof Error
-                          ? registerStatusMutation.error.message
-                          : "신청 상태 변경 중 오류가 발생했습니다."
-                      }
-                    />
-                  </div>
-                )}
               </div>
               {/* 3줄: 연장 기간, 연장 시 만료일 */}
               <div className="flex flex-wrap items-start gap-6">
@@ -283,17 +272,6 @@ export default function LockerPoliciesPage() {
                 >
                   {policy.isLockerExtendEnabled ? "중지하기" : "활성화"}
                 </Button>
-                {extendStatusMutation.isError && (
-                  <div className="mt-1">
-                    <ErrorMessage
-                      message={
-                        extendStatusMutation.error instanceof Error
-                          ? extendStatusMutation.error.message
-                          : "연장 상태 변경 중 오류가 발생했습니다."
-                      }
-                    />
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -359,17 +337,6 @@ export default function LockerPoliciesPage() {
               >
                 {registerMutation.isPending ? "저장 중…" : "저장"}
               </Button>
-              {registerMutation.isError && (
-                <div className="mt-2">
-                  <ErrorMessage
-                    message={
-                      registerMutation.error instanceof Error
-                        ? registerMutation.error.message
-                        : "신청 기간 저장 중 오류가 발생했습니다."
-                    }
-                  />
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -434,17 +401,6 @@ export default function LockerPoliciesPage() {
               >
                 {extendMutation.isPending ? "저장 중…" : "저장"}
               </Button>
-              {extendMutation.isError && (
-                <div className="mt-2">
-                  <ErrorMessage
-                    message={
-                      extendMutation.error instanceof Error
-                        ? extendMutation.error.message
-                        : "연장 기간 저장 중 오류가 발생했습니다."
-                    }
-                  />
-                </div>
-              )}
             </CardContent>
           </Card>
         </>
