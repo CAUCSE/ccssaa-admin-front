@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -31,12 +32,12 @@ const getSidebarItems = (
   pendingReports: number | undefined
 ): SidebarItem[] => [
   {
-    title: "대시보드",
+    title: "대시보드 (미구현)",
     href: "/dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
-    title: "회원 관리",
+    title: "회원 관리 (미구현)",
     href: "/users",
     icon: <Users className="h-5 w-5" />,
     children: [
@@ -65,7 +66,7 @@ const getSidebarItems = (
     icon: <FileText className="h-5 w-5" />,
     children: [
       {
-        title: "게시글",
+        title: "게시글 (미구현)",
         href: "/content",
         icon: <ChevronRight className="h-4 w-4" />,
       },
@@ -77,13 +78,13 @@ const getSidebarItems = (
     ],
   },
   {
-    title: "신고 관리",
+    title: "신고 관리 (미구현)",
     href: "/reports",
     icon: <AlertTriangle className="h-5 w-5" />,
     badge: pendingReports,
   },
   {
-    title: "경조사",
+    title: "경조사 (미구현)",
     href: "/events",
     icon: <Calendar className="h-5 w-5" />,
   },
@@ -115,7 +116,7 @@ const getSidebarItems = (
     icon: <CalendarDays className="h-5 w-5" />,
   },
   {
-    title: "시스템 설정",
+    title: "시스템 설정 (미구현)",
     href: "/settings",
     icon: <Settings className="h-5 w-5" />,
     children: [
@@ -180,6 +181,15 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
     return badge
   }
 
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
+
+  const toggleSection = (href: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [href]: !prev[href],
+    }))
+  }
+
   const sidebarContent = (
     <>
       <div className="flex h-16 items-center justify-between border-b px-6">
@@ -195,57 +205,91 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
         )}
       </div>
       <nav className="flex-1 space-y-1 p-4">
-        {sidebarItems.map((item) => (
-          <div key={item.href}>
-            <Link
-              href={item.href}
-              onClick={handleLinkClick}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive(item.href)
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              {item.icon}
-              <span className="flex-1">{item.title}</span>
-              {(() => {
-                const badgeValue = getBadgeValue(item.badge)
-                return badgeValue !== undefined && badgeValue > 0 ? (
-                  <Badge variant="secondary">{badgeValue}</Badge>
-                ) : null
-              })()}
-            </Link>
-            {item.children && (
-              <div className="ml-8 mt-1 space-y-1">
-                {item.children.map((child) => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    onClick={handleLinkClick}
+        {sidebarItems.map((item) => {
+          const isSectionOpen = !!openSections[item.href]
+          const hasChildren = !!item.children && item.children.length > 0
+
+          return (
+            <div key={item.href}>
+              {hasChildren ? (
+                <button
+                  type="button"
+                  onClick={() => toggleSection(item.href)}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                    isActive(item.href)
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  {item.icon}
+                  <span className="flex-1">{item.title}</span>
+                  {(() => {
+                    const badgeValue = getBadgeValue(item.badge)
+                    return badgeValue !== undefined && badgeValue > 0 ? (
+                      <Badge variant="secondary">{badgeValue}</Badge>
+                    ) : null
+                  })()}
+                  <ChevronRight
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
-                      pathname === child.href
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      "h-4 w-4 transition-transform",
+                      isSectionOpen ? "rotate-90" : "rotate-0"
                     )}
-                  >
-                    {child.icon}
-                    <span className="flex-1">{child.title}</span>
-                    {(() => {
-                      const badgeValue = getBadgeValue(child.badge)
-                      return badgeValue !== undefined && badgeValue > 0 ? (
-                        <Badge variant="secondary" className="text-xs">
-                          {badgeValue}
-                        </Badge>
-                      ) : null
-                    })()}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+                  />
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  onClick={handleLinkClick}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isActive(item.href)
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  {item.icon}
+                  <span className="flex-1">{item.title}</span>
+                  {(() => {
+                    const badgeValue = getBadgeValue(item.badge)
+                    return badgeValue !== undefined && badgeValue > 0 ? (
+                      <Badge variant="secondary">{badgeValue}</Badge>
+                    ) : null
+                  })()}
+                </Link>
+              )}
+
+              {hasChildren && isSectionOpen && (
+                <div className="ml-8 mt-1 space-y-1">
+                  {item.children!.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={handleLinkClick}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                        pathname === child.href
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      {child.icon}
+                      <span className="flex-1">{child.title}</span>
+                      {(() => {
+                        const badgeValue = getBadgeValue(child.badge)
+                        return badgeValue !== undefined && badgeValue > 0 ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {badgeValue}
+                          </Badge>
+                        ) : null
+                      })()}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </nav>
     </>
   )
