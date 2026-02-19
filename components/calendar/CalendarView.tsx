@@ -40,7 +40,11 @@ interface CalendarViewProps {
   isLoading?: boolean
 }
 
-type CalendarRbcEvent = RBCEvent & { resource: CalendarEvent; order: number }
+type CalendarRbcEvent = RBCEvent & {
+  id: string
+  resource: CalendarEvent
+  order: number
+}
 
 // 타입별 색상 매핑 (기존 Badge와 동일)
 const getEventColor = (type: CalendarType): string => {
