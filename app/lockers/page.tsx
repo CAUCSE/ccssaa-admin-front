@@ -217,12 +217,26 @@ function LockersPageContent() {
   }
 
   const handleExtend = () => {
-    if (!selectedLocker || !extendExpiredAt) return
+    if (!selectedLocker) {
+      toast.error("사물함을 선택해 주세요.")
+      return
+    }
+    if (selectedLocker.id === undefined || selectedLocker.id === null || selectedLocker.id === "") {
+      toast.error(
+        "이 사물함은 연장할 수 없습니다. 목록 API에서 사물함 ID(id)를 반환하는지 확인해 주세요."
+      )
+      return
+    }
+    if (!extendExpiredAt.trim()) {
+      toast.error("연장 후 만료일을 입력해 주세요.")
+      return
+    }
 
+    const lockerId = selectedLocker.id
     const iso = new Date(extendExpiredAt).toISOString()
     extendMutation.mutate(
       {
-        lockerId: selectedLocker.id,
+        lockerId,
         data: { expiredAt: iso },
       },
       {
@@ -235,7 +249,16 @@ function LockersPageContent() {
   }
 
   const handleRevoke = () => {
-    if (!selectedLocker) return
+    if (!selectedLocker) {
+      toast.error("사물함을 선택해 주세요.")
+      return
+    }
+    if (selectedLocker.id === undefined || selectedLocker.id === null || selectedLocker.id === "") {
+      toast.error(
+        "이 사물함은 회수할 수 없습니다. 목록 API에서 사물함 ID(id)를 반환하는지 확인해 주세요."
+      )
+      return
+    }
     const lockerId = selectedLocker.id
     releaseMutation.mutate(lockerId, {
       onSuccess: () => {
