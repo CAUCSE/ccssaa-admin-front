@@ -40,7 +40,7 @@ export default function LockerDetailPage() {
     assignMutation.mutate(
       {
         lockerId,
-        data: { userId: parseInt(assignUserId, 10) },
+        data: { userId: assignUserId.trim() },
       },
       {
         onSuccess: () => {
@@ -211,7 +211,7 @@ export default function LockerDetailPage() {
           <Label htmlFor="assignUserId">유저 ID *</Label>
           <Input
             id="assignUserId"
-            type="number"
+            type="text"
             value={assignUserId}
             onChange={(e) => setAssignUserId(e.target.value)}
             placeholder="유저 ID를 입력하세요"
