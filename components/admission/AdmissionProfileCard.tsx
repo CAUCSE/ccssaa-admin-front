@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { getStatusBadge } from "@/lib/utils/status-badge"
-import { resolveFileUrl } from "@/lib/utils/file-url"
 import { DEPARTMENT_CONFIG, ACADEMIC_STATUS_CONFIG } from "@/types/user"
 import type { AdmissionDetail } from "@/types/admission"
 
@@ -91,11 +90,11 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setSelectedImage(resolveFileUrl(url))}
+                    onClick={() => setSelectedImage(url)}
                     className="block overflow-hidden rounded-md border hover:opacity-80 transition-opacity cursor-pointer"
                   >
                     <img
-                      src={resolveFileUrl(url)}
+                      src={url}
                       alt={`첨부 이미지 ${idx + 1}`}
                       className="w-full h-auto object-cover"
                     />
