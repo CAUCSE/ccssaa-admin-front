@@ -7,17 +7,7 @@ import { useCreateLockerPolicy, useLockerPolicies } from "@/hooks/useLockerPolic
 import { validateLockerPolicyForm } from "@/lib/utils/locker-policy-validation"
 import type { LockerPolicyFormData } from "@/types/locker-policy"
 import { toast } from "sonner"
-
-function isoToDatetimeLocal(iso: string): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  const y = d.getFullYear()
-  const M = String(d.getMonth() + 1).padStart(2, "0")
-  const D = String(d.getDate()).padStart(2, "0")
-  const h = String(d.getHours()).padStart(2, "0")
-  const m = String(d.getMinutes()).padStart(2, "0")
-  return `${y}-${M}-${D}T${h}:${m}`
-}
+import { isoToDatetimeLocal } from "@/lib/utils/datetime"
 
 const emptyForm: LockerPolicyFormData = {
   version: "",

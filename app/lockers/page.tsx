@@ -487,7 +487,10 @@ function LockersPageContent() {
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleRevoke}
+              onClick={(e) => {
+                e.preventDefault()
+                handleRevoke()
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               회수
@@ -510,7 +513,10 @@ function LockersPageContent() {
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDisableConfirm}
+              onClick={(e) => {
+                e.preventDefault()
+                handleDisableConfirm()
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               비활성화
@@ -531,7 +537,10 @@ function LockersPageContent() {
           <AlertDialogFooter>
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleCleanup}
+              onClick={(e) => {
+                e.preventDefault()
+                handleCleanup()
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               정리

@@ -9,17 +9,7 @@ import type { LockerPolicyFormData } from "@/types/locker-policy"
 import { toast } from "sonner"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { Skeleton } from "@/components/ui/skeleton"
-
-function isoToDatetimeLocal(iso: string): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  const y = d.getFullYear()
-  const M = String(d.getMonth() + 1).padStart(2, "0")
-  const D = String(d.getDate()).padStart(2, "0")
-  const h = String(d.getHours()).padStart(2, "0")
-  const m = String(d.getMinutes()).padStart(2, "0")
-  return `${y}-${M}-${D}T${h}:${m}`
-}
+import { isoToDatetimeLocal } from "@/lib/utils/datetime"
 
 export default function EditLockerPolicyPage() {
   const params = useParams()

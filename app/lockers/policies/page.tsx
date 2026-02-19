@@ -16,48 +16,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, Lock, Unlock } from "lucide-react"
-
-function formatDateTime(iso: string): string {
-  if (!iso) return "—"
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return "—"
-  const y = d.getFullYear()
-  const M = String(d.getMonth() + 1).padStart(2, "0")
-  const D = String(d.getDate()).padStart(2, "0")
-  const h = String(d.getHours()).padStart(2, "0")
-  const m = String(d.getMinutes()).padStart(2, "0")
-  return `${y}.${M}.${D} ${h}:${m}`
-}
-
-/** ISO 문자열을 datetime-local input value로 변환 */
-function toDatetimeLocal(iso: string): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ""
-  const y = d.getFullYear()
-  const M = String(d.getMonth() + 1).padStart(2, "0")
-  const D = String(d.getDate()).padStart(2, "0")
-  const h = String(d.getHours()).padStart(2, "0")
-  const m = String(d.getMinutes()).padStart(2, "0")
-  return `${y}-${M}-${D}T${h}:${m}`
-}
-
-/** datetime-local 값(로컬 시간)을 타임존 보정 없이 ISO(Z) 문자열로 변환 */
-function fromDatetimeLocal(value: string): string {
-  if (!value) return ""
-  // value 예: "2026-02-16T22:54" 또는 "2026-02-16T22:54:00"
-  const [date, time] = value.split("T")
-  if (!date || !time) return value
-
-  const [y, M, D] = date.split("-")
-  const [h, m] = time.split(":")
-
-  if (!y || !M || !D || !h || !m) return value
-
-  const mm = m.length === 1 ? m.padStart(2, "0") : m
-  // 서버 예제가 Z(UTC) 포맷을 사용하므로, 로컬 시각 그대로에 'Z'만 붙여 전달
-  return `${y}-${M}-${D}T${h}:${mm}:00Z`
-}
+import { isoToDatetimeLocal, formatDateTime, fromDatetimeLocal } from "@/lib/utils/datetime"
+import { toast } from "sonner"
+import { AlertDialog } from "@/components/ui/alert-dialog"
 
 export default function LockerPoliciesPage() {
   const { data: policy, isLoading, error } = useLockerPolicyV2()
@@ -72,33 +33,78 @@ export default function LockerPoliciesPage() {
   const [extendEndAt, setExtendEndAt] = useState("")
   const [nextExpiredAt, setNextExpiredAt] = useState("")
   const [expiredAt, setExpiredAt] = useState("")
+  const [initialized, setInitialized] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    title: string
+    description: string
+    variant: "default" | "destructive"
+    action: (() => void) | null
+  }>({
+    open: false,
+    title: "",
+    description: "",
+    variant: "default",
+    action: null,
+  })
 
   useEffect(() => {
     if (!policy) return
-    setRegisterStartAt(toDatetimeLocal(policy.registerStartAt))
-    setRegisterEndAt(toDatetimeLocal(policy.registerEndAt))
-    setExtendStartAt(toDatetimeLocal(policy.extendStartAt))
-    setExtendEndAt(toDatetimeLocal(policy.extendEndAt))
-    setNextExpiredAt(toDatetimeLocal(policy.nextExpiredAt))
-    setExpiredAt(toDatetimeLocal(policy.expiredAt))
-  }, [policy])
+    // 이미 초기화되었고, 사용자가 값을 편집 중이면(refetch 등으로) 폼 값을 덮어쓰지 않음
+    if (initialized && isDirty) return
+
+    setRegisterStartAt(isoToDatetimeLocal(policy.registerStartAt))
+    setRegisterEndAt(isoToDatetimeLocal(policy.registerEndAt))
+    setExtendStartAt(isoToDatetimeLocal(policy.extendStartAt))
+    setExtendEndAt(isoToDatetimeLocal(policy.extendEndAt))
+    setNextExpiredAt(isoToDatetimeLocal(policy.nextExpiredAt))
+    setExpiredAt(isoToDatetimeLocal(policy.expiredAt))
+    setInitialized(true)
+    setIsDirty(false)
+  }, [policy, initialized, isDirty])
 
   const handleSaveRegisterPeriod = () => {
     if (!registerStartAt.trim() || !registerEndAt.trim() || !expiredAt.trim()) return
-    registerMutation.mutate({
-      registerStartAt: fromDatetimeLocal(registerStartAt),
-      registerEndAt: fromDatetimeLocal(registerEndAt),
-      expiredAt: fromDatetimeLocal(expiredAt),
-    })
+    registerMutation.mutate(
+      {
+        registerStartAt: fromDatetimeLocal(registerStartAt),
+        registerEndAt: fromDatetimeLocal(registerEndAt),
+        expiredAt: fromDatetimeLocal(expiredAt),
+      },
+      {
+        onSuccess: () => {
+          toast.success("저장되었습니다.")
+          // 서버 값으로 다시 동기화할 수 있도록 초기화 플래그를 리셋
+          setInitialized(false)
+          setIsDirty(false)
+        },
+        onError: () => {
+          toast.error("신청 기간 저장에 실패했습니다.")
+        },
+      }
+    )
   }
 
   const handleSaveExtendPeriod = () => {
     if (!extendStartAt.trim() || !extendEndAt.trim() || !nextExpiredAt.trim()) return
-    extendMutation.mutate({
-      extendStartAt: fromDatetimeLocal(extendStartAt),
-      extendEndAt: fromDatetimeLocal(extendEndAt),
-      nextExpiredAt: fromDatetimeLocal(nextExpiredAt),
-    })
+    extendMutation.mutate(
+      {
+        extendStartAt: fromDatetimeLocal(extendStartAt),
+        extendEndAt: fromDatetimeLocal(extendEndAt),
+        nextExpiredAt: fromDatetimeLocal(nextExpiredAt),
+      },
+      {
+        onSuccess: () => {
+          toast.success("저장되었습니다.")
+          setInitialized(false)
+          setIsDirty(false)
+        },
+        onError: () => {
+          toast.error("연장 기간 저장에 실패했습니다.")
+        },
+      }
+    )
   }
 
   if (error) {
@@ -161,18 +167,55 @@ export default function LockerPoliciesPage() {
                   </Badge>
                 </div>
                 <Button
-                  variant="outline"
+                  variant={policy.isLockerAccessEnabled ? "destructive" : "outline"}
                   size="sm"
                   className="w-fit"
                   disabled={registerStatusMutation.isPending}
-                  onClick={() =>
-                    registerStatusMutation.mutate({
-                      status: !policy.isLockerAccessEnabled,
+                  onClick={() => {
+                    const nextStatus = !policy.isLockerAccessEnabled
+                    setConfirmDialog({
+                      open: true,
+                      title: nextStatus ? "사물함 신청 활성화" : "사물함 신청 중지",
+                      description: nextStatus
+                        ? "사물함 신청을 다시 활성화하시겠습니까?"
+                        : "사물함 신청을 중지하시겠습니까?",
+                      variant: nextStatus ? "default" : "destructive",
+                      action: () => {
+                        registerStatusMutation.mutate(
+                          { status: nextStatus },
+                          {
+                            onSuccess: () => {
+                              toast.success("신청 상태가 변경되었습니다.")
+                              setConfirmDialog((prev) => ({
+                                ...prev,
+                                open: false,
+                                action: null,
+                                title: "",
+                                description: "",
+                              }))
+                            },
+                            onError: () => {
+                              toast.error("신청 상태 변경에 실패했습니다.")
+                            },
+                          }
+                        )
+                      },
                     })
-                  }
+                  }}
                 >
                   {policy.isLockerAccessEnabled ? "중지하기" : "활성화"}
                 </Button>
+                {registerStatusMutation.isError && (
+                  <div className="mt-1">
+                    <ErrorMessage
+                      message={
+                        registerStatusMutation.error instanceof Error
+                          ? registerStatusMutation.error.message
+                          : "신청 상태 변경 중 오류가 발생했습니다."
+                      }
+                    />
+                  </div>
+                )}
               </div>
               {/* 3줄: 연장 기간, 연장 시 만료일 */}
               <div className="flex flex-wrap items-start gap-6">
@@ -202,18 +245,55 @@ export default function LockerPoliciesPage() {
                   </Badge>
                 </div>
                 <Button
-                  variant="outline"
+                  variant={policy.isLockerExtendEnabled ? "destructive" : "outline"}
                   size="sm"
                   className="w-fit"
                   disabled={extendStatusMutation.isPending}
-                  onClick={() =>
-                    extendStatusMutation.mutate({
-                      status: !policy.isLockerExtendEnabled,
+                  onClick={() => {
+                    const nextStatus = !policy.isLockerExtendEnabled
+                    setConfirmDialog({
+                      open: true,
+                      title: nextStatus ? "사물함 연장 활성화" : "사물함 연장 중지",
+                      description: nextStatus
+                        ? "사물함 연장을 다시 활성화하시겠습니까?"
+                        : "사물함 연장을 중지하시겠습니까?",
+                      variant: nextStatus ? "default" : "destructive",
+                      action: () => {
+                        extendStatusMutation.mutate(
+                          { status: nextStatus },
+                          {
+                            onSuccess: () => {
+                              toast.success("연장 상태가 변경되었습니다.")
+                              setConfirmDialog((prev) => ({
+                                ...prev,
+                                open: false,
+                                action: null,
+                                title: "",
+                                description: "",
+                              }))
+                            },
+                            onError: () => {
+                              toast.error("연장 상태 변경에 실패했습니다.")
+                            },
+                          }
+                        )
+                      },
                     })
-                  }
+                  }}
                 >
                   {policy.isLockerExtendEnabled ? "중지하기" : "활성화"}
                 </Button>
+                {extendStatusMutation.isError && (
+                  <div className="mt-1">
+                    <ErrorMessage
+                      message={
+                        extendStatusMutation.error instanceof Error
+                          ? extendStatusMutation.error.message
+                          : "연장 상태 변경 중 오류가 발생했습니다."
+                      }
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -237,7 +317,10 @@ export default function LockerPoliciesPage() {
                     id="registerStartAt"
                     type="datetime-local"
                     value={registerStartAt}
-                    onChange={(e) => setRegisterStartAt(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true)
+                      setRegisterStartAt(e.target.value)
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -246,7 +329,10 @@ export default function LockerPoliciesPage() {
                     id="registerEndAt"
                     type="datetime-local"
                     value={registerEndAt}
-                    onChange={(e) => setRegisterEndAt(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true)
+                      setRegisterEndAt(e.target.value)
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -255,7 +341,10 @@ export default function LockerPoliciesPage() {
                     id="expiredAt"
                     type="datetime-local"
                     value={expiredAt}
-                    onChange={(e) => setExpiredAt(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true)
+                      setExpiredAt(e.target.value)
+                    }}
                   />
                 </div>
               </div>
@@ -270,6 +359,17 @@ export default function LockerPoliciesPage() {
               >
                 {registerMutation.isPending ? "저장 중…" : "저장"}
               </Button>
+              {registerMutation.isError && (
+                <div className="mt-2">
+                  <ErrorMessage
+                    message={
+                      registerMutation.error instanceof Error
+                        ? registerMutation.error.message
+                        : "신청 기간 저장 중 오류가 발생했습니다."
+                    }
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -292,7 +392,10 @@ export default function LockerPoliciesPage() {
                     id="extendStartAt"
                     type="datetime-local"
                     value={extendStartAt}
-                    onChange={(e) => setExtendStartAt(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true)
+                      setExtendStartAt(e.target.value)
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -301,7 +404,10 @@ export default function LockerPoliciesPage() {
                     id="extendEndAt"
                     type="datetime-local"
                     value={extendEndAt}
-                    onChange={(e) => setExtendEndAt(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true)
+                      setExtendEndAt(e.target.value)
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -310,7 +416,10 @@ export default function LockerPoliciesPage() {
                     id="nextExpiredAt"
                     type="datetime-local"
                     value={nextExpiredAt}
-                    onChange={(e) => setNextExpiredAt(e.target.value)}
+                    onChange={(e) => {
+                      setIsDirty(true)
+                      setNextExpiredAt(e.target.value)
+                    }}
                   />
                 </div>
               </div>
@@ -325,6 +434,17 @@ export default function LockerPoliciesPage() {
               >
                 {extendMutation.isPending ? "저장 중…" : "저장"}
               </Button>
+              {extendMutation.isError && (
+                <div className="mt-2">
+                  <ErrorMessage
+                    message={
+                      extendMutation.error instanceof Error
+                        ? extendMutation.error.message
+                        : "연장 기간 저장 중 오류가 발생했습니다."
+                    }
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </>
@@ -335,6 +455,36 @@ export default function LockerPoliciesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* 공통 확인 다이얼로그 */}
+      <AlertDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) =>
+          setConfirmDialog((prev) => ({
+            ...prev,
+            open,
+          }))
+        }
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmText="확인"
+        cancelText="취소"
+        onConfirm={() => {
+          if (confirmDialog.action) {
+            confirmDialog.action()
+          }
+        }}
+        onCancel={() =>
+          setConfirmDialog({
+            open: false,
+            title: "",
+            description: "",
+            variant: "default",
+            action: null,
+          })
+        }
+      />
     </div>
   )
 }

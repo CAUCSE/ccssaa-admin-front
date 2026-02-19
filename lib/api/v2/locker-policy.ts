@@ -27,26 +27,34 @@ export async function getLockerPolicyV2(): Promise<LockerPolicyV2> {
 export async function updateLockerPolicyRegisterPeriodV2(
   data: LockerPolicyRegisterPeriodRequest
 ): Promise<void> {
-  await apiV2.put("/admin/lockers/policy/register-period", data)
+  await unwrapV2(
+    await apiV2.put<ApiResponse<LockerPolicyV2>>("/admin/lockers/policy/register-period", data)
+  )
 }
 
 /** 연장 기간 설정 — PUT /api/v2/admin/lockers/policy/extend-period */
 export async function updateLockerPolicyExtendPeriodV2(
   data: LockerPolicyExtendPeriodRequest
 ): Promise<void> {
-  await apiV2.put("/admin/lockers/policy/extend-period", data)
+  await unwrapV2(
+    await apiV2.put<ApiResponse<LockerPolicyV2>>("/admin/lockers/policy/extend-period", data)
+  )
 }
 
 /** 사물함 신청 가능 상태 — PUT /api/v2/admin/lockers/policy/register-status */
 export async function updateLockerPolicyRegisterStatusV2(
   data: LockerPolicyStatusRequest
 ): Promise<void> {
-  await apiV2.put("/admin/lockers/policy/register-status", data)
+  await unwrapV2(
+    await apiV2.put<ApiResponse<LockerPolicyV2>>("/admin/lockers/policy/register-status", data)
+  )
 }
 
 /** 사물함 연장 가능 상태 — PUT /api/v2/admin/lockers/policy/extend-status */
 export async function updateLockerPolicyExtendStatusV2(
   data: LockerPolicyStatusRequest
 ): Promise<void> {
-  await apiV2.put("/admin/lockers/policy/extend-status", data)
+  await unwrapV2(
+    await apiV2.put<ApiResponse<LockerPolicyV2>>("/admin/lockers/policy/extend-status", data)
+  )
 }

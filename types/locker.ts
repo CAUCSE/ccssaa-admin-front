@@ -37,8 +37,8 @@ export interface LockerUserV2 {
 
 /** v2 사물함 목록 항목 (GET /api/v2/admin/lockers 응답 content 항목) */
 export interface LockerListItemV2 {
-  /** 사물함 ID (UUID 문자열, 배정/연장/회수 API에 사용) */
-  id?: number | string
+  /** 사물함 ID (UUID/숫자, 배정/연장/회수 API에 항상 포함됨) */
+  id: number | string
   /** 층 설명 (예: "2층") */
   location: string
   /** 사물함 번호 */
@@ -63,7 +63,7 @@ export interface LockerListPayloadV2 {
 }
 
 export interface Locker {
-  /** v2 목록에서 반환 (number | string). 배정/연장/회수 API에 사용 */
+  /** v2 목록에서 반환 (number | string). v2 기준으로는 항상 존재해야 하며, 배정/연장/회수 API에 사용 */
   id?: number | string
   number: number
   status: LockerStatus
