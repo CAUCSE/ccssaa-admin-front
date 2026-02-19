@@ -29,12 +29,11 @@ export const statusBadgeMap: Record<
   DELETED: { variant: "danger", label: "삭제" },
 
   // Neutral (Gray)
-  INACTIVE: { variant: "neutral", label: "탈퇴" },
+  INACTIVE: { variant: "neutral", label: "비활성" },
   WITHDRAWN: { variant: "neutral", label: "탈퇴" }, // 다른 도메인에서 사용 가능
   HIDDEN: { variant: "neutral", label: "숨김" },
   DISMISSED: { variant: "neutral", label: "취소" },
   OCCUPIED: { variant: "neutral", label: "사용중" }, // 하위 호환
-  INACTIVE: { variant: "neutral", label: "비활성" },
 }
 
 /**

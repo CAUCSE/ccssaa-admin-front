@@ -37,10 +37,17 @@ export default function LockerDetailPage() {
       return
     }
 
+    // 만료일이 필요한 v2 배정 API를 사용하므로,
+    // 상세 조회에서 받은 만료일이 있으면 그대로 사용하고 없으면 현재 시각 기준 ISO를 사용
+    const expiredAt = locker?.expiredAt ?? new Date().toISOString()
+
     assignMutation.mutate(
       {
         lockerId,
-        data: { userId: assignUserId.trim() },
+        data: {
+          userId: assignUserId.trim(),
+          expiredAt,
+        },
       },
       {
         onSuccess: () => {

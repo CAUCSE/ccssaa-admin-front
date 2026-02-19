@@ -22,12 +22,7 @@ export async function getLockerLogsV2(
         userKeyword: params.userKeyword?.trim() || undefined,
         action: params.action || undefined,
         lockerLocationName: params.lockerLocationName || undefined,
-        lockerNumber: (() => {
-          const n = params.lockerNumber
-          if (n == null || n === "") return undefined
-          const num = Number(n)
-          return Number.isNaN(num) ? undefined : num
-        })(),
+        lockerNumber: params.lockerNumber ?? undefined,
         page: params.page,
         size: params.size,
       },

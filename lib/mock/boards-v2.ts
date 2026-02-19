@@ -30,7 +30,7 @@ const createMockBoard = (
   admins: BoardAdminInfo[] = []
 ): BoardDetailV2 => {
   const id = overrides.boardId ?? String(++mockIdCounter)
-  return {
+  const base: BoardDetailV2 = {
     boardId: id,
     name: overrides.name,
     description: overrides.description,
@@ -40,7 +40,11 @@ const createMockBoard = (
     isNotice: false,
     visibility: "VISIBLE" as BoardVisibility,
     displayOrder: 0,
-    admins: [],
+    admins,
+  }
+
+  return {
+    ...base,
     ...overrides,
     boardId: id,
     admins: overrides.admins ?? admins,
