@@ -222,8 +222,8 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
     )
   }
 
-  // INACTIVE: 액션 없음
-  if (user.state === "INACTIVE") {
+  // GUEST: 액션 없음
+  if (user.state === "GUEST") {
     return null
   }
 

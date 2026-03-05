@@ -1,6 +1,6 @@
 // ============ Types ============
 
-export type UserStatus = "AWAIT" | "ACTIVE" | "DROP" | "INACTIVE" | "REJECT"
+export type UserStatus = "AWAIT" | "ACTIVE" | "DROP" | "REJECT" | "GUEST"
 export type UserRole =
   | "ADMIN"
   | "PRESIDENT"
@@ -40,8 +40,8 @@ export const USER_STATUS_CONFIG = {
     label: "추방",
     className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
   },
-  INACTIVE: {
-    label: "탈퇴",
+  GUEST: {
+    label: "게스트",
     className: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
   },
   REJECT: {
@@ -82,7 +82,7 @@ export const DEPARTMENT_CONFIG = {
 // ============ Type Guards ============
 
 export function isUserStatus(value: unknown): value is UserStatus {
-  return typeof value === "string" && ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"].includes(value)
+  return typeof value === "string" && ["AWAIT", "ACTIVE", "DROP", "REJECT", "GUEST"].includes(value)
 }
 
 export function isAcademicStatus(value: unknown): value is AcademicStatus {

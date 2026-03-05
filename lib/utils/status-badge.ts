@@ -29,6 +29,7 @@ export const statusBadgeMap: Record<
   DELETED: { variant: "danger", label: "삭제" },
 
   // Neutral (Gray)
+  GUEST: { variant: "neutral", label: "게스트" },
   INACTIVE: { variant: "neutral", label: "비활성" },
   WITHDRAWN: { variant: "neutral", label: "탈퇴" }, // 다른 도메인에서 사용 가능
   HIDDEN: { variant: "neutral", label: "숨김" },

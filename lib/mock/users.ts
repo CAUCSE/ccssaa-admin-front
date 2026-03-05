@@ -21,7 +21,7 @@ const generateMockUsers = (): UserSummary[] => {
     "DEPT_OF_CSE",
     "DEPT_OF_CS",
   ]
-  const statuses: UserStatus[] = ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"]
+  const statuses: UserStatus[] = ["AWAIT", "ACTIVE", "DROP", "REJECT", "GUEST"]
   const academicStatuses: AcademicStatus[] = ["ENROLLED", "GRADUATED", "UNDETERMINED"]
   const names = [
     "김철수",
