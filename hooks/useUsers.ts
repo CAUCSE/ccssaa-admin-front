@@ -100,23 +100,6 @@ export function useBanUser() {
   })
 }
 
-// 목록에서 삭제
-export function useDeleteUser() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: userApi.deleteUser,
-    onSuccess: (_, userId) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
-      toast.success("목록에서 삭제되었습니다.")
-    },
-    onError: () => {
-      toast.error("삭제에 실패했습니다.")
-    },
-  })
-}
-
 // 추방 사용자 복구
 export function useRestoreUser() {
   const queryClient = useQueryClient()

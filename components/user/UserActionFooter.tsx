@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { AlertDialog } from "@/components/ui/alert-dialog"
 import { FormDialog } from "@/components/ui/form-dialog"
@@ -10,7 +9,6 @@ import {
   useApproveUser,
   useRejectUser,
   useBanUser,
-  useDeleteUser,
   useRestoreUser,
 } from "@/hooks/useUsers"
 import type { UserDetail } from "@/types/user"
@@ -21,17 +19,15 @@ interface UserActionFooterProps {
 }
 
 export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
-  const router = useRouter()
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
-    action: "approve" | "reject" | "ban" | "delete" | "restore" | null
+    action: "approve" | "reject" | "ban" | "restore" | null
   }>({ open: false, action: null })
   const [dropReason, setDropReason] = useState("")
 
   const approveUser = useApproveUser()
   const rejectUser = useRejectUser()
   const banUser = useBanUser()
-  const deleteUser = useDeleteUser()
   const restoreUser = useRestoreUser()
 
   const handleAction = () => {
@@ -61,14 +57,6 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
           },
         })
         break
-      case "delete":
-        deleteUser.mutate(user.id, {
-          onSuccess: () => {
-            setConfirmDialog({ open: false, action: null })
-            router.push("/users")
-          },
-        })
-        break
       case "restore":
         restoreUser.mutate(user.id, {
           onSuccess: () => {
@@ -95,11 +83,6 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
         return {
           title: "회원 추방",
           description: `${user.name}님을 추방하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
-        }
-      case "delete":
-        return {
-          title: "목록에서 삭제",
-          description: `${user.name}님을 목록에서 삭제하시겠습니까?`,
         }
       case "restore":
         return {
@@ -203,38 +186,12 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
     )
   }
 
-  // REJECT: 목록에서 삭제
+  // REJECT: 액션 없음
   if (user.state === "REJECT") {
-    return (
-      <>
-        <div className="flex gap-4 justify-end pt-6 border-t">
-          <Button
-            variant="destructive"
-            onClick={() => setConfirmDialog({ open: true, action: "delete" })}
-            disabled={deleteUser.isPending}
-          >
-            목록에서 삭제
-          </Button>
-        </div>
-
-        <AlertDialog
-          open={confirmDialog.open}
-          onOpenChange={(open) =>
-            setConfirmDialog({ open, action: confirmDialog.action })
-          }
-          title={dialogContent.title}
-          description={dialogContent.description}
-          variant="destructive"
-          confirmText="확인"
-          cancelText="취소"
-          onConfirm={handleAction}
-          onCancel={() => setConfirmDialog({ open: false, action: null })}
-        />
-      </>
-    )
+    return null
   }
 
-  // DROP: 목록에서 삭제, 복구
+  // DROP: 복구
   if (user.state === "DROP") {
     return (
       <>
@@ -246,13 +203,6 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
           >
             복구
           </Button>
-          <Button
-            variant="destructive"
-            onClick={() => setConfirmDialog({ open: true, action: "delete" })}
-            disabled={deleteUser.isPending}
-          >
-            목록에서 삭제
-          </Button>
         </div>
 
         <AlertDialog
@@ -262,7 +212,7 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
           }
           title={dialogContent.title}
           description={dialogContent.description}
-          variant={confirmDialog.action === "delete" ? "destructive" : "default"}
+          variant="default"
           confirmText="확인"
           cancelText="취소"
           onConfirm={handleAction}
@@ -272,35 +222,9 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
     )
   }
 
-  // INACTIVE: 목록에서 삭제
+  // INACTIVE: 액션 없음
   if (user.state === "INACTIVE") {
-    return (
-      <>
-        <div className="flex gap-4 justify-end pt-6 border-t">
-          <Button
-            variant="destructive"
-            onClick={() => setConfirmDialog({ open: true, action: "delete" })}
-            disabled={deleteUser.isPending}
-          >
-            목록에서 삭제
-          </Button>
-        </div>
-
-        <AlertDialog
-          open={confirmDialog.open}
-          onOpenChange={(open) =>
-            setConfirmDialog({ open, action: confirmDialog.action })
-          }
-          title={dialogContent.title}
-          description={dialogContent.description}
-          variant="destructive"
-          confirmText="확인"
-          cancelText="취소"
-          onConfirm={handleAction}
-          onCancel={() => setConfirmDialog({ open: false, action: null })}
-        />
-      </>
-    )
+    return null
   }
 
   return null

@@ -52,11 +52,6 @@ const realUserApi = {
     return unwrapV2(res)
   },
 
-  // 목록에서 삭제 (관리자)
-  deleteUser: async (userId: string): Promise<void> => {
-    await api.delete(`/admin/users/${userId}`)
-  },
-
   // 추방 사용자 복구 (관리자)
   restoreUser: async (userId: string): Promise<UserRestoreResult> => {
     const res = await apiV2.patch<ApiResponse<UserRestoreResult>>(

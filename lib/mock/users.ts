@@ -55,7 +55,7 @@ const generateMockUsers = (): UserSummary[] => {
   })
 }
 
-let mockUsers = generateMockUsers()
+const mockUsers = generateMockUsers()
 
 // Mock API 함수들
 export const mockUserApi = {
@@ -190,12 +190,6 @@ export const mockUserApi = {
       }
     }
     throw new Error("User not found")
-  },
-
-  // 목록에서 삭제
-  deleteUser: async (userId: string): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    mockUsers = mockUsers.filter((u) => u.id !== userId)
   },
 
   // 추방 사용자 복구
