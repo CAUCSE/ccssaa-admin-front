@@ -1,7 +1,19 @@
 // ============ Types ============
 
 export type UserStatus = "AWAIT" | "ACTIVE" | "DROP" | "INACTIVE" | "REJECT"
-export type UserRole = "USER" | "ADMIN" | "MASTER"
+export type UserRole =
+  | "ADMIN"
+  | "PRESIDENT"
+  | "VICE_PRESIDENT"
+  | "COUNCIL"
+  | "LEADER_1"
+  | "LEADER_2"
+  | "LEADER_3"
+  | "LEADER_4"
+  | "LEADER_ALUMNI"
+  | "ALUMNI_MANAGER"
+  | "COMMON"
+  | "NONE"
 export type AcademicStatus = "ENROLLED" | "GRADUATED" | "UNDETERMINED"
 export type Department = "DEPT_OF_AI" | "SCHOOL_OF_SW" | "SCHOOL_OF_CSE" | "DEPT_OF_CSE" | "DEPT_OF_CS"
 
@@ -39,9 +51,18 @@ export const USER_STATUS_CONFIG = {
 } as const
 
 export const USER_ROLE_CONFIG = {
-  USER: "일반 회원",
   ADMIN: "관리자",
-  MASTER: "마스터",
+  PRESIDENT: "학생회장",
+  VICE_PRESIDENT: "부학생회장",
+  COUNCIL: "학생회",
+  LEADER_1: "1학년 대표",
+  LEADER_2: "2학년 대표",
+  LEADER_3: "3학년 대표",
+  LEADER_4: "4학년 대표",
+  LEADER_ALUMNI: "동문회장",
+  ALUMNI_MANAGER: "크자회 운영자",
+  COMMON: "일반",
+  NONE: "없음",
 } as const
 
 export const ACADEMIC_STATUS_CONFIG = {
@@ -95,6 +116,24 @@ export interface UserDetail {
   phoneNumber: string
   rejectionOrDropReason: string | null
   createdAt: string
+}
+
+export interface UserRoleUpdateResult {
+  id: string
+  roles: UserRole[]
+}
+
+export interface UserRestoreResult {
+  id: string
+  state: UserStatus
+  roles: UserRole[]
+}
+
+export interface UserDropResult {
+  id: string
+  state: UserStatus
+  roles: UserRole[]
+  dropReason: string
 }
 
 export interface UserListParams {

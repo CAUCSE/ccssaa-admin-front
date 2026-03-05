@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { AlertDialog } from "@/components/ui/alert-dialog"
+import { FormDialog } from "@/components/ui/form-dialog"
+import { Textarea } from "@/components/ui/textarea"
 import {
   useApproveUser,
   useRejectUser,
@@ -24,6 +26,7 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
     open: boolean
     action: "approve" | "reject" | "ban" | "delete" | "restore" | null
   }>({ open: false, action: null })
+  const [dropReason, setDropReason] = useState("")
 
   const approveUser = useApproveUser()
   const rejectUser = useRejectUser()
@@ -50,8 +53,10 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
         })
         break
       case "ban":
-        banUser.mutate(user.id, {
+        if (!dropReason.trim()) return
+        banUser.mutate({ userId: user.id, dropReason: dropReason.trim() }, {
           onSuccess: () => {
+            setDropReason("")
             setConfirmDialog({ open: false, action: null })
           },
         })
@@ -156,26 +161,44 @@ export function UserActionFooter({ user, isMaster }: UserActionFooterProps) {
         <div className="flex gap-4 justify-end pt-6 border-t">
           <Button
             variant="destructive"
-            onClick={() => setConfirmDialog({ open: true, action: "ban" })}
+            onClick={() => {
+              setDropReason("")
+              setConfirmDialog({ open: true, action: "ban" })
+            }}
             disabled={banUser.isPending}
           >
             강제 추방
           </Button>
         </div>
 
-        <AlertDialog
+        <FormDialog
           open={confirmDialog.open}
-          onOpenChange={(open) =>
-            setConfirmDialog({ open, action: confirmDialog.action })
-          }
-          title={dialogContent.title}
-          description={dialogContent.description}
-          variant="destructive"
-          confirmText="확인"
+          onOpenChange={(open) => {
+            setConfirmDialog({ open, action: open ? "ban" : null })
+            if (!open) setDropReason("")
+          }}
+          title="회원 추방"
+          description={`${user.name}님을 추방합니다. 추방 사유를 입력해주세요.`}
+          confirmText="추방"
           cancelText="취소"
           onConfirm={handleAction}
-          onCancel={() => setConfirmDialog({ open: false, action: null })}
-        />
+          onCancel={() => {
+            setDropReason("")
+            setConfirmDialog({ open: false, action: null })
+          }}
+          isLoading={banUser.isPending}
+          confirmDisabled={!dropReason.trim()}
+        >
+          <div className="space-y-2">
+            <p className="text-sm font-medium">추방 사유</p>
+            <Textarea
+              value={dropReason}
+              onChange={(e) => setDropReason(e.target.value)}
+              placeholder="추방 사유를 입력하세요."
+              maxLength={200}
+            />
+          </div>
+        </FormDialog>
       </>
     )
   }

@@ -6,6 +6,10 @@ import type {
   UserStatus,
   AcademicStatus,
   Department,
+  UserDropResult,
+  UserRole,
+  UserRestoreResult,
+  UserRoleUpdateResult,
 } from "@/types/user"
 
 // Mock 데이터 생성
@@ -167,12 +171,25 @@ export const mockUserApi = {
   },
 
   // 회원 추방
-  banUser: async (userId: string): Promise<void> => {
+  banUser: async ({
+    userId,
+    dropReason,
+  }: {
+    userId: string
+    dropReason: string
+  }): Promise<UserDropResult> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
     const user = mockUsers.find((u) => u.id === userId)
     if (user) {
       user.status = "DROP"
+      return {
+        id: user.id,
+        state: "DROP",
+        roles: ["NONE"],
+        dropReason,
+      }
     }
+    throw new Error("User not found")
   },
 
   // 목록에서 삭제
@@ -182,21 +199,35 @@ export const mockUserApi = {
   },
 
   // 추방 사용자 복구
-  restoreUser: async (userId: string): Promise<void> => {
+  restoreUser: async (userId: string): Promise<UserRestoreResult> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
     const user = mockUsers.find((u) => u.id === userId)
     if (user) {
       user.status = "ACTIVE"
+      return {
+        id: user.id,
+        state: "ACTIVE",
+        roles: ["COMMON"],
+      }
     }
+    throw new Error("User not found")
   },
 
   // 역할 변경
   updateUserRole: async (
     userId: string,
-    role: "USER" | "ADMIN" | "MASTER"
-  ): Promise<void> => {
+    _currentRole: UserRole,
+    newRole: UserRole
+  ): Promise<UserRoleUpdateResult> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
-    // Mock에서는 상태만 변경 (실제로는 별도 저장 필요)
+    const user = mockUsers.find((u) => u.id === userId)
+    if (user) {
+      return {
+        id: user.id,
+        roles: [newRole],
+      }
+    }
+    throw new Error("User not found")
   },
 }
 

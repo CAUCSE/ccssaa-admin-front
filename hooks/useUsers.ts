@@ -4,6 +4,8 @@ import { getAdminUsersV2 } from "@/lib/api/v2/users"
 import type {
   AdminUsersSearchParamsV2,
   UserListParams,
+  UserDetail,
+  UserRole,
 } from "@/types/user"
 import { toast } from "sonner"
 import { useApiErrorDialog } from "@/components/ApiErrorDialog"
@@ -76,9 +78,20 @@ export function useBanUser() {
 
   return useMutation({
     mutationFn: userApi.banUser,
-    onSuccess: (_, userId) => {
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData<UserDetail>(
+        ["admin-user", variables.userId],
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                state: data.state,
+                roles: data.roles,
+                rejectionOrDropReason: data.dropReason,
+              }
+            : prev
+      )
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
       toast.success("회원 추방이 완료되었습니다.")
     },
     onError: (error) => {
@@ -107,16 +120,28 @@ export function useDeleteUser() {
 // 추방 사용자 복구
 export function useRestoreUser() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: userApi.restoreUser,
-    onSuccess: (_, userId) => {
+    onSuccess: (data, userId) => {
+      queryClient.setQueryData<UserDetail>(
+        ["admin-user", userId],
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                state: data.state,
+                roles: data.roles,
+                rejectionOrDropReason: null,
+              }
+            : prev
+      )
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
       toast.success("복구가 완료되었습니다.")
     },
-    onError: () => {
-      toast.error("복구에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -127,10 +152,26 @@ export function useUpdateUserRole() {
   const showError = useApiErrorDialog()
 
   return useMutation({
-    mutationFn: ({ userId, role }: { userId: string; role: "USER" | "ADMIN" | "MASTER" }) =>
-      userApi.updateUserRole(userId, role),
-    onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
+    mutationFn: ({
+      userId,
+      currentRole,
+      newRole,
+    }: {
+      userId: string
+      currentRole: UserRole
+      newRole: UserRole
+    }) => userApi.updateUserRole(userId, currentRole, newRole),
+    onSuccess: (data, { userId }) => {
+      queryClient.setQueryData<UserDetail>(
+        ["admin-user", userId],
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                roles: data.roles,
+              }
+            : prev
+      )
       toast.success("역할이 변경되었습니다.")
     },
     onError: (error) => {
