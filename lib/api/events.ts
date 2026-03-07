@@ -1,9 +1,10 @@
-import { api } from "../api"
+import { apiV2 } from "./v2/client"
+import { unwrapV2 } from "./v2/response"
+import type { ApiResponse } from "@/types/api-v2"
 import type {
-  Event,
+  CeremonyDetail,
   EventListParams,
   EventListResponse,
-  ApproveEventRequest,
 } from "@/types/event"
 import { mockEventApi } from "../mock/events"
 
@@ -14,19 +15,28 @@ const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 const realEventApi = {
   // 경조사 리스트 조회
   getEvents: async (params: EventListParams): Promise<EventListResponse> => {
-    const response = await api.get<EventListResponse>("/admin/events", { params })
-    return response.data
+    const query: Record<string, string | number | undefined> = {}
+    if (params.page != null) query.page = params.page
+    if (params.size != null) query.size = params.size
+    if (params.fromDate) query.fromDate = params.fromDate
+    if (params.toDate) query.toDate = params.toDate
+    if (params.state) query.state = params.state
+
+    const response = await apiV2.get<ApiResponse<EventListResponse>>(
+      "/admin/ceremonies",
+      {
+        params: query,
+      }
+    )
+    return unwrapV2(response)
   },
 
   // 경조사 상세 조회
-  getEventDetail: async (eventId: number): Promise<Event> => {
-    const response = await api.get<Event>(`/admin/events/${eventId}`)
-    return response.data
-  },
-
-  // 경조사 승인/거부
-  approveEvent: async (eventId: number, data: ApproveEventRequest): Promise<void> => {
-    await api.patch(`/admin/events/${eventId}/approve`, data)
+  getEventDetail: async (eventId: string): Promise<CeremonyDetail> => {
+    const response = await apiV2.get<ApiResponse<CeremonyDetail>>(
+      `/admin/ceremonies/${encodeURIComponent(eventId)}`
+    )
+    return unwrapV2(response)
   },
 }
 
