@@ -1,15 +1,35 @@
 "use client"
 
+import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { useEventDetail } from "@/hooks/useEvents"
+import { useApproveEvent, useEventDetail, useRejectEvent } from "@/hooks/useEvents"
 import { Label } from "@/components/ui/label"
 import type { CeremonyState } from "@/types/event"
 import { Check, ExternalLink, X } from "lucide-react"
 import { toast } from "sonner"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  AlertDialogRoot,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function EventDetailPage() {
   const params = useParams()
@@ -17,6 +37,11 @@ export default function EventDetailPage() {
   const eventId = params.id as string | undefined
 
   const { data: event, isLoading } = useEventDetail(eventId)
+  const approveEventMutation = useApproveEvent()
+  const rejectEventMutation = useRejectEvent()
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false)
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [rejectReason, setRejectReason] = useState("경조사 신청 요건에 부합하지 않습니다.")
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -80,9 +105,33 @@ export default function EventDetailPage() {
     return tokens[tokens.length - 1] || "image"
   }
 
-  const handlePendingAction = (action: "approve" | "reject") => {
-    const label = action === "approve" ? "승인" : "거부"
-    toast.info(`${label} API 연동 후 동작합니다.`)
+  const handleApprove = () => {
+    if (!eventId) return
+    approveEventMutation.mutate(eventId)
+  }
+
+  const openRejectDialog = () => {
+    setRejectReason("경조사 신청 요건에 부합하지 않습니다.")
+    setRejectDialogOpen(true)
+  }
+
+  const handleReject = () => {
+    if (!eventId) return
+    const trimmedReason = rejectReason.trim()
+    if (!trimmedReason) {
+      toast.error("거절 사유를 입력해주세요.")
+      return
+    }
+
+    rejectEventMutation.mutate(
+      { eventId, rejectReason: trimmedReason },
+      {
+        onSuccess: () => {
+          setRejectDialogOpen(false)
+          setRejectReason("경조사 신청 요건에 부합하지 않습니다.")
+        },
+      }
+    )
   }
 
   if (isLoading) {
@@ -268,17 +317,19 @@ export default function EventDetailPage() {
                     <Button
                       variant="destructive"
                       className="w-full"
-                      onClick={() => handlePendingAction("reject")}
+                      onClick={openRejectDialog}
+                      disabled={approveEventMutation.isPending || rejectEventMutation.isPending}
                     >
                       <X className="mr-1 h-4 w-4" />
-                      거부
+                      {rejectEventMutation.isPending ? "거부 처리 중..." : "거부"}
                     </Button>
                     <Button
                       className="w-full bg-black text-white hover:bg-black/85"
-                      onClick={() => handlePendingAction("approve")}
+                      onClick={() => setApproveDialogOpen(true)}
+                      disabled={approveEventMutation.isPending || rejectEventMutation.isPending}
                     >
                       <Check className="mr-1 h-4 w-4" />
-                      승인
+                      {approveEventMutation.isPending ? "승인 처리 중..." : "승인"}
                     </Button>
                   </div>
                 </>
@@ -287,6 +338,74 @@ export default function EventDetailPage() {
           </Card>
         </div>
       </div>
+
+      <AlertDialogRoot open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+        <AlertDialogContent className="max-w-[400px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>경조사 승인 확인</AlertDialogTitle>
+            <AlertDialogDescription>이 경조사 신청을 승인하시겠습니까?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleApprove()
+                setApproveDialogOpen(false)
+              }}
+            >
+              승인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogRoot>
+
+      <Dialog
+        open={rejectDialogOpen}
+        onOpenChange={(open) => {
+          setRejectDialogOpen(open)
+          if (!open) {
+            setRejectReason("경조사 신청 요건에 부합하지 않습니다.")
+          }
+        }}
+      >
+        <DialogContent className="max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>거절 사유 입력</DialogTitle>
+            <DialogDescription>
+              거절 사유를 입력해 주세요. 입력한 내용은 신청자 안내에 사용됩니다.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="거절 사유를 입력하세요"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            rows={4}
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectDialogOpen(false)
+                setRejectReason("경조사 신청 요건에 부합하지 않습니다.")
+              }}
+            >
+              취소
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={
+                approveEventMutation.isPending ||
+                rejectEventMutation.isPending ||
+                !rejectReason.trim()
+              }
+            >
+              {rejectEventMutation.isPending ? "거절 처리 중..." : "거절"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

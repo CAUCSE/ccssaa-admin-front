@@ -38,6 +38,24 @@ const realEventApi = {
     )
     return unwrapV2(response)
   },
+
+  // 경조사 승인
+  approveEvent: async (eventId: string): Promise<void> => {
+    await apiV2.post(`/admin/ceremonies/${encodeURIComponent(eventId)}/approve`)
+  },
+
+  // 경조사 거절
+  rejectEvent: async ({
+    eventId,
+    rejectReason,
+  }: {
+    eventId: string
+    rejectReason: string
+  }): Promise<void> => {
+    await apiV2.post(`/admin/ceremonies/${encodeURIComponent(eventId)}/reject`, {
+      rejectReason,
+    })
+  },
 }
 
 // Mock 모드에 따라 API 선택

@@ -123,5 +123,33 @@ export const mockEventApi = {
 
     return event
   },
+
+  // 경조사 승인
+  approveEvent: async (eventId: string): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 200))
+    const event = mockEvents.find((e) => e.id === eventId)
+    if (!event) {
+      throw new Error("경조사를 찾을 수 없습니다.")
+    }
+    event.state = "ACCEPT"
+    event.note = undefined
+  },
+
+  // 경조사 거절
+  rejectEvent: async ({
+    eventId,
+    rejectReason,
+  }: {
+    eventId: string
+    rejectReason: string
+  }): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 200))
+    const event = mockEvents.find((e) => e.id === eventId)
+    if (!event) {
+      throw new Error("경조사를 찾을 수 없습니다.")
+    }
+    event.state = "REJECT"
+    event.note = rejectReason
+  },
 }
 
