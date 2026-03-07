@@ -1,4 +1,4 @@
-import { api } from "../api"
+import { apiV2 } from "./v2/client"
 import type {
   CalendarEvent,
   CalendarListParams,
@@ -15,43 +15,44 @@ const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 const realCalendarApi = {
   // 캘린더 일정 목록 조회
   getCalendarEvents: async (params: CalendarListParams): Promise<CalendarListResponse> => {
-    const response = await api.get<CalendarListResponse>("/admin/calendar", { params })
-    return response.data
+    // types 배열을 쉼표로 구분된 문자열로 변환
+    const queryParams: Record<string, any> = {}
+    if (params.from) queryParams.from = `${params.from}T00:00:00`
+    if (params.to) queryParams.to = `${params.to}T23:59:59`
+    if (params.types && params.types.length > 0) {
+      queryParams.types = params.types.join(',')
+    }
+
+    const response = await apiV2.get<{ data: CalendarListResponse }>("/schedules", { 
+      params: queryParams 
+    })
+    return response.data.data
   },
 
   // 캘린더 일정 상세 조회
-  getCalendarEventDetail: async (eventId: number): Promise<CalendarEvent> => {
-    const response = await api.get<CalendarEvent>(`/admin/calendar/${eventId}`)
-    return response.data
+  getCalendarEventDetail: async (eventId: string): Promise<CalendarEvent> => {
+    const response = await apiV2.get<{ data: CalendarEvent }>(`/schedules/${eventId}`)
+    return response.data.data
   },
 
   // 일정 생성
   createCalendarEvent: async (data: CreateCalendarEventRequest): Promise<CalendarEvent> => {
-    const response = await api.post<CalendarEvent>("/admin/calendar", data)
-    return response.data
+    const response = await apiV2.post<{ data: CalendarEvent }>("/admin/schedules", data)
+    return response.data.data
   },
 
   // 일정 수정
   updateCalendarEvent: async (
-    eventId: number,
+    eventId: string,
     data: UpdateCalendarEventRequest
   ): Promise<CalendarEvent> => {
-    const response = await api.patch<CalendarEvent>(`/admin/calendar/${eventId}`, data)
-    return response.data
+    const response = await apiV2.put<{ data: CalendarEvent }>(`/admin/schedules/${eventId}`, data)
+    return response.data.data
   },
 
   // 일정 삭제
-  deleteCalendarEvent: async (eventId: number): Promise<void> => {
-    await api.delete(`/admin/calendar/${eventId}`)
-  },
-
-  // 사물함 기간 캘린더 동기화
-  syncLockerPeriodToCalendar: async (startAt: string, endAt: string): Promise<CalendarEvent> => {
-    const response = await api.post<CalendarEvent>("/admin/calendar/sync-locker-period", {
-      startAt,
-      endAt,
-    })
-    return response.data
+  deleteCalendarEvent: async (eventId: string): Promise<void> => {
+    await apiV2.delete(`/admin/schedules/${eventId}`)
   },
 }
 

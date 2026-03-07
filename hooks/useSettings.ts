@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { settingsApi } from "@/lib/api/settings"
 import type { Role, Permission, Banner, DesignSettings } from "@/types/settings"
 import { toast } from "sonner"
+import { useApiErrorDialog } from "@/components/ApiErrorDialog"
 
 // 역할 목록 조회
 export function useRoles() {
@@ -14,6 +15,7 @@ export function useRoles() {
 // 역할 생성
 export function useCreateRole() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: (data: { name: string; description: string; permissions: string[] }) =>
@@ -22,8 +24,8 @@ export function useCreateRole() {
       queryClient.invalidateQueries({ queryKey: ["admin-roles"] })
       toast.success("역할이 생성되었습니다.")
     },
-    onError: () => {
-      toast.error("역할 생성에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -31,6 +33,7 @@ export function useCreateRole() {
 // 역할 수정
 export function useUpdateRole() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: ({
@@ -44,8 +47,8 @@ export function useUpdateRole() {
       queryClient.invalidateQueries({ queryKey: ["admin-roles"] })
       toast.success("역할이 수정되었습니다.")
     },
-    onError: () => {
-      toast.error("역할 수정에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -53,6 +56,7 @@ export function useUpdateRole() {
 // 역할 삭제
 export function useDeleteRole() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: (roleId: number) => settingsApi.deleteRole(roleId),
@@ -60,8 +64,8 @@ export function useDeleteRole() {
       queryClient.invalidateQueries({ queryKey: ["admin-roles"] })
       toast.success("역할이 삭제되었습니다.")
     },
-    onError: () => {
-      toast.error("역할 삭제에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -85,6 +89,7 @@ export function useBanners() {
 // 배너 생성
 export function useCreateBanner() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: (data: Omit<Banner, "id" | "createdAt">) => settingsApi.createBanner(data),
@@ -92,8 +97,8 @@ export function useCreateBanner() {
       queryClient.invalidateQueries({ queryKey: ["admin-banners"] })
       toast.success("배너가 생성되었습니다.")
     },
-    onError: () => {
-      toast.error("배너 생성에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -101,6 +106,7 @@ export function useCreateBanner() {
 // 배너 수정
 export function useUpdateBanner() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: ({ bannerId, data }: { bannerId: number; data: Partial<Banner> }) =>
@@ -109,8 +115,8 @@ export function useUpdateBanner() {
       queryClient.invalidateQueries({ queryKey: ["admin-banners"] })
       toast.success("배너가 수정되었습니다.")
     },
-    onError: () => {
-      toast.error("배너 수정에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -118,6 +124,7 @@ export function useUpdateBanner() {
 // 배너 삭제
 export function useDeleteBanner() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: (bannerId: number) => settingsApi.deleteBanner(bannerId),
@@ -125,8 +132,8 @@ export function useDeleteBanner() {
       queryClient.invalidateQueries({ queryKey: ["admin-banners"] })
       toast.success("배너가 삭제되었습니다.")
     },
-    onError: () => {
-      toast.error("배너 삭제에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }
@@ -142,6 +149,7 @@ export function useDesignSettings() {
 // 디자인 설정 업데이트
 export function useUpdateDesignSettings() {
   const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
 
   return useMutation({
     mutationFn: (data: Partial<DesignSettings>) => settingsApi.updateDesignSettings(data),
@@ -149,8 +157,8 @@ export function useUpdateDesignSettings() {
       queryClient.invalidateQueries({ queryKey: ["admin-design-settings"] })
       toast.success("디자인 설정이 업데이트되었습니다.")
     },
-    onError: () => {
-      toast.error("디자인 설정 업데이트에 실패했습니다.")
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }

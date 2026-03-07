@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* react-big-calendar 스타일 */
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -58,3 +61,88 @@
   }
 }
 
+/* 모달 내 Input 포커스 시 outline 중복 방지 */
+[data-state="open"] input:focus-visible,
+[data-state="open"] textarea:focus-visible {
+  outline: none;
+}
+
+/* react-big-calendar 커스텀 스타일 */
+.rbc-calendar {
+  font-family: inherit;
+}
+
+.rbc-header {
+  padding: 10px 4px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 1px solid hsl(var(--border));
+}.rbc-today {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 2px hsl(var(--primary));
+}.rbc-off-range-bg {
+  background-color: hsl(var(--muted));
+}
+
+.rbc-event {
+  padding: 2px 4px;
+  font-size: 0.875rem;
+}.rbc-event-label {
+  font-size: 0.75rem;
+}
+
+.rbc-month-view .rbc-day-bg {
+  transition: background-color 120ms ease;
+}
+
+.rbc-month-view .rbc-day-bg:hover {
+  background-color: hsl(var(--accent));
+}
+
+.rbc-month-view .rbc-day-bg.rbc-today:hover {
+  background-color: transparent;
+}
+
+.rbc-toolbar button {
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.rbc-toolbar button:hover {
+  background-color: hsl(var(--accent));
+}
+
+.rbc-toolbar button:active,
+.rbc-toolbar button.rbc-active {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+/*
+ * Dialog 내부에서만 border+ring 충돌 해결하고 싶을 때 (Input 전역 수정 대신):
+ * 아래 주석 해제 후, components/ui/input.tsx 에서 focus-visible:border-transparent 제거.
+ *
+ * [data-state="open"] input:focus-visible {
+ *   border-color: transparent;
+ *   outline: none;
+ * }
+ *
+ * 해결안 2 (border로만 focus): ring 제거하고 border 색만 변경
+ * [data-state="open"] input:focus-visible {
+ *   outline: none;
+ *   box-shadow: none;
+ *   border-color: hsl(var(--ring));
+ * }
+ */

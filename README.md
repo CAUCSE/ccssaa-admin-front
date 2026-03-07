@@ -53,6 +53,11 @@ app/
     [id]/            # 신고 상세
   events/             # 경조사 관리
     [id]/            # 경조사 상세
+  lockers/            # 사물함 관리
+    [id]/            # 사물함 상세
+    policies/        # 사물함 정책 관리
+      new/           # 정책 등록
+      [id]/edit/     # 정책 수정
   settings/           # 시스템 설정
     roles/           # 권한 및 역할 관리
     design/          # 디자인/배너 관리
@@ -115,7 +120,12 @@ types/                # TypeScript 타입 정의
 - 경조사 상세 (증빙 서류, 계좌 정보)
 - 경조사 승인/거부
 
-### 6. 시스템 설정
+### 6. 사물함 관리
+- 사물함 목록 (검색, 일괄 회수, 신청 기간 설정)
+- 사물함 상세 (배정/회수)
+- **사물함 정책 관리**: 학기/기간별 신청·연장 정책 CRUD, 활성화(동시 1개만 ACTIVE)
+
+### 7. 시스템 설정
 - 권한 및 역할 관리 (Master 전용)
 - 디자인/배너 관리
 
@@ -137,6 +147,11 @@ types/                # TypeScript 타입 정의
 - `GET /api/v1/admin/reports/{id}` - 신고 상세
 - `GET /api/v1/admin/events` - 경조사 목록
 - `GET /api/v1/admin/events/{id}` - 경조사 상세
+- `GET /api/v1/admin/locker-policies` - 사물함 정책 목록
+- `GET /api/v1/admin/locker-policies/{id}` - 사물함 정책 상세
+- `POST /api/v1/admin/locker-policies` - 사물함 정책 생성
+- `PUT /api/v1/admin/locker-policies/{id}` - 사물함 정책 수정
+- `POST /api/v1/admin/locker-policies/{id}/activate` - 사물함 정책 활성화 (기존 ACTIVE는 INACTIVE로 전환)
 
 ## 개발 상태
 
@@ -149,6 +164,7 @@ types/                # TypeScript 타입 정의
 - ✅ 게시판 관리
 - ✅ 신고 관리
 - ✅ 경조사 관리
+- ✅ 사물함 관리 및 사물함 정책 관리
 - ✅ 시스템 설정
 
 ### 향후 개선 사항

@@ -8,26 +8,32 @@ export const statusBadgeMap: Record<
   { variant: BadgeProps["variant"]; label: string }
 > = {
   // Success (Green)
-  ACTIVE: { variant: "success", label: "활동" },
+  ACTIVE: { variant: "success", label: "활성" },
   APPROVED: { variant: "success", label: "승인" },
   RESOLVED: { variant: "success", label: "완료" },
   PUBLIC: { variant: "success", label: "공개" },
-  AVAILABLE: { variant: "success", label: "사용가능" },
+  AVAILABLE: { variant: "success", label: "사용 가능" },
+  IN_USE: { variant: "neutral", label: "사용중" },
+  DISABLED: { variant: "neutral", label: "비활성" },
 
   // Warning (Orange)
-  PENDING: { variant: "warning", label: "대기" },
+  AWAIT: { variant: "warning", label: "대기" },
+  PENDING: { variant: "warning", label: "대기" }, // 다른 도메인에서 사용 가능
   UNRESOLVED: { variant: "warning", label: "미처리" },
 
   // Danger (Red)
-  REJECTED: { variant: "danger", label: "거부" },
-  BANNED: { variant: "danger", label: "추방" },
+  REJECT: { variant: "danger", label: "거부" },
+  REJECTED: { variant: "danger", label: "거부" }, // 다른 도메인에서 사용 가능
+  DROP: { variant: "danger", label: "추방" },
+  BANNED: { variant: "danger", label: "추방" }, // 다른 도메인에서 사용 가능
   DELETED: { variant: "danger", label: "삭제" },
 
   // Neutral (Gray)
-  WITHDRAWN: { variant: "neutral", label: "탈퇴" },
+  INACTIVE: { variant: "neutral", label: "비활성" },
+  WITHDRAWN: { variant: "neutral", label: "탈퇴" }, // 다른 도메인에서 사용 가능
   HIDDEN: { variant: "neutral", label: "숨김" },
   DISMISSED: { variant: "neutral", label: "취소" },
-  OCCUPIED: { variant: "neutral", label: "사용중" },
+  OCCUPIED: { variant: "neutral", label: "사용중" }, // 하위 호환
 }
 
 /**

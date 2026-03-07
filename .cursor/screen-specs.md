@@ -7,6 +7,17 @@
 
 ---
 
+## 0. 로그인 (Login)
+
+**화면 ID:** `ADM-LOGIN`  
+**상세 스펙:** [.cursor/login-spec.md](.cursor/login-spec.md)
+
+- **경로:** `/login`
+- **레이아웃:** LNB/헤더 없음. 전체 화면 중앙에 이메일·비밀번호 폼(Card).
+- **동작:** 로그인 성공 시 `/dashboard` 이동. 미인증 사용자 대시보드 접근 시 `/login` 리다이렉트.
+
+---
+
 ## 1. 회원 관리 (User Management)
 
 **화면 ID:** `ADM-USER-LIST` / `ADM-USER-DETAIL`
@@ -42,9 +53,11 @@
 
 ## 2. 게시판 관리 (Board Management)
 
-**화면 ID:** `ADM-BOARD-LIST` / `ADM-BOARD-DETAIL`
+**화면 ID:** `ADM-BOARD-LIST` / `ADM-BOARD-EDIT` / `ADM-BOARD-DETAIL`
 
-### 2.1. 리스트 화면 (List)
+**게시판 API (v2):** [.cursor/boards-api-v2.md](.cursor/boards-api-v2.md) — GET/POST/PUT/PATCH `/api/v2/admin/boards`, 전체 필드(name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility).
+
+### 2.1. 리스트 화면 (List) — `/content/boards`
 
 - **검색 조건:** `[게시판 선택(Select)]`, `[제목+내용(Input)]`, `[작성자(Input)]`
 - **데이터 테이블 (Columns):**
@@ -55,8 +68,16 @@
   5. **작성일:** (Center) YYYY.MM.DD
   6. **상태:** (Center) `PUBLIC(공개)`, `HIDDEN(숨김)` **[Badge]**
   7. **관리:** (Center) `[상세보기 >]`
+- **v2 게시판 메타 관리:** 리스트 컬럼(No, 게시판명, 설명, 익명/읽기·쓰기 권한/알림/노출), 상단 `[정렬 수정]`·`[게시판 생성]`, 행별 `[수정]` → `/content/boards/[boardId]/edit` 이동, `[삭제]` 확인 모달.
 
-### 2.2. 상세 화면 (Detail)
+### 2.2. 게시판 수정 화면 (Edit) — `/content/boards/[boardId]/edit`
+
+- **경로:** `/content/boards/[boardId]/edit` (boardId: 게시판 ID)
+- **페이지 헤더:** `← 게시판 관리 / [게시판명] / 수정` (Breadcrumb), 제목 "게시판 수정", 설명 "게시판 설정을 수정합니다. (v2 API)"
+- **정보 영역 (폼):** 게시판명, 설명, 관리자 ID(쉼표/줄바꿈 구분), 익명 여부(체크), 읽기 권한(Select), 쓰기 권한(Select), 알림 가능(체크), 노출 여부(Select)
+- **하단 버튼:** `[취소]` → 목록 이동, `[수정]` → PUT `/api/v2/admin/boards` 제출 후 목록(`/content/boards`)으로 이동
+
+### 2.3. 상세 화면 (Detail) — 게시글 상세
 
 - **정보 영역:**
   - **본문 미리보기:** 제목, 작성자, 본문 내용(Text only), 첨부파일 목록.

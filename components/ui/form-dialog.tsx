@@ -61,7 +61,7 @@ export function FormDialog({
           <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
             {cancelText}
           </Button>
-          <Button onClick={handleConfirm} disabled={isLoading}>
+          <Button type="button" onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? "처리 중..." : confirmText}
           </Button>
         </DialogFooter>

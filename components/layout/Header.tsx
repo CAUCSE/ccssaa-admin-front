@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogOut, User, Menu, ChevronRight, Home } from "lucide-react"
-import { removeToken } from "@/lib/auth"
+import { signOut } from "@/lib/api/auth"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
+import { useMeOptional } from "@/context/MeContext"
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "대시보드",
@@ -16,6 +16,10 @@ const pageTitles: Record<string, string> = {
   "/content": "게시판 관리",
   "/content/boards": "게시판 관리",
   "/reports": "신고 관리",
+  "/lockers": "사물함 현황",
+  "/lockers/policies": "신청 정책 관리",
+  "/lockers/policies/new": "정책 등록",
+  "/lockers/logs": "로그 조회",
   "/settings": "시스템 설정",
   "/settings/roles": "권한 및 역할 관리",
   "/settings/design": "디자인 / 배너 관리",
@@ -34,6 +38,10 @@ const getPageTitle = (pathname: string): string => {
   // /reports/[id] 패턴
   if (pathname.startsWith("/reports/") && pathname !== "/reports") {
     return "신고 상세"
+  }
+  // /lockers/policies/[id]/edit 패턴
+  if (pathname.match(/^\/lockers\/policies\/\d+\/edit$/)) {
+    return "정책 수정"
   }
   // 기본 pageTitles에서 찾기
   return pageTitles[pathname] || "관리자 페이지"
@@ -56,6 +64,19 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "게시판 목록", href: "/content/boards" },
   ],
   "/reports": [{ label: "신고 관리", href: "/reports" }],
+  "/lockers": [{ label: "사물함 현황", href: "/lockers" }],
+  "/lockers/policies": [
+    { label: "사물함 관리", href: "/lockers" },
+    { label: "신청 정책 관리", href: "/lockers/policies" },
+  ],
+  "/lockers/policies/new": [
+    { label: "신청 정책 관리", href: "/lockers/policies" },
+    { label: "정책 등록", href: "/lockers/policies/new" },
+  ],
+  "/lockers/logs": [
+    { label: "사물함 관리", href: "/lockers" },
+    { label: "로그 조회", href: "/lockers/logs" },
+  ],
   "/settings": [{ label: "시스템 설정", href: "/settings" }],
   "/settings/roles": [
     { label: "시스템 설정", href: "/settings" },
@@ -90,6 +111,14 @@ const getBreadcrumbForPath = (pathname: string): { label: string; href: string }
       { label: "신고 상세", href: pathname },
     ]
   }
+  // /lockers/policies/[id]/edit 패턴
+  const policyEditMatch = pathname.match(/^(\/lockers\/policies\/(\d+)\/edit)$/)
+  if (policyEditMatch) {
+    return [
+      { label: "신청 정책 관리", href: "/lockers/policies" },
+      { label: "정책 수정", href: pathname },
+    ]
+  }
   // 기본 breadcrumbMap에서 찾기
   return breadcrumbMap[pathname] || []
 }
@@ -101,12 +130,14 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const meContext = useMeOptional()
 
   const currentPageTitle = getPageTitle(pathname)
   const breadcrumbs = getBreadcrumbForPath(pathname)
+  const displayName = meContext?.me?.name ?? "관리자"
 
-  const handleLogout = () => {
-    removeToken()
+  const handleLogout = async () => {
+    await signOut()
     router.push("/login")
   }
 
@@ -129,7 +160,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="h-4 w-4" />
-              <span>관리자</span>
+              <span>{displayName}</span>
             </div>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -150,7 +181,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </Link>
               </li>
               {breadcrumbs.map((crumb, index) => (
-                <li key={crumb.href} className="flex items-center gap-2">
+                <li key={`${index}-${crumb.href}-${crumb.label}`} className="flex items-center gap-2">
                   <ChevronRight className="h-4 w-4" />
                   {index === breadcrumbs.length - 1 ? (
                     <span className="text-foreground font-medium">{crumb.label}</span>

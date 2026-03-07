@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/layout/PageHeader"
 export default function UserDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const userId = parseInt(params.id as string, 10)
+  const userId = params.id as string
 
   const { data: user, isLoading, error } = useUserDetail(userId)
 

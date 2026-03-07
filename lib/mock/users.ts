@@ -4,18 +4,21 @@ import type {
   UserListParams,
   UserListResponse,
   UserStatus,
+  AcademicStatus,
+  Department,
 } from "@/types/user"
 
 // Mock 데이터 생성
 const generateMockUsers = (): UserSummary[] => {
-  const departments = [
-    "소프트웨어학부",
-    "컴퓨터공학부",
-    "전자공학부",
-    "기계공학부",
-    "화학공학부",
+  const departments: Department[] = [
+    "DEPT_OF_AI",
+    "SCHOOL_OF_SW",
+    "SCHOOL_OF_CSE",
+    "DEPT_OF_CSE",
+    "DEPT_OF_CS",
   ]
-  const statuses: UserStatus[] = ["PENDING", "ACTIVE", "BANNED"]
+  const statuses: UserStatus[] = ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"]
+  const academicStatuses: AcademicStatus[] = ["ENROLLED", "GRADUATED", "UNDETERMINED"]
   const names = [
     "김철수",
     "이영희",
@@ -33,20 +36,22 @@ const generateMockUsers = (): UserSummary[] => {
     const year = 2020 + Math.floor(Math.random() * 5)
     const studentNo = `${year}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`
     const status = statuses[Math.floor(Math.random() * statuses.length)]
+    const academicStatus = academicStatuses[Math.floor(Math.random() * academicStatuses.length)]
     const joinedDate = new Date(2023 + Math.floor(Math.random() * 2), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1)
 
     return {
-      id: i + 1,
+      id: String(i + 1),
       studentNo,
       name: names[Math.floor(Math.random() * names.length)],
       department: departments[Math.floor(Math.random() * departments.length)],
       status,
+      academicStatus,
       joinedAt: joinedDate.toISOString(),
     }
   })
 }
 
-const mockUsers = generateMockUsers()
+let mockUsers = generateMockUsers()
 
 // Mock API 함수들
 export const mockUserApi = {
@@ -68,7 +73,7 @@ export const mockUserApi = {
     }
 
     // 학과 필터링
-    if (params.department && params.department !== "전체") {
+    if (params.department) {
       filteredUsers = filteredUsers.filter(
         (user) => user.department === params.department
       )
@@ -78,6 +83,13 @@ export const mockUserApi = {
     if (params.status && params.status !== "ALL") {
       filteredUsers = filteredUsers.filter(
         (user) => user.status === params.status
+      )
+    }
+
+    // 학적 상태 필터링
+    if (params.academicStatus && params.academicStatus !== "ALL") {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.academicStatus === params.academicStatus
       )
     }
 
@@ -103,7 +115,7 @@ export const mockUserApi = {
   },
 
   // 회원 상세 조회
-  getUserDetail: async (userId: number): Promise<UserDetail> => {
+  getUserDetail: async (userId: string): Promise<UserDetail> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
     const user = mockUsers.find((u) => u.id === userId)
@@ -111,17 +123,33 @@ export const mockUserApi = {
       throw new Error("User not found")
     }
 
-    // 상세 정보 생성
+    // 상세 정보 생성 (서버 응답 형식에 맞게 변환)
+    const roles = user.status === "ACTIVE" 
+      ? (Math.random() > 0.8 ? ["ADMIN"] : ["COMMON"])
+      : ["COMMON"]
+
     return {
-      ...user,
-      phone: `010-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`,
+      id: String(user.id),
       email: `${user.studentNo}@dongne.ac.kr`,
-      role: user.status === "ACTIVE" ? (Math.random() > 0.8 ? "ADMIN" : "USER") : "USER",
+      name: user.name,
+      studentId: user.studentNo,
+      roles,
+      profileImageUrl: null,
+      state: user.status,
+      nickname: user.name,
+      major: user.department,
+      department: user.department,
+      academicStatus: user.academicStatus,
+      phoneNumber: `010-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`,
+      rejectionOrDropReason: (user.status === "REJECT" || user.status === "DROP") 
+        ? "재학 증빙 서류 미제출" 
+        : null,
+      createdAt: user.joinedAt,
     }
   },
 
   // 회원 승인
-  approveUser: async (userId: number): Promise<void> => {
+  approveUser: async (userId: string): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
     const user = mockUsers.find((u) => u.id === userId)
     if (user) {
@@ -130,26 +158,41 @@ export const mockUserApi = {
   },
 
   // 회원 거부
-  rejectUser: async (userId: number): Promise<void> => {
+  rejectUser: async (userId: string): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
     const user = mockUsers.find((u) => u.id === userId)
     if (user) {
-      user.status = "BANNED"
+      user.status = "REJECT"
     }
   },
 
   // 회원 추방
-  banUser: async (userId: number): Promise<void> => {
+  banUser: async (userId: string): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
     const user = mockUsers.find((u) => u.id === userId)
     if (user) {
-      user.status = "BANNED"
+      user.status = "DROP"
+    }
+  },
+
+  // 목록에서 삭제
+  deleteUser: async (userId: string): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    mockUsers = mockUsers.filter((u) => u.id !== userId)
+  },
+
+  // 추방 사용자 복구
+  restoreUser: async (userId: string): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    const user = mockUsers.find((u) => u.id === userId)
+    if (user) {
+      user.status = "ACTIVE"
     }
   },
 
   // 역할 변경
   updateUserRole: async (
-    userId: number,
+    userId: string,
     role: "USER" | "ADMIN" | "MASTER"
   ): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 300))

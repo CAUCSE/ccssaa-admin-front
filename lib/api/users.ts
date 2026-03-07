@@ -5,42 +5,49 @@ import type {
   UserDetail,
 } from "@/types/user"
 import { mockUserApi } from "../mock/users"
+import { getAdminUserListV2, getAdminUserDetailV2 } from "./v2/users"
 
 // 환경 변수로 Mock 모드 제어
 const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 
 // 실제 API 함수들
 const realUserApi = {
-  // 회원 리스트 조회
-  getUsers: async (params: UserListParams): Promise<UserListResponse> => {
-    const response = await api.get<UserListResponse>("/admin/users", { params })
-    return response.data
-  },
+  // 회원 리스트 조회 (v2)
+  getUsers: (params: UserListParams): Promise<UserListResponse> =>
+    getAdminUserListV2(params),
 
-  // 회원 상세 조회
-  getUserDetail: async (userId: number): Promise<UserDetail> => {
-    const response = await api.get<UserDetail>(`/admin/users/${userId}`)
-    return response.data
-  },
+  // 회원 상세 조회 (v2)
+  getUserDetail: (userId: string): Promise<UserDetail> =>
+    getAdminUserDetailV2(userId),
 
   // 회원 승인
-  approveUser: async (userId: number): Promise<void> => {
+  approveUser: async (userId: string): Promise<void> => {
     await api.post(`/admin/users/${userId}/approve`)
   },
 
   // 회원 거부
-  rejectUser: async (userId: number): Promise<void> => {
+  rejectUser: async (userId: string): Promise<void> => {
     await api.post(`/admin/users/${userId}/reject`)
   },
 
   // 회원 추방
-  banUser: async (userId: number): Promise<void> => {
+  banUser: async (userId: string): Promise<void> => {
     await api.post(`/admin/users/${userId}/ban`)
+  },
+
+  // 목록에서 삭제 (관리자)
+  deleteUser: async (userId: string): Promise<void> => {
+    await api.delete(`/admin/users/${userId}`)
+  },
+
+  // 추방 사용자 복구 (관리자)
+  restoreUser: async (userId: string): Promise<void> => {
+    await api.post(`/admin/users/${userId}/restore`)
   },
 
   // 역할 변경
   updateUserRole: async (
-    userId: number,
+    userId: string,
     role: "USER" | "ADMIN" | "MASTER"
   ): Promise<void> => {
     await api.patch(`/admin/users/${userId}/role`, { role })
