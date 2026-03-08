@@ -42,6 +42,7 @@ export default function EventDetailPage() {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState("경조사 신청 요건에 부합하지 않습니다.")
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -249,12 +250,11 @@ export default function EventDetailPage() {
                     <Label className="text-xs text-muted-foreground">첨부 사진</Label>
                     <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {event.attachedImageUrlList.map((imageUrl) => (
-                        <a
+                        <button
+                          type="button"
                           key={imageUrl}
-                          href={imageUrl}
-                          target="_blank"
-                          rel="noreferrer"
                           className="group relative h-32 overflow-hidden rounded-md border bg-muted"
+                          onClick={() => setPreviewImageUrl(imageUrl)}
                         >
                           <div
                             className="h-full w-full bg-cover bg-center transition-transform duration-200 group-hover:scale-105"
@@ -263,7 +263,7 @@ export default function EventDetailPage() {
                           <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
                             <p className="truncate text-[10px] text-white">{getImageFileName(imageUrl)}</p>
                           </div>
-                        </a>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -406,6 +406,33 @@ export default function EventDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {previewImageUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70"
+          onClick={() => setPreviewImageUrl(null)}
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-4 rounded-md bg-black/50 p-2 text-white hover:bg-black/70"
+            onClick={(e) => {
+              e.stopPropagation()
+              setPreviewImageUrl(null)
+            }}
+            aria-label="이미지 닫기"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div className="flex h-full w-full items-center justify-center p-6 pt-16">
+            <img
+              src={previewImageUrl}
+              alt="첨부 이미지 미리보기"
+              className="max-h-full max-w-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
