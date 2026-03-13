@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   Table,
   TableBody,
@@ -10,25 +11,25 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import type { CalendarEvent } from "@/types/calendar"
+import type { ScheduleEvent } from "@/types/schedule"
 
-interface CalendarTableProps {
-  data: CalendarEvent[]
-  onEdit?: (event: CalendarEvent) => void
+interface ScheduleTableProps {
+  data: ScheduleEvent[]
+  onEdit?: (event: ScheduleEvent) => void
   onDelete?: (eventId: string) => void
   isLoading?: boolean
 }
 
 /**
- * CalendarTable 컴포넌트
- * 캘린더 일정 목록을 테이블 형태로 표시하는 컴포넌트입니다.
+ * ScheduleTable 컴포넌트
+ * 스케줄 일정 목록을 테이블 형태로 표시하는 컴포넌트입니다.
  */
-export function CalendarTable({
+export function ScheduleTable({
   data,
   onEdit,
   onDelete,
   isLoading,
-}: CalendarTableProps) {
+}: ScheduleTableProps) {
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString)
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
@@ -40,7 +41,6 @@ export function CalendarTable({
       DEPARTMENT: { variant: "success", label: "학부행사" },
       CCSSAA: { variant: "warning", label: "CCSSAA" },
       STUDENT_COUNCIL: { variant: "secondary", label: "학생회" },
-      COMPETITION: { variant: "destructive", label: "대회" },
       HOLIDAY: { variant: "default", label: "공휴일" },
     }
     return typeMap[type] || { variant: "secondary", label: type }
@@ -53,7 +53,7 @@ export function CalendarTable({
           <Table>
             <TableHeader>
               <TableRow>
-                {Array.from({ length: 5 }).map((_, i) => (
+                {Array.from({ length: 6 }).map((_, i) => (
                   <TableHead key={i}>
                     <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
                   </TableHead>
@@ -63,7 +63,7 @@ export function CalendarTable({
             <TableBody>
               {Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 5 }).map((_, j) => (
+                  {Array.from({ length: 6 }).map((_, j) => (
                     <TableCell key={j}>
                       <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
                     </TableCell>
@@ -97,6 +97,7 @@ export function CalendarTable({
               <TableHead className="text-center">타입</TableHead>
               <TableHead className="text-center">시작일시</TableHead>
               <TableHead className="text-center">종료일시</TableHead>
+              <TableHead className="text-center">연결 게시물</TableHead>
               <TableHead className="text-center">관리</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,6 +115,18 @@ export function CalendarTable({
                   </TableCell>
                   <TableCell className="text-center">
                     {formatDateTime(event.end)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {event.postId ? (
+                      <Link
+                        href={`/content/${event.postId}`}
+                        className="text-sm text-primary underline underline-offset-2"
+                      >
+                        {event.postId}
+                      </Link>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex justify-center gap-2">

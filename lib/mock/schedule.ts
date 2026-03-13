@@ -1,15 +1,15 @@
 import type {
-  CalendarEvent,
-  CalendarListParams,
-  CalendarListResponse,
-  CalendarType,
-  CreateCalendarEventRequest,
-  UpdateCalendarEventRequest,
-} from "@/types/calendar"
+  ScheduleEvent,
+  ScheduleListParams,
+  ScheduleListResponse,
+  ScheduleType,
+  CreateScheduleEventRequest,
+  UpdateScheduleEventRequest,
+} from "@/types/schedule"
 
 // Mock 데이터 생성
-const generateMockCalendarEvents = (): CalendarEvent[] => {
-  const events: CalendarEvent[] = []
+const generateMockScheduleEvents = (): ScheduleEvent[] => {
+  const events: ScheduleEvent[] = []
 
   events.push({
     id: "a3bb189e-8bf9-4558-8c5e-5c8d5e8f4e3a",
@@ -44,14 +44,6 @@ const generateMockCalendarEvents = (): CalendarEvent[] => {
   })
 
   events.push({
-    id: "c3d2e456-789a-4bcd-b123-456789abcdef",
-    title: "프로그래밍 경진대회",
-    type: "COMPETITION",
-    start: "2026-05-15T10:00:00",
-    end: "2026-05-15T17:00:00",
-  })
-
-  events.push({
     id: "d4e3f567-89ab-4cde-c234-56789abcdef0",
     title: "석가탄신일",
     type: "HOLIDAY",
@@ -70,16 +62,16 @@ const generateMockCalendarEvents = (): CalendarEvent[] => {
   return events
 }
 
-const mockCalendarEvents = generateMockCalendarEvents()
+const mockScheduleEvents = generateMockScheduleEvents()
 
 // Mock API 함수들
-export const mockCalendarApi = {
-  // 캘린더 일정 목록 조회
-  getCalendarEvents: async (params: CalendarListParams): Promise<CalendarListResponse> => {
+const baseMockScheduleApi = {
+  // 스케줄 일정 목록 조회
+  getScheduleEvents: async (params: ScheduleListParams): Promise<ScheduleListResponse> => {
     // 지연 시뮬레이션
     await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 200))
 
-    let filteredEvents = [...mockCalendarEvents]
+    let filteredEvents = [...mockScheduleEvents]
 
     // 날짜 범위 필터링 (overlap)
     const fromDate = params.from ? new Date(params.from) : null
@@ -115,11 +107,11 @@ export const mockCalendarApi = {
     }
   },
 
-  // 캘린더 일정 상세 조회
-  getCalendarEventDetail: async (eventId: string): Promise<CalendarEvent> => {
+  // 스케줄 일정 상세 조회
+  getScheduleEventDetail: async (eventId: string): Promise<ScheduleEvent> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
-    const event = mockCalendarEvents.find((e) => e.id === eventId)
+    const event = mockScheduleEvents.find((e) => e.id === eventId)
     if (!event) {
       throw new Error("일정을 찾을 수 없습니다.")
     }
@@ -128,26 +120,26 @@ export const mockCalendarApi = {
   },
 
   // 일정 생성
-  createCalendarEvent: async (data: CreateCalendarEventRequest): Promise<CalendarEvent> => {
+  createScheduleEvent: async (data: CreateScheduleEventRequest): Promise<ScheduleEvent> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
-    const newEvent: CalendarEvent = {
+    const newEvent: ScheduleEvent = {
       id: crypto.randomUUID(),
       ...data,
     }
 
-    mockCalendarEvents.push(newEvent)
+    mockScheduleEvents.push(newEvent)
     return newEvent
   },
 
   // 일정 수정
-  updateCalendarEvent: async (
+  updateScheduleEvent: async (
     eventId: string,
-    data: UpdateCalendarEventRequest
-  ): Promise<CalendarEvent> => {
+    data: UpdateScheduleEventRequest
+  ): Promise<ScheduleEvent> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
-    const event = mockCalendarEvents.find((e) => e.id === eventId)
+    const event = mockScheduleEvents.find((e) => e.id === eventId)
     if (!event) {
       throw new Error("일정을 찾을 수 없습니다.")
     }
@@ -158,14 +150,25 @@ export const mockCalendarApi = {
   },
 
   // 일정 삭제
-  deleteCalendarEvent: async (eventId: string): Promise<void> => {
+  deleteScheduleEvent: async (eventId: string): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 300))
 
-    const index = mockCalendarEvents.findIndex((e) => e.id === eventId)
+    const index = mockScheduleEvents.findIndex((e) => e.id === eventId)
     if (index === -1) {
       throw new Error("일정을 찾을 수 없습니다.")
     }
 
-    mockCalendarEvents.splice(index, 1)
+    mockScheduleEvents.splice(index, 1)
   },
 }
+
+export const mockScheduleApi = {
+  ...baseMockScheduleApi,
+  getCalendarEvents: baseMockScheduleApi.getScheduleEvents,
+  getCalendarEventDetail: baseMockScheduleApi.getScheduleEventDetail,
+  createCalendarEvent: baseMockScheduleApi.createScheduleEvent,
+  updateCalendarEvent: baseMockScheduleApi.updateScheduleEvent,
+  deleteCalendarEvent: baseMockScheduleApi.deleteScheduleEvent,
+}
+
+export const mockCalendarApi = mockScheduleApi

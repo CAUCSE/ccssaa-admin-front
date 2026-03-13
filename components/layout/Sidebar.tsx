@@ -116,8 +116,8 @@ const getSidebarItems = (
     ],
   },
   {
-    title: "캘린더 관리",
-    href: "/calendar",
+    title: "스케줄 관리",
+    href: "/schedule",
     icon: <CalendarDays className="h-5 w-5" />,
   },
   {

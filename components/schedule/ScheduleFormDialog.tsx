@@ -13,35 +13,36 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type {
-  CalendarEvent,
-  CreateCalendarEventRequest,
-  UpdateCalendarEventRequest,
-  CalendarType,
-} from "@/types/calendar"
+  ScheduleEvent,
+  CreateScheduleEventRequest,
+  UpdateScheduleEventRequest,
+  ScheduleType,
+} from "@/types/schedule"
 
-interface CalendarFormDialogProps {
+interface ScheduleFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  event?: CalendarEvent
+  event?: ScheduleEvent
   initialDates?: { start: Date; end: Date }
-  onSubmit: (data: CreateCalendarEventRequest | UpdateCalendarEventRequest) => void
+  onSubmit: (data: CreateScheduleEventRequest | UpdateScheduleEventRequest) => void
   isLoading?: boolean
 }
 
 /**
- * CalendarFormDialog 컴포넌트
- * 캘린더 일정 등록/수정 모달입니다.
+ * ScheduleFormDialog 컴포넌트
+ * 스케줄 일정 등록/수정 모달입니다.
  */
-export function CalendarFormDialog({
+export function ScheduleFormDialog({
   open,
   onOpenChange,
   event,
   initialDates,
   onSubmit,
   isLoading,
-}: CalendarFormDialogProps) {
+}: ScheduleFormDialogProps) {
   const [title, setTitle] = useState("")
-  const [type, setType] = useState<CalendarType>("ACADEMIC")
+  const [type, setType] = useState<ScheduleType>("ACADEMIC")
+  const [postId, setPostId] = useState("")
   const [startDate, setStartDate] = useState("")
   const [startTime, setStartTime] = useState("")
   const [endDate, setEndDate] = useState("")
@@ -56,6 +57,7 @@ export function CalendarFormDialog({
     if (event) {
       setTitle(event.title)
       setType(event.type)
+      setPostId(event.postId ? String(event.postId) : "")
       
       // ISO 문자열에서 날짜/시간 직접 추출 (타임존 변환 방지)
       const startParts = event.start.split("T")
@@ -69,6 +71,7 @@ export function CalendarFormDialog({
       // 달력에서 날짜 클릭 시 초기값 설정
       setTitle("")
       setType("ACADEMIC")
+      setPostId("")
       
       const startYear = initialDates.start.getFullYear()
       const startMonth = String(initialDates.start.getMonth() + 1).padStart(2, '0')
@@ -90,6 +93,7 @@ export function CalendarFormDialog({
       // 완전 초기화
       setTitle("")
       setType("ACADEMIC")
+      setPostId("")
       setStartDate("")
       setStartTime("")
       setEndDate("")
@@ -122,13 +126,16 @@ export function CalendarFormDialog({
       return
     }
 
+    const trimmedPostId = postId.trim()
+
     setErrorMessage(null)
     
-    const data: CreateCalendarEventRequest | UpdateCalendarEventRequest = {
+    const data: CreateScheduleEventRequest | UpdateScheduleEventRequest = {
       title: title.trim(),
       type,
       start: start.toISOString(),
       end: end.toISOString(),
+      postId: trimmedPostId || undefined,
     }
 
     onSubmit(data)
@@ -159,7 +166,7 @@ export function CalendarFormDialog({
 
         <div>
           <Label htmlFor="type">일정 타입 *</Label>
-          <Select value={type} onValueChange={(value) => setType(value as CalendarType)}>
+          <Select value={type} onValueChange={(value) => setType(value as ScheduleType)}>
             <SelectTrigger id="type">
               <SelectValue placeholder="일정 타입 선택" />
             </SelectTrigger>
@@ -168,10 +175,19 @@ export function CalendarFormDialog({
               <SelectItem value="DEPARTMENT">학부행사</SelectItem>
               <SelectItem value="CCSSAA">CCSSAA</SelectItem>
               <SelectItem value="STUDENT_COUNCIL">학생회</SelectItem>
-              <SelectItem value="COMPETITION">대회</SelectItem>
               <SelectItem value="HOLIDAY">공휴일</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="postId">연결 게시물 ID (선택)</Label>
+          <Input
+            id="postId"
+            value={postId}
+            onChange={(e) => setPostId(e.target.value)}
+            placeholder="예: post-123 또는 UUID"
+          />
         </div>
 
         <div>

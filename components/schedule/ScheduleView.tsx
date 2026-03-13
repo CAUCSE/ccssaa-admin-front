@@ -3,13 +3,11 @@
 import {
   Calendar,
   dateFnsLocalizer,
-  View,
   Navigate,
-  type ToolbarProps as RBCToolbarProps,
 } from "react-big-calendar"
 import { format, parse, startOfWeek, getDay } from "date-fns"
 import { ko } from "date-fns/locale"
-import type { CalendarEvent, CalendarType } from "@/types/calendar"
+import type { ScheduleEvent, ScheduleType } from "@/types/schedule"
 import { useState, useMemo, useCallback } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,14 +34,13 @@ const localizer = dateFnsLocalizer({
   locales,
 })
 
-interface CalendarViewProps {
-  data: CalendarEvent[]
-  onEdit: (event: CalendarEvent) => void
+interface ScheduleViewProps {
+  data: ScheduleEvent[]
+  onEdit: (event: ScheduleEvent) => void
   onDelete: (eventId: string) => void
   onSelectSlot?: (slotInfo: { start: Date; end: Date }) => void
   onMonthChange?: (date: Date) => void
-  selectedTypes?: CalendarType[]
-  isLoading?: boolean
+  selectedTypes?: ScheduleType[]
 }
 
 // react-big-calendar 이벤트에 사용하는 로컬 타입
@@ -53,14 +50,12 @@ type CalendarRbcEvent = {
   title: string
   start: Date
   end: Date
-  resource: CalendarEvent
+  resource: ScheduleEvent
   order: number
 }
 
-type CalendarToolbarProps = RBCToolbarProps<CalendarRbcEvent, object>
-
 // 타입별 색상 매핑 (기존 Badge와 동일)
-const getEventColor = (type: CalendarType): string => {
+const getEventColor = (type: ScheduleType): string => {
   switch (type) {
     case "ACADEMIC":
       return "#9CA3AF" // gray
@@ -70,8 +65,6 @@ const getEventColor = (type: CalendarType): string => {
       return "#7DD3FC" // sky
     case "STUDENT_COUNCIL":
       return "#FB923C" // orange
-    case "COMPETITION":
-      return "#A78BFA" // purple
     case "HOLIDAY":
       return "#F87171" // red
     default:
@@ -79,7 +72,7 @@ const getEventColor = (type: CalendarType): string => {
   }
 }
 
-const getTypeLabel = (type: CalendarType): string => {
+const getTypeLabel = (type: ScheduleType): string => {
   switch (type) {
     case "ACADEMIC":
       return "학사일정"
@@ -89,8 +82,6 @@ const getTypeLabel = (type: CalendarType): string => {
       return "CCSSAA"
     case "STUDENT_COUNCIL":
       return "학생회"
-    case "COMPETITION":
-      return "대회"
     case "HOLIDAY":
       return "공휴일"
     default:
@@ -98,16 +89,15 @@ const getTypeLabel = (type: CalendarType): string => {
   }
 }
 
-export function CalendarView({
+export function ScheduleView({
   data,
   onEdit,
   onDelete,
   onSelectSlot,
   onMonthChange,
   selectedTypes,
-  isLoading,
-}: CalendarViewProps) {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+}: ScheduleViewProps) {
+  const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null)
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
   const [currentDate, setCurrentDate] = useState(new Date())
 
@@ -304,8 +294,6 @@ export function CalendarView({
                     ? "success"
                     : selectedEvent?.type === "CCSSAA"
                     ? "warning"
-                    : selectedEvent?.type === "COMPETITION"
-                    ? "destructive"
                     : selectedEvent?.type === "STUDENT_COUNCIL"
                     ? "secondary"
                     : "default"
