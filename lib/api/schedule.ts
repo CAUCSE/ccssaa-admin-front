@@ -23,7 +23,7 @@ const realScheduleApi = {
       queryParams.types = params.types.join(',')
     }
 
-    const response = await apiV2.get<{ data: ScheduleListResponse }>("/admin/schedules", {
+    const response = await apiV2.get<{ data: ScheduleListResponse }>("/schedules", {
       params: queryParams 
     })
     return response.data.data
@@ -31,7 +31,7 @@ const realScheduleApi = {
 
   // 스케줄 일정 상세 조회
   getScheduleEventDetail: async (eventId: string): Promise<ScheduleEvent> => {
-    const response = await apiV2.get<{ data: ScheduleEvent }>(`/admin/schedules/${eventId}`)
+    const response = await apiV2.get<{ data: ScheduleEvent }>(`/schedules/${eventId}`)
     return response.data.data
   },
 
