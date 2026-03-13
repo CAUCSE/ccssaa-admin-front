@@ -8,17 +8,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Search } from "lucide-react"
-import type { ScheduleType } from "@/types/schedule"
+import type { CalendarType } from "@/types/calendar"
 
-const SCHEDULE_TYPES: { value: ScheduleType; label: string }[] = [
+const CALENDAR_TYPES: { value: CalendarType; label: string }[] = [
   { value: "ACADEMIC", label: "학사" },
   { value: "DEPARTMENT", label: "학부" },
   { value: "CCSSAA", label: "CCSSAA" },
   { value: "STUDENT_COUNCIL", label: "학생회" },
+  { value: "COMPETITION", label: "대회" },
   { value: "HOLIDAY", label: "공휴일" },
 ]
 
-const getTypeColor = (type: ScheduleType): string => {
+const getTypeColor = (type: CalendarType): string => {
   switch (type) {
     case "ACADEMIC":
       return "#9CA3AF"
@@ -28,6 +29,8 @@ const getTypeColor = (type: ScheduleType): string => {
       return "#7DD3FC"
     case "STUDENT_COUNCIL":
       return "#FB923C"
+    case "COMPETITION":
+      return "#A78BFA"
     case "HOLIDAY":
       return "#F87171"
     default:
@@ -35,24 +38,24 @@ const getTypeColor = (type: ScheduleType): string => {
   }
 }
 
-interface ScheduleFilterProps {
+interface CalendarFilterProps {
   hideDateFilter?: boolean
   hideSearchButton?: boolean
-  onTypeChange?: (types: ScheduleType[]) => void
+  onTypeChange?: (types: CalendarType[]) => void
 }
 
-export function ScheduleFilter({ hideDateFilter = false, hideSearchButton = false, onTypeChange }: ScheduleFilterProps) {
+export function CalendarFilter({ hideDateFilter = false, hideSearchButton = false, onTypeChange }: CalendarFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const [from, setFrom] = useState(searchParams.get("from") || "")
   const [to, setTo] = useState(searchParams.get("to") || "")
-  const [selectedTypes, setSelectedTypes] = useState<ScheduleType[]>(() => {
+  const [selectedTypes, setSelectedTypes] = useState<CalendarType[]>(() => {
     const types = searchParams.get("types")
-    return types ? types.split(",") as ScheduleType[] : []
+    return types ? types.split(",") as CalendarType[] : []
   })
 
-  const handleTypeToggle = (type: ScheduleType) => {
+  const handleTypeToggle = (type: CalendarType) => {
     setSelectedTypes((prev) => {
       const newTypes = prev.includes(type)
         ? prev.filter((t) => t !== type)
@@ -80,7 +83,7 @@ export function ScheduleFilter({ hideDateFilter = false, hideSearchButton = fals
       params.set("types", selectedTypes.join(","))
     }
 
-    router.push(`/schedule?${params.toString()}`)
+    router.push(`/calendar?${params.toString()}`)
   }
 
   return (
@@ -109,9 +112,9 @@ export function ScheduleFilter({ hideDateFilter = false, hideSearchButton = fals
           )}
           
           <div>
-            <Label className="text-sm font-medium mb-2 block">스케줄 타입</Label>
+            <Label className="text-sm font-medium mb-2 block">일정 타입</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {SCHEDULE_TYPES.map((type) => (
+              {CALENDAR_TYPES.map((type) => (
                 <div key={type.value} className="flex items-center space-x-2">
                   <Checkbox
                     id={type.value}
