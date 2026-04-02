@@ -5,8 +5,7 @@ import type {
   LockerPolicyListResponse,
 } from "@/types/locker-policy"
 import { mockLockerPolicyApi } from "../mock/locker-policies"
-
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
+import { withMock } from "@/lib/mock"
 
 const realApi = {
   getList: async (): Promise<LockerPolicyListResponse> => {
@@ -34,4 +33,4 @@ const realApi = {
   },
 }
 
-export const lockerPolicyApi = USE_MOCK_API ? mockLockerPolicyApi : realApi
+export const lockerPolicyApi = withMock(realApi, mockLockerPolicyApi)

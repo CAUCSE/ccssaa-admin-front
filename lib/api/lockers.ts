@@ -8,9 +8,7 @@ import type {
   ExtendLockerRequest,
 } from "@/types/locker"
 import { mockLockerApi } from "../mock/lockers"
-
-// 환경 변수로 Mock 모드 제어
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
+import { withMock } from "@/lib/mock"
 
 // 실제 API 함수들
 const realLockerApi = {
@@ -59,4 +57,4 @@ const realLockerApi = {
 }
 
 // Mock 모드에 따라 API 선택
-export const lockerApi = USE_MOCK_API ? mockLockerApi : realLockerApi
+export const lockerApi = withMock(realLockerApi, mockLockerApi)

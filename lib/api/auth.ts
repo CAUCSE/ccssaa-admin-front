@@ -6,10 +6,9 @@ import {
 } from "@/lib/auth"
 import { api } from "../api"
 import { mockAuthApi } from "@/lib/mock/auth"
+import { withMock } from "@/lib/mock"
 import { signInV1 } from "./v1/auth"
 import type { MeResponse, SignInResponse } from "@/types/auth"
-
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 
 export interface LoginParams {
   email: string
@@ -52,7 +51,7 @@ const realAuthApi = {
   },
 }
 
-const authApi = USE_MOCK_API ? mockAuthApi : realAuthApi
+const authApi = withMock(realAuthApi, mockAuthApi)
 
 /** 로그인 (v1: POST /users/sign-in). 성공 시 accessToken/refreshToken 저장. */
 export async function login(params: LoginParams): Promise<SignInResponse> {

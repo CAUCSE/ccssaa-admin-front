@@ -6,9 +6,7 @@ import type {
   ReportAction,
 } from "@/types/report"
 import { mockReportApi } from "../mock/reports"
-
-// 환경 변수로 Mock 모드 제어
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
+import { withMock } from "@/lib/mock"
 
 // 실제 API 함수들
 const realReportApi = {
@@ -35,5 +33,5 @@ const realReportApi = {
 }
 
 // Mock 모드에 따라 API 선택
-export const reportApi = USE_MOCK_API ? mockReportApi : realReportApi
+export const reportApi = withMock(realReportApi, mockReportApi)
 

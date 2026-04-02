@@ -1,4 +1,5 @@
 import { mockAcademicRecordsApi } from "../mock/academic-records"
+import { withMock } from "@/lib/mock"
 import {
   getAcademicRecordApplications as getApplicationsV2,
   getAcademicRecordApplicationDetail as getApplicationDetailV2,
@@ -10,8 +11,6 @@ import type {
   AcademicRecordApplicationDetail,
   AcademicRecordListParams,
 } from "@/types/academic-record"
-
-const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 
 const realAcademicRecordsApi = {
   getApplications: (params?: AcademicRecordListParams): Promise<AcademicRecordApplicationListPayload> =>
@@ -27,7 +26,7 @@ const realAcademicRecordsApi = {
     rejectV2(applicationId, rejectReason),
 }
 
-export const academicRecordsApi = USE_MOCK_API ? mockAcademicRecordsApi : realAcademicRecordsApi
+export const academicRecordsApi = withMock(realAcademicRecordsApi, mockAcademicRecordsApi)
 
 export async function getApplications(params?: AcademicRecordListParams) {
   return academicRecordsApi.getApplications(params)
