@@ -108,7 +108,11 @@ export default function EventDetailPage() {
 
   const handleApprove = () => {
     if (!eventId) return
-    approveEventMutation.mutate(eventId)
+    approveEventMutation.mutate(eventId, {
+      onSuccess: () => {
+        setApproveDialogOpen(false)
+      },
+    })
   }
 
   const openRejectDialog = () => {
@@ -351,7 +355,6 @@ export default function EventDetailPage() {
               onClick={(e) => {
                 e.preventDefault()
                 handleApprove()
-                setApproveDialogOpen(false)
               }}
             >
               승인
