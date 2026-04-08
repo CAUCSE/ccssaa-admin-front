@@ -22,6 +22,7 @@ interface FormDialogProps {
   onConfirm: () => void
   onCancel?: () => void
   isLoading?: boolean
+  confirmDisabled?: boolean
 }
 
 /**
@@ -39,6 +40,7 @@ export function FormDialog({
   onConfirm,
   onCancel,
   isLoading = false,
+  confirmDisabled = false,
 }: FormDialogProps) {
   const handleCancel = () => {
     onCancel?.()
@@ -61,7 +63,11 @@ export function FormDialog({
           <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
             {cancelText}
           </Button>
-          <Button type="button" onClick={handleConfirm} disabled={isLoading}>
+          <Button
+            type="button"
+            onClick={handleConfirm}
+            disabled={isLoading || confirmDisabled}
+          >
             {isLoading ? "처리 중..." : confirmText}
           </Button>
         </DialogFooter>
