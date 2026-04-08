@@ -21,7 +21,7 @@ export function useUsers(params: UserListParams) {
 // v2 관리자 유저 검색 — GET /api/v2/admin/users/search (관리자 지정 모달용)
 export function useAdminUsersV2(params: AdminUsersSearchParamsV2 | undefined) {
   return useQuery({
-    queryKey: ["admin-users-v2", params],
+    queryKey: ["admin-users-search", params],
     queryFn: () => getAdminUsersV2(params),
     enabled: params != null,
   })
@@ -46,6 +46,7 @@ export function useApproveUser() {
     onSuccess: (_, userId) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
+      queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
       toast.success("회원 승인이 완료되었습니다.")
     },
     onError: (error) => {
@@ -61,8 +62,10 @@ export function useRejectUser() {
 
   return useMutation({
     mutationFn: userApi.rejectUser,
-    onSuccess: () => {
+    onSuccess: (_, userId) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] })
+      queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
       toast.success("회원 거부가 완료되었습니다.")
     },
     onError: (error) => {
@@ -92,6 +95,7 @@ export function useBanUser() {
             : prev
       )
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
       toast.success("회원 추방이 완료되었습니다.")
     },
     onError: (error) => {
@@ -121,6 +125,7 @@ export function useRestoreUser() {
             : prev
       )
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
       toast.success("복구가 완료되었습니다.")
     },
     onError: (error) => {
@@ -155,6 +160,8 @@ export function useUpdateUserRole() {
               }
             : prev
       )
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
       toast.success("역할이 변경되었습니다.")
     },
     onError: (error) => {
