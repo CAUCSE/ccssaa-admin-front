@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -188,6 +188,18 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
 
+  // 현재 활성 경로에 해당하는 섹션 자동 열기
+  useEffect(() => {
+    const parentPaths = ["/users", "/content", "/lockers", "/settings"]
+    const toOpen: Record<string, boolean> = {}
+    parentPaths.forEach((path) => {
+      if (pathname.startsWith(path)) {
+        toOpen[path] = true
+      }
+    })
+    setOpenSections(toOpen)
+  }, [pathname])
+
   const toggleSection = (href: string) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -197,19 +209,19 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
 
   const sidebarContent = (
     <>
-      <div className="flex h-16 items-center justify-between border-b px-6">
-        <h1 className="text-xl font-bold">동문 관리자</h1>
+      <div className="flex h-14 items-center justify-between border-b px-4">
+        <h1 className="text-base font-bold tracking-tight">동문 관리자</h1>
         {isMobile && onClose && (
           <button
             onClick={onClose}
-            className="rounded-md p-1 hover:bg-accent"
+            className="rounded-md p-1.5 hover:bg-accent"
             aria-label="메뉴 닫기"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 overflow-y-auto space-y-0.5 p-3">
         {sidebarItems.map((item) => {
           const isSectionOpen = !!openSections[item.href]
           const hasChildren = !!item.children && item.children.length > 0
@@ -221,23 +233,23 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
                   type="button"
                   onClick={() => toggleSection(item.href)}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                    "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors",
                     isActive(item.href)
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground"
                   )}
                 >
-                  {item.icon}
-                  <span className="flex-1">{item.title}</span>
+                  <span className="shrink-0 text-muted-foreground">{item.icon}</span>
+                  <span className="flex-1 truncate">{item.title}</span>
                   {(() => {
                     const badgeValue = getBadgeValue(item.badge)
                     return badgeValue !== undefined && badgeValue > 0 ? (
-                      <Badge variant="secondary">{badgeValue}</Badge>
+                      <Badge variant="secondary" className="text-xs px-1.5">{badgeValue}</Badge>
                     ) : null
                   })()}
                   <ChevronRight
                     className={cn(
-                      "h-4 w-4 transition-transform",
+                      "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform",
                       isSectionOpen ? "rotate-90" : "rotate-0"
                     )}
                   />
@@ -247,43 +259,42 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
                   href={item.href}
                   onClick={handleLinkClick}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive(item.href)
                       ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground"
                   )}
                 >
-                  {item.icon}
-                  <span className="flex-1">{item.title}</span>
+                  <span className="shrink-0">{item.icon}</span>
+                  <span className="flex-1 truncate">{item.title}</span>
                   {(() => {
                     const badgeValue = getBadgeValue(item.badge)
                     return badgeValue !== undefined && badgeValue > 0 ? (
-                      <Badge variant="secondary">{badgeValue}</Badge>
+                      <Badge variant="secondary" className="text-xs px-1.5">{badgeValue}</Badge>
                     ) : null
                   })()}
                 </Link>
               )}
 
               {hasChildren && isSectionOpen && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-[22px] mt-0.5 space-y-0.5 border-l pl-3">
                   {item.children!.map((child) => (
                     <Link
                       key={child.href}
                       href={child.href}
                       onClick={handleLinkClick}
                       className={cn(
-                        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                        "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                         pathname === child.href
                           ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          : "text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground"
                       )}
                     >
-                      {child.icon}
-                      <span className="flex-1">{child.title}</span>
+                      <span className="flex-1 truncate">{child.title}</span>
                       {(() => {
                         const badgeValue = getBadgeValue(child.badge)
                         return badgeValue !== undefined && badgeValue > 0 ? (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs px-1.5">
                             {badgeValue}
                           </Badge>
                         ) : null

@@ -185,7 +185,7 @@ export default function BoardEditPage() {
     <div className="space-y-6">
       <PageHeader
         title="게시판 수정"
-        description="게시판 설정을 수정합니다. (v2 API)"
+        description="게시판 설정을 수정합니다."
         backHref="/content/boards"
         backLabel="게시판 관리"
         breadcrumbs={[{ label: board.name }, { label: "수정" }]}
@@ -274,14 +274,12 @@ export default function BoardEditPage() {
               </Label>
             </div>
             <div className="space-y-2">
-              <Label>읽기 권한</Label>
+              <Label className="text-muted-foreground">읽기 권한 <span className="text-xs">(생성 시에만 설정 가능)</span></Label>
               <Select
                 value={formData.readScope}
-                onValueChange={(value: BoardReadScope) =>
-                  setFormData({ ...formData, readScope: value })
-                }
+                disabled
               >
-                <SelectTrigger>
+                <SelectTrigger className="opacity-60 cursor-not-allowed">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -294,14 +292,12 @@ export default function BoardEditPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>쓰기 권한</Label>
+              <Label className="text-muted-foreground">쓰기 권한 <span className="text-xs">(생성 시에만 설정 가능)</span></Label>
               <Select
                 value={formData.writeScope ?? defaultV2Form.writeScope}
-                onValueChange={(value: BoardWriteScope) =>
-                  setFormData({ ...formData, writeScope: value })
-                }
+                disabled
               >
-                <SelectTrigger>
+                <SelectTrigger className="opacity-60 cursor-not-allowed">
                   <SelectValue placeholder="쓰기 권한 선택" />
                 </SelectTrigger>
                 <SelectContent>
@@ -317,12 +313,11 @@ export default function BoardEditPage() {
               <Checkbox
                 id="edit-isNotice"
                 checked={formData.isNotice}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, isNotice: checked === true })
-                }
+                disabled
+                className="opacity-60 cursor-not-allowed"
               />
-              <Label htmlFor="edit-isNotice" className="cursor-pointer">
-                알림 가능 게시판
+              <Label htmlFor="edit-isNotice" className="text-muted-foreground cursor-not-allowed">
+                공식 계정 게시판 <span className="text-xs">(생성 시에만 설정 가능)</span>
               </Label>
             </div>
             <div className="space-y-2">
