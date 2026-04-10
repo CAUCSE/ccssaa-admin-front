@@ -6,7 +6,9 @@ import "./globals.css"
 export const metadata: Metadata = {
   title: "CCSSAA 관리자",
   icons: {
-    icon: "/branding/ccssaa-logo.png",
+    icon: "/branding/favicon.png",
+    shortcut: "/branding/favicon.png",
+    apple: "/branding/favicon.png",
   },
 }
 
