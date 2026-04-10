@@ -1,181 +1,185 @@
 import type {
+  DashboardActionItem,
   DashboardData,
+  DashboardFeedItem,
+  DashboardHealthItem,
   DashboardStats,
   RecentReport,
   RecentUser,
-  PendingApproval,
-  RecentEvent,
-  RecentPost,
 } from "@/types/dashboard"
 
-// Mock 데이터 생성 헬퍼 함수들
-const generateMockStats = (): DashboardStats => {
+const MOCK_STATS: DashboardStats = {
+  totalUsers: 28377171,
+  newUsersToday: 42,
+  pendingEvents: 5,
+  pendingReports: 7,
+  pendingApprovals: 14,
+}
+
+const MOCK_RECENT_USERS: RecentUser[] = [
+  {
+    id: 101,
+    studentNo: "20231234",
+    name: "김민준",
+    department: "소프트웨어학부",
+    joinedAt: "2026-04-10T08:30:00+09:00",
+    status: "ACTIVE",
+  },
+  {
+    id: 102,
+    studentNo: "20224567",
+    name: "박서연",
+    department: "컴퓨터공학부",
+    joinedAt: "2026-04-10T08:05:00+09:00",
+    status: "PENDING",
+  },
+  {
+    id: 103,
+    studentNo: "20219876",
+    name: "이도윤",
+    department: "전자공학부",
+    joinedAt: "2026-04-09T17:20:00+09:00",
+    status: "ACTIVE",
+  },
+  {
+    id: 104,
+    studentNo: "20235678",
+    name: "정하은",
+    department: "기계공학부",
+    joinedAt: "2026-04-09T15:40:00+09:00",
+    status: "PENDING",
+  },
+]
+
+const MOCK_RECENT_REPORTS: RecentReport[] = [
+  {
+    id: 201,
+    target: "게시글",
+    reason: "광고성 게시물 반복 등록",
+    reporter: "20201234",
+    createdAt: "2026-04-10T09:15:00+09:00",
+    status: "UNRESOLVED",
+  },
+  {
+    id: 202,
+    target: "댓글",
+    reason: "욕설 및 비하 표현",
+    reporter: "익명",
+    createdAt: "2026-04-10T08:10:00+09:00",
+    status: "UNRESOLVED",
+  },
+  {
+    id: 203,
+    target: "유저",
+    reason: "허위 정보 유포",
+    reporter: "20219876",
+    createdAt: "2026-04-09T18:45:00+09:00",
+    status: "RESOLVED",
+  },
+  {
+    id: 204,
+    target: "게시글",
+    reason: "개인정보 노출 가능성",
+    reporter: "20224567",
+    createdAt: "2026-04-09T14:35:00+09:00",
+    status: "UNRESOLVED",
+  },
+]
+
+const MOCK_ACTION_ITEMS: DashboardActionItem[] = [
+  {
+    id: "approval-queue",
+    title: "가입 승인 대기 검토",
+    description: "학적 인증이 완료된 회원부터 우선 승인 처리",
+    owner: "회원 관리",
+    priority: "HIGH",
+    href: "/users/pending",
+  },
+  {
+    id: "report-review",
+    title: "미처리 신고 7건 확인",
+    description: "게시글 신고 4건, 댓글 신고 2건, 유저 신고 1건",
+    owner: "신고 관리",
+    priority: "HIGH",
+    href: "/reports",
+  },
+  {
+    id: "ceremony-review",
+    title: "경조사 신청 서류 확인",
+    description: "증빙 누락 신청 2건 우선 점검",
+    owner: "경조사",
+    priority: "MEDIUM",
+    href: "/events",
+  },
+]
+
+const MOCK_ACTIVITY_FEED: DashboardFeedItem[] = [
+  {
+    id: "feed-1",
+    title: "학생회 공지 게시판에 학기 일정 안내가 등록되었습니다.",
+    category: "공지",
+    createdAt: "2026-04-10T09:00:00+09:00",
+    href: "/content",
+  },
+  {
+    id: "feed-2",
+    title: "사물함 정책 수정 요청이 접수되었습니다.",
+    category: "사물함",
+    createdAt: "2026-04-10T08:20:00+09:00",
+    href: "/lockers/policies",
+  },
+  {
+    id: "feed-3",
+    title: "캘린더에 행사 일정 3건이 추가되었습니다.",
+    category: "캘린더",
+    createdAt: "2026-04-09T17:10:00+09:00",
+    href: "/calendar",
+  },
+  {
+    id: "feed-4",
+    title: "게시판 관리 화면에서 게시판 순서 변경이 완료되었습니다.",
+    category: "게시판",
+    createdAt: "2026-04-09T14:00:00+09:00",
+    href: "/content/boards",
+  },
+]
+
+const MOCK_CONTENT_HEALTH: DashboardHealthItem[] = [
+  {
+    id: "health-1",
+    label: "오늘 게시글 등록",
+    value: "18건",
+    description: "전일 대비 12% 증가",
+  },
+  {
+    id: "health-2",
+    label: "검토 필요 게시물",
+    value: "6건",
+    description: "자동 필터 감지 기준",
+  },
+  {
+    id: "health-3",
+    label: "이번 주 공지 발행",
+    value: "4건",
+    description: "학생회 2건, 학부 2건",
+  },
+]
+
+export function buildMockDashboardData(targetDate: string): DashboardData {
   return {
-    totalUsers: 1250,
-    newUsersToday: 5,
-    pendingReports: 3,
-    pendingEvents: 2,
-    activeStudents: 850,
-    pendingApprovals: 12,
-    studentCouncilNotices: 15,
-    cultureNotices: 8,
-    alumniCount: 400,
-    pendingEventApplications: 2,
-    newPostsToday: 5,
-    departmentNotices: 3,
+    targetDate,
+    stats: MOCK_STATS,
+    recentReports: MOCK_RECENT_REPORTS,
+    recentUsers: MOCK_RECENT_USERS,
+    actionItems: MOCK_ACTION_ITEMS,
+    activityFeed: MOCK_ACTIVITY_FEED,
+    contentHealth: MOCK_CONTENT_HEALTH,
   }
 }
 
-const generateMockRecentReports = (): RecentReport[] => {
-  const reasons = [
-    "욕설 및 비하 발언",
-    "스팸 게시글",
-    "부적절한 콘텐츠",
-    "개인정보 유출",
-    "허위 정보 유포",
-  ]
-  const targets = ["게시글", "댓글", "유저"]
-  const reporters = ["익명", "20201234", "20212345", "20223456"]
-
-  return Array.from({ length: 5 }, (_, i) => ({
-    id: i + 1,
-    target: targets[Math.floor(Math.random() * targets.length)],
-    reason: reasons[Math.floor(Math.random() * reasons.length)],
-    reporter: reporters[Math.floor(Math.random() * reporters.length)],
-    createdAt: new Date(
-      Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-    status: Math.random() > 0.3 ? "UNRESOLVED" : "RESOLVED",
-  }))
-}
-
-const generateMockRecentUsers = (): RecentUser[] => {
-  const departments = [
-    "소프트웨어학부",
-    "컴퓨터공학부",
-    "전자공학부",
-    "기계공학부",
-    "화학공학부",
-  ]
-  const names = [
-    "김철수",
-    "이영희",
-    "박민수",
-    "정수진",
-    "최동현",
-    "강미영",
-    "윤성호",
-    "임지은",
-  ]
-
-  return Array.from({ length: 5 }, (_, i) => {
-    const year = 2020 + Math.floor(Math.random() * 5)
-    const studentNo = `${year}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`
-
-    return {
-      id: i + 1,
-      studentNo,
-      name: names[Math.floor(Math.random() * names.length)],
-      department: departments[Math.floor(Math.random() * departments.length)],
-      joinedAt: new Date(
-        Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      status: Math.random() > 0.5 ? "ACTIVE" : "PENDING",
-    }
-  })
-}
-
-const generateMockPendingApprovals = (): PendingApproval[] => {
-  const departments = [
-    "소프트웨어학부",
-    "컴퓨터공학부",
-    "전자공학부",
-    "기계공학부",
-  ]
-  const names = [
-    "김철수",
-    "이영희",
-    "박민수",
-    "정수진",
-    "최동현",
-    "강미영",
-  ]
-
-  return Array.from({ length: 5 }, (_, i) => {
-    const year = 2020 + Math.floor(Math.random() * 5)
-    const studentNo = `${year}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`
-
-    return {
-      id: i + 1,
-      studentNo,
-      name: names[Math.floor(Math.random() * names.length)],
-      department: departments[Math.floor(Math.random() * departments.length)],
-      joinedAt: new Date(
-        Date.now() - (i + 1) * 2 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 오래된 순으로 정렬
-    }
-  })
-}
-
-const generateMockRecentEvents = (): RecentEvent[] => {
-  const applicants = ["박지성", "이영수", "김민호", "정수진", "최동현"]
-  const applicantNos = ["20180001", "20190012", "20200023", "20210034", "20220045"]
-
-  return Array.from({ length: 5 }, (_, i) => ({
-    id: i + 1,
-    applicant: applicants[Math.floor(Math.random() * applicants.length)],
-    applicantNo: applicantNos[Math.floor(Math.random() * applicantNos.length)],
-    type: Math.random() > 0.5 ? "MARRIAGE" : "DEATH",
-    eventDate: new Date(
-      Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-    status: Math.random() > 0.5 ? "PENDING" : Math.random() > 0.5 ? "APPROVED" : "REJECTED",
-  }))
-}
-
-const generateMockRecentPosts = (): RecentPost[] => {
-  const boards = ["학생회 공지", "문화부 공지", "동문 게시판", "학부 공지"]
-  const authors = ["학생회장", "문화부장", "동문회장", "학부장"]
-  const titles = [
-    "2025년 1학기 개강총회 안내",
-    "문화행사 일정 공지",
-    "동문 모임 안내",
-    "졸업생 취업 현황 공유",
-    "새로운 동문 소식",
-  ]
-
-  return Array.from({ length: 5 }, (_, i) => ({
-    id: i + 1,
-    title: titles[Math.floor(Math.random() * titles.length)],
-    author: authors[Math.floor(Math.random() * authors.length)],
-    board: boards[Math.floor(Math.random() * boards.length)],
-    createdAt: new Date(
-      Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-  }))
-}
-
-// Mock API 함수
 export const mockDashboardApi = {
-  // 대시보드 데이터 조회
-  getDashboardData: async (): Promise<DashboardData> => {
-    // 지연 시뮬레이션 (300-500ms)
-    await new Promise((resolve) =>
-      setTimeout(resolve, 300 + Math.random() * 200)
-    )
-
-    const stats = generateMockStats()
-
-    // 역할별로 다른 데이터 반환 (현재는 Master 기준)
-    // TODO: 실제 역할 정보를 받아서 역할별 데이터 반환
-    return {
-      stats,
-      recentReports: generateMockRecentReports(),
-      recentUsers: generateMockRecentUsers(),
-      pendingApprovals: generateMockPendingApprovals(),
-      recentEvents: generateMockRecentEvents(),
-      recentPosts: generateMockRecentPosts(),
-    }
+  getDashboardData: async (targetDate: string): Promise<DashboardData> => {
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    return buildMockDashboardData(targetDate)
   },
 }
-

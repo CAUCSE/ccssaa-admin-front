@@ -32,7 +32,7 @@ const getSidebarItems = (
   pendingReports: number | undefined
 ): SidebarItem[] => [
   {
-    title: "대시보드 (미구현)",
+    title: "대시보드",
     href: "/dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
@@ -341,4 +341,3 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
     </aside>
   )
 }
-

@@ -7,6 +7,7 @@ import { signOut } from "@/lib/api/auth"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useMeOptional } from "@/context/MeContext"
+import { NotificationCenter } from "./NotificationCenter"
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "대시보드",
@@ -177,6 +178,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Right: user info + logout */}
         <div className="flex items-center gap-1 shrink-0">
+          <NotificationCenter />
           <div className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground mr-2">
             <User className="h-4 w-4 shrink-0" />
             <span className="truncate max-w-[120px]">{displayName}</span>
