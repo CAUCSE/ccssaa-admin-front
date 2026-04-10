@@ -32,8 +32,11 @@ const realPostApi = {
 
   // 게시판 목록 조회
   getBoards: async (): Promise<Board[]> => {
-    const response = await api.get<ApiResponse<Board[]>>("/admin/boards")
-    return unwrapV2(response)
+    const response = await api.get<ApiResponse<{ boards: Board[] }>>(
+      "/admin/boards"
+    )
+    const data = unwrapV2(response)
+    return data.boards
   },
 
   // 댓글 목록 조회

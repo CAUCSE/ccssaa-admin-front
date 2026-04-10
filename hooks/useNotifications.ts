@@ -50,11 +50,36 @@ export function useMarkNotificationRead() {
 
   return useMutation({
     mutationFn: (id: string) => notificationApi.markNotificationRead(id),
-    onSuccess: (_, id) => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["notifications"] })
+
+      const previousUnread =
+        queryClient.getQueryData<NotificationLogItem[]>([
+          "notifications",
+          "log",
+          false,
+        ]) ?? []
+      const previousRead =
+        queryClient.getQueryData<NotificationLogItem[]>([
+          "notifications",
+          "log",
+          true,
+        ]) ?? []
+      const previousFeedEntries = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ["notifications", "feed"] })
+        .map((query) => [
+          query.queryKey,
+          queryClient.getQueryData<NotificationLogItem[]>(query.queryKey),
+        ] as const)
+
       const updateReadState = (items: NotificationLogItem[] | undefined) =>
         items?.map((item) =>
           item.notificationLogId === id ? { ...item, isRead: true } : item
         )
+      const markedItem = previousUnread.find(
+        (item) => item.notificationLogId === id
+      )
 
       queryClient.setQueryData<NotificationLogItem[]>(
         ["notifications", "log", false],
@@ -62,17 +87,59 @@ export function useMarkNotificationRead() {
       )
       queryClient.setQueryData<NotificationLogItem[]>(
         ["notifications", "log", true],
-        (prev) => updateReadState(prev)
+        (prev) => {
+          const next = updateReadState(prev) ?? []
+
+          if (!markedItem) {
+            return next
+          }
+
+          const alreadyExists = next.some(
+            (item) => item.notificationLogId === markedItem.notificationLogId
+          )
+
+          return alreadyExists
+            ? next
+            : [{ ...markedItem, isRead: true }, ...next].sort(
+                (a, b) =>
+                  new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              )
+        }
       )
-      queryClient.setQueryData<NotificationLogItem[]>(
-        ["notifications", "feed", 6],
-        (prev) => updateReadState(prev)
+
+      queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ["notifications", "feed"] })
+        .forEach((query) => {
+          queryClient.setQueryData<NotificationLogItem[]>(
+            query.queryKey,
+            (prev) => updateReadState(prev)
+          )
+        })
+
+      return { previousUnread, previousRead, previousFeedEntries }
+    },
+    onError: (_error, _id, context) => {
+      if (!context) {
+        return
+      }
+
+      queryClient.setQueryData(
+        ["notifications", "log", false],
+        context.previousUnread
       )
-      queryClient.setQueryData<NotificationLogItem[]>(
-        ["notifications", "feed", 8],
-        (prev) => updateReadState(prev)
+      queryClient.setQueryData(
+        ["notifications", "log", true],
+        context.previousRead
       )
-      queryClient.invalidateQueries({ queryKey: ["notifications"] })
+
+      context.previousFeedEntries.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data)
+      })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", "count"] })
+      queryClient.invalidateQueries({ queryKey: ["notifications", "latest"] })
     },
   })
 }
