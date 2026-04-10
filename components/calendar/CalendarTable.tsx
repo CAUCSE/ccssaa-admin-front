@@ -40,7 +40,6 @@ export function CalendarTable({
       DEPARTMENT: { variant: "success", label: "학부행사" },
       CCSSAA: { variant: "warning", label: "CCSSAA" },
       STUDENT_COUNCIL: { variant: "secondary", label: "학생회" },
-      COMPETITION: { variant: "destructive", label: "대회" },
       HOLIDAY: { variant: "default", label: "공휴일" },
     }
     return typeMap[type] || { variant: "secondary", label: type }

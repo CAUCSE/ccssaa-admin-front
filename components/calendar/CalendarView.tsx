@@ -70,8 +70,6 @@ const getEventColor = (type: CalendarType): string => {
       return "#7DD3FC" // sky
     case "STUDENT_COUNCIL":
       return "#FB923C" // orange
-    case "COMPETITION":
-      return "#A78BFA" // purple
     case "HOLIDAY":
       return "#F87171" // red
     default:
@@ -89,8 +87,6 @@ const getTypeLabel = (type: CalendarType): string => {
       return "CCSSAA"
     case "STUDENT_COUNCIL":
       return "학생회"
-    case "COMPETITION":
-      return "대회"
     case "HOLIDAY":
       return "공휴일"
     default:
@@ -304,8 +300,6 @@ export function CalendarView({
                     ? "success"
                     : selectedEvent?.type === "CCSSAA"
                     ? "warning"
-                    : selectedEvent?.type === "COMPETITION"
-                    ? "destructive"
                     : selectedEvent?.type === "STUDENT_COUNCIL"
                     ? "secondary"
                     : "default"

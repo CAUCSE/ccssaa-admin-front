@@ -15,7 +15,6 @@ const CALENDAR_TYPES: { value: CalendarType; label: string }[] = [
   { value: "DEPARTMENT", label: "학부" },
   { value: "CCSSAA", label: "CCSSAA" },
   { value: "STUDENT_COUNCIL", label: "학생회" },
-  { value: "COMPETITION", label: "대회" },
   { value: "HOLIDAY", label: "공휴일" },
 ]
 
@@ -29,8 +28,6 @@ const getTypeColor = (type: CalendarType): string => {
       return "#7DD3FC"
     case "STUDENT_COUNCIL":
       return "#FB923C"
-    case "COMPETITION":
-      return "#A78BFA"
     case "HOLIDAY":
       return "#F87171"
     default:
