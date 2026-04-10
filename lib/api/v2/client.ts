@@ -7,11 +7,12 @@ import axios, { type InternalAxiosRequestConfig } from "axios"
 import { getAccessToken, removeTokens } from "@/lib/auth"
 import { refreshTokens } from "@/lib/api/auth"
 
+const backendOrigin = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080"
+const apiOrigin = typeof window === "undefined" ? backendOrigin : ""
+
 export const apiV2 = axios.create({
-  baseURL:
-    (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080") +
-    "/api/v2",
-  withCredentials: false,
+  baseURL: apiOrigin + "/api/v2",
+  withCredentials: true,
 })
 
 let isRefreshing = false
@@ -43,6 +44,14 @@ apiV2.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status !== 401) {
+      return Promise.reject(error)
+    }
+
+    if (
+      originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/refresh") ||
+      originalRequest?.url?.includes("/auth/logout")
+    ) {
       return Promise.reject(error)
     }
 

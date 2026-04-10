@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Calendar, ChevronRight, Pencil, Search, Users, UserPlus } from "lucide-react"
+import { Calendar, ChevronRight, Search, Users, UserPlus } from "lucide-react"
 import {
   formatNotificationCount,
   formatNotificationTime,
@@ -83,14 +83,6 @@ export default function DashboardPage() {
           >
             <Search className="mr-2 h-4 w-4" />
             유저 검색
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/content")}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            공지사항 작성
           </Button>
         </div>
       </section>

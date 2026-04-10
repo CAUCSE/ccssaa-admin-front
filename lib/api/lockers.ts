@@ -7,6 +7,8 @@ import type {
   LockerApplicationPeriod,
   ExtendLockerRequest,
 } from "@/types/locker"
+import type { ApiResponse } from "@/types/api-v2"
+import { unwrapV2 } from "./v2/response"
 import { mockLockerApi } from "../mock/lockers"
 
 // 환경 변수로 Mock 모드 제어
@@ -16,14 +18,16 @@ const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 const realLockerApi = {
   // 사물함 목록 조회
   getLockers: async (params: LockerListParams): Promise<LockerListResponse> => {
-    const response = await api.get<LockerListResponse>("/admin/lockers", { params })
-    return response.data
+    const response = await api.get<ApiResponse<LockerListResponse>>("/admin/lockers", {
+      params,
+    })
+    return unwrapV2(response)
   },
 
   // 사물함 상세 조회
   getLockerDetail: async (lockerId: number): Promise<Locker> => {
-    const response = await api.get<Locker>(`/admin/lockers/${lockerId}`)
-    return response.data
+    const response = await api.get<ApiResponse<Locker>>(`/admin/lockers/${lockerId}`)
+    return unwrapV2(response)
   },
 
   // 수동 배정
@@ -53,8 +57,10 @@ const realLockerApi = {
 
   // 신청 기간 조회
   getLockerApplicationPeriod: async (): Promise<LockerApplicationPeriod | null> => {
-    const response = await api.get<LockerApplicationPeriod>("/admin/lockers/application-period")
-    return response.data
+    const response = await api.get<ApiResponse<LockerApplicationPeriod>>(
+      "/admin/lockers/application-period"
+    )
+    return unwrapV2(response)
   },
 }
 

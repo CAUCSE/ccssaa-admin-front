@@ -1,28 +1,34 @@
-// 인증 관련 유틸리티 (accessToken + refreshToken)
+import type { AuthSession } from "@/types/auth"
 
 const ACCESS_TOKEN_KEY = "accessToken"
-const REFRESH_TOKEN_KEY = "refreshToken"
+const AUTH_SESSION_KEY = "authSession"
 
 export const getAccessToken = (): string | null => {
   if (typeof window === "undefined") return null
   return localStorage.getItem(ACCESS_TOKEN_KEY)
 }
 
-export const getRefreshToken = (): string | null => {
+export const getAuthSession = (): AuthSession | null => {
   if (typeof window === "undefined") return null
-  return localStorage.getItem(REFRESH_TOKEN_KEY)
+  const raw = localStorage.getItem(AUTH_SESSION_KEY)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as AuthSession
+  } catch {
+    return null
+  }
 }
 
-export const setTokens = (accessToken: string, refreshToken: string): void => {
+export const setAuthSession = (session: AuthSession): void => {
   if (typeof window === "undefined") return
-  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+  localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken)
+  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session))
 }
 
 export const removeTokens = (): void => {
   if (typeof window === "undefined") return
   localStorage.removeItem(ACCESS_TOKEN_KEY)
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
+  localStorage.removeItem(AUTH_SESSION_KEY)
 }
 
 export const isAuthenticated = (): boolean => {
