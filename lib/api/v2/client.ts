@@ -16,15 +16,26 @@ export const apiV2 = axios.create({
 })
 
 let isRefreshing = false
-let refreshSubscribers: Array<(accessToken: string) => void> = []
+let refreshSubscribers: Array<{
+  resolve: (accessToken: string) => void
+  reject: (error: unknown) => void
+}> = []
 
 const onRefreshed = (accessToken: string) => {
-  refreshSubscribers.forEach((cb) => cb(accessToken))
+  refreshSubscribers.forEach(({ resolve }) => resolve(accessToken))
   refreshSubscribers = []
 }
 
-const addRefreshSubscriber = (cb: (accessToken: string) => void) => {
-  refreshSubscribers.push(cb)
+const onRefreshFailed = (error: unknown) => {
+  refreshSubscribers.forEach(({ reject }) => reject(error))
+  refreshSubscribers = []
+}
+
+const addRefreshSubscriber = (
+  resolve: (accessToken: string) => void,
+  reject: (error: unknown) => void
+) => {
+  refreshSubscribers.push({ resolve, reject })
 }
 
 apiV2.interceptors.request.use(
@@ -57,11 +68,14 @@ apiV2.interceptors.response.use(
 
     if (!originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          addRefreshSubscriber((accessToken: string) => {
+        return new Promise((resolve, reject) => {
+          addRefreshSubscriber(
+            (accessToken: string) => {
             originalRequest.headers.Authorization = `Bearer ${accessToken}`
             resolve(apiV2(originalRequest))
-          })
+            },
+            reject
+          )
         })
       }
 
@@ -75,8 +89,9 @@ apiV2.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${res.accessToken}`
           return apiV2(originalRequest)
         }
-      } catch {
-        // ignore
+        onRefreshFailed(error)
+      } catch (refreshError) {
+        onRefreshFailed(refreshError)
       } finally {
         isRefreshing = false
       }

@@ -13,15 +13,26 @@ export const api = axios.create({
 // 토큰 재발급 중인지 여부 (동시 401 시 한 번만 refresh 호출)
 let isRefreshing = false
 // 재발급 완료를 기다리는 요청들의 재시도 콜백 큐
-let refreshSubscribers: Array<(accessToken: string) => void> = []
+let refreshSubscribers: Array<{
+  resolve: (accessToken: string) => void
+  reject: (error: unknown) => void
+}> = []
 
 const onRefreshed = (accessToken: string) => {
-  refreshSubscribers.forEach((cb) => cb(accessToken))
+  refreshSubscribers.forEach(({ resolve }) => resolve(accessToken))
   refreshSubscribers = []
 }
 
-const addRefreshSubscriber = (cb: (accessToken: string) => void) => {
-  refreshSubscribers.push(cb)
+const onRefreshFailed = (error: unknown) => {
+  refreshSubscribers.forEach(({ reject }) => reject(error))
+  refreshSubscribers = []
+}
+
+const addRefreshSubscriber = (
+  resolve: (accessToken: string) => void,
+  reject: (error: unknown) => void
+) => {
+  refreshSubscribers.push({ resolve, reject })
 }
 
 const requestInterceptor = (config: InternalAxiosRequestConfig) => {
@@ -43,11 +54,14 @@ const responseInterceptor = async (error: any) => {
 
   if (!originalRequest._retry) {
     if (isRefreshing) {
-      return new Promise((resolve) => {
-        addRefreshSubscriber((accessToken: string) => {
+      return new Promise((resolve, reject) => {
+        addRefreshSubscriber(
+          (accessToken: string) => {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
           resolve(api(originalRequest))
-        })
+          },
+          reject
+        )
       })
     }
 
@@ -61,8 +75,9 @@ const responseInterceptor = async (error: any) => {
         originalRequest.headers.Authorization = `Bearer ${res.accessToken}`
         return api(originalRequest)
       }
-    } catch {
-      // ignore
+      onRefreshFailed(error)
+    } catch (refreshError) {
+      onRefreshFailed(refreshError)
     } finally {
       isRefreshing = false
     }
