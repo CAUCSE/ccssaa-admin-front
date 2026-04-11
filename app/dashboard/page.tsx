@@ -285,7 +285,9 @@ export default function DashboardPage() {
                           {formatNotificationTime(item.createdAt)}
                         </span>
                       </div>
-                      <p className="truncate text-sm font-medium">{item.title}</p>
+                      <p className="whitespace-pre-line break-words text-sm font-medium">
+                        {item.title}
+                      </p>
                       <p className="truncate text-sm text-muted-foreground">
                         {item.body}
                       </p>
