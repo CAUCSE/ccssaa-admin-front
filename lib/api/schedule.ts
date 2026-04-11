@@ -1,12 +1,12 @@
 import { apiV2 } from "./v2/client"
 import type {
-  ScheduleEvent,
-  ScheduleListParams,
-  ScheduleListResponse,
-  CreateScheduleEventRequest,
-  UpdateScheduleEventRequest,
-} from "@/types/schedule"
-import { mockScheduleApi } from "../mock/schedule"
+  CalendarEvent as ScheduleEvent,
+  CalendarListParams as ScheduleListParams,
+  CalendarListResponse as ScheduleListResponse,
+  CreateCalendarEventRequest as CreateScheduleEventRequest,
+  UpdateCalendarEventRequest as UpdateScheduleEventRequest,
+} from "@/types/calendar"
+import { mockCalendarApi as mockScheduleApi } from "../mock/calendar"
 
 // 환경 변수로 Mock 모드 제어
 const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"

@@ -177,10 +177,8 @@ interface SidebarProps {
 export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarProps) {
   const pathname = usePathname()
 
-  const sidebarItems = getSidebarItems(undefined, undefined)
-
   const sidebarItems = filterSidebarItems(
-    getSidebarItems(pendingApprovals, pendingReports)
+    getSidebarItems(undefined, undefined)
   )
 
   const isActive = (href: string) => {

@@ -2,6 +2,7 @@ export type CalendarType =
   | "ACADEMIC" 
   | "DEPARTMENT" 
   | "CCSSAA" 
+  | "COMPETITION"
   | "STUDENT_COUNCIL" 
   | "HOLIDAY"
 
