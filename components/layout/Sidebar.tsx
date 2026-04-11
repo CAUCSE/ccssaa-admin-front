@@ -18,7 +18,6 @@ import {
   CalendarDays,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { useDashboard } from "@/hooks/useDashboard"
 
 interface SidebarItem {
   title: string
@@ -177,10 +176,8 @@ interface SidebarProps {
  */
 export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarProps) {
   const pathname = usePathname()
-  const { data: dashboardData } = useDashboard()
 
-  const pendingApprovals = dashboardData?.stats.pendingApprovals
-  const pendingReports = dashboardData?.stats.pendingReports
+  const sidebarItems = getSidebarItems(undefined, undefined)
 
   const sidebarItems = filterSidebarItems(
     getSidebarItems(pendingApprovals, pendingReports)
