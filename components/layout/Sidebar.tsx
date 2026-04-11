@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { BrandLogo } from "@/components/layout/BrandLogo"
 import {
   LayoutDashboard,
   Users,
@@ -24,14 +25,27 @@ interface SidebarItem {
   icon: React.ReactNode
   badge?: number | (() => number | undefined)
   children?: SidebarItem[]
+  isUnimplemented?: boolean
 }
+
+const SHOW_UNIMPLEMENTED_MENU =
+  process.env.NEXT_PUBLIC_SHOW_UNIMPLEMENTED_MENU === "true"
+
+const filterSidebarItems = (items: SidebarItem[]): SidebarItem[] =>
+  items
+    .filter((item) => SHOW_UNIMPLEMENTED_MENU || !item.isUnimplemented)
+    .map((item) => ({
+      ...item,
+      children: item.children ? filterSidebarItems(item.children) : undefined,
+    }))
+    .filter((item) => !item.children || item.children.length > 0 || !item.isUnimplemented)
 
 const getSidebarItems = (
   pendingApprovals: number | undefined,
   pendingReports: number | undefined
 ): SidebarItem[] => [
   {
-    title: "대시보드 (미구현)",
+    title: "대시보드",
     href: "/dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
@@ -39,6 +53,7 @@ const getSidebarItems = (
     title: "회원 관리 (미구현)",
     href: "/users",
     icon: <Users className="h-5 w-5" />,
+    isUnimplemented: true,
     children: [
       {
         title: "전체",
@@ -73,6 +88,7 @@ const getSidebarItems = (
         title: "게시글 (미구현)",
         href: "/content",
         icon: <ChevronRight className="h-4 w-4" />,
+        isUnimplemented: true,
       },
       {
         title: "게시판",
@@ -86,9 +102,10 @@ const getSidebarItems = (
     href: "/reports",
     icon: <AlertTriangle className="h-5 w-5" />,
     badge: pendingReports,
+    isUnimplemented: true,
   },
   {
-    title: "경조사 (미구현)",
+    title: "경조사",
     href: "/events",
     icon: <Calendar className="h-5 w-5" />,
   },
@@ -123,6 +140,7 @@ const getSidebarItems = (
     title: "시스템 설정 (미구현)",
     href: "/settings",
     icon: <Settings className="h-5 w-5" />,
+    isUnimplemented: true,
     children: [
       {
         title: "권한 및 역할",
@@ -160,6 +178,10 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
   const pathname = usePathname()
 
   const sidebarItems = getSidebarItems(undefined, undefined)
+
+  const sidebarItems = filterSidebarItems(
+    getSidebarItems(pendingApprovals, pendingReports)
+  )
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -205,7 +227,7 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
   const sidebarContent = (
     <>
       <div className="flex h-14 items-center justify-between border-b px-4">
-        <h1 className="text-base font-bold tracking-tight">동문 관리자</h1>
+        <BrandLogo compact />
         {isMobile && onClose && (
           <button
             onClick={onClose}
@@ -336,4 +358,3 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
     </aside>
   )
 }
-

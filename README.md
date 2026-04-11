@@ -131,27 +131,16 @@ types/                # TypeScript 타입 정의
 
 ## API 규칙
 
-모든 API는 `/api/v1` prefix를 사용합니다.
+인증과 신규 관리자 API는 `/api/v2`를 우선 사용합니다.
 
 ### 주요 API 엔드포인트
 
-- `GET /api/v1/admin/dashboard` - 대시보드 데이터
-- `GET /api/v1/admin/users` - 회원 목록
-- `GET /api/v1/admin/users/{id}` - 회원 상세
-- `POST /api/v1/admin/users/{id}/approve` - 회원 승인
-- `POST /api/v1/admin/users/{id}/reject` - 회원 거부
-- `POST /api/v1/admin/users/{id}/ban` - 회원 추방
-- `GET /api/v1/admin/posts` - 게시글 목록
-- `GET /api/v1/admin/posts/{id}` - 게시글 상세
-- `GET /api/v1/admin/reports` - 신고 목록
-- `GET /api/v1/admin/reports/{id}` - 신고 상세
-- `GET /api/v1/admin/events` - 경조사 목록
-- `GET /api/v1/admin/events/{id}` - 경조사 상세
-- `GET /api/v1/admin/locker-policies` - 사물함 정책 목록
-- `GET /api/v1/admin/locker-policies/{id}` - 사물함 정책 상세
-- `POST /api/v1/admin/locker-policies` - 사물함 정책 생성
-- `PUT /api/v1/admin/locker-policies/{id}` - 사물함 정책 수정
-- `POST /api/v1/admin/locker-policies/{id}/activate` - 사물함 정책 활성화 (기존 ACTIVE는 INACTIVE로 전환)
+- `POST /api/v2/auth/login` - 관리자 로그인
+- `POST /api/v2/auth/logout` - 관리자 로그아웃
+- `POST /api/v2/auth/refresh` - 토큰 재발급
+- `GET /api/v2/admin/users/daily-count` - 일일 신규 가입자 수
+- `GET /api/v2/admin/users/count` - 전체 사용자 수
+- `GET /api/v2/admin/ceremonies/pending-count` - 미처리 경조사 수
 
 ## 개발 상태
 
@@ -172,4 +161,3 @@ types/                # TypeScript 타입 정의
 - 모바일 반응형 테스트
 - API 에러 처리 개선
 - 코드 주석 추가
-

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import {
   useAcademicRecordApplicationDetail,
@@ -232,11 +233,16 @@ export default function AcademicRecordDetailPage() {
                   onClick={() => setPreviewImage(url)}
                   className="group relative overflow-hidden rounded-lg border cursor-pointer text-left"
                 >
-                  <img
-                    src={url}
-                    alt={`첨부 서류 ${index + 1}`}
-                    className="h-48 w-full object-cover transition-transform group-hover:scale-105"
-                  />
+                  <div className="relative h-48 w-full">
+                    <Image
+                      src={url}
+                      alt={`첨부 서류 ${index + 1}`}
+                      fill
+                      unoptimized
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  </div>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                     <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white bg-black/50 rounded-full px-3 py-1 text-sm">
                       크게 보기
@@ -263,12 +269,19 @@ export default function AcademicRecordDetailPage() {
           >
             <X className="h-6 w-6" />
           </button>
-          <img
-            src={previewImage}
-            alt="첨부 서류 미리보기"
-            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+          <div
+            className="relative h-[90vh] w-[90vw]"
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <Image
+              src={previewImage}
+              alt="첨부 서류 미리보기"
+              fill
+              unoptimized
+              sizes="90vw"
+              className="rounded-lg object-contain"
+            />
+          </div>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -427,16 +428,22 @@ export default function EventDetailPage() {
             <X className="h-5 w-5" />
           </button>
           <div className="flex h-full w-full items-center justify-center p-6 pt-16">
-            <img
-              src={previewImageUrl}
-              alt="첨부 이미지 미리보기"
-              className="max-h-full max-w-full object-contain"
+            <div
+              className="relative h-full w-full"
               onClick={(e) => e.stopPropagation()}
-            />
+            >
+              <Image
+                src={previewImageUrl}
+                alt="첨부 이미지 미리보기"
+                fill
+                unoptimized
+                sizes="100vw"
+                className="object-contain"
+              />
+            </div>
           </div>
         </div>
       )}
     </div>
   )
 }
-

@@ -153,7 +153,7 @@ export interface UserListResponse {
   number: number
 }
 
-/** v2 API 관리자 유저 ID (UUID 문자열). v1 UserSummary/UserDetail의 id(number)와 구분. */
+/** 관리자 유저 ID (UUID 문자열) */
 export type UserIdV2 = string
 
 /** GET /api/v2/admin/users/search 검색 파라미터 (query) */

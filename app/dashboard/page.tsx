@@ -1,490 +1,307 @@
 "use client"
 
-import { useDashboard } from "@/hooks/useDashboard"
-import { StatCard } from "@/components/ui/stat-card"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Users,
-  UserPlus,
-  AlertCircle,
-  Calendar,
-  GraduationCap,
-  Clock,
-  FileText,
-  Megaphone,
-  Search,
-  Pencil,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { useDashboard } from "@/hooks/useDashboard"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  useLatestNotification,
+  useMarkNotificationRead,
+  useRecentNotificationFeed,
+  useUnreadNotificationCount,
+} from "@/hooks/useNotifications"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getStatusBadge } from "@/lib/utils/status-badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Calendar, ChevronRight, Search, Users, UserPlus } from "lucide-react"
+import {
+  formatNotificationCount,
+  formatNotificationTime,
+  getNotificationHref,
+  getNotificationTypeLabel,
+} from "@/lib/utils/notification"
 
-/**
- * 대시보드 페이지
- * 역할별로 다른 대시보드를 표시합니다.
- * 
- * 역할별 구성:
- * - Master: 전체 회원 수, 신규 가입, 미처리 신고, 미처리 경조사
- * - 학생회장: 재학생 수, 가입 승인 대기, 학생회 공지, 문화부 공지
- * - 크자회장: 졸업생 수, 경조사 신청 대기, 오늘의 새 글, 학부 공지
- * 
- * TODO: 실제 역할 정보를 가져와야 함 (현재는 Master로 가정)
- */
+function formatDateLabel(value: string) {
+  return new Date(value).toLocaleDateString("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  })
+}
+
+function DashboardCardSkeleton() {
+  return <Skeleton className="h-[156px] w-full" />
+}
+
 export default function DashboardPage() {
-  const { data, isLoading, error } = useDashboard()
   const router = useRouter()
+  const { data, isLoading, error } = useDashboard()
+  const { data: latestNotification, isLoading: isLatestNotificationLoading } =
+    useLatestNotification()
+  const { data: unreadCountData, isLoading: isUnreadCountLoading } =
+    useUnreadNotificationCount()
+  const { data: notificationFeed, isLoading: isNotificationFeedLoading } =
+    useRecentNotificationFeed(6)
+  const markRead = useMarkNotificationRead()
 
-  // TODO: 실제 역할 정보를 가져와야 함 (현재는 Master로 가정)
-  const userRole: "MASTER" | "STUDENT_COUNCIL" | "ALUMNI_COUNCIL" = "MASTER"
+  const handleNotificationClick = async (
+    notificationId: string,
+    href: string,
+    isRead: boolean
+  ) => {
+    if (!isRead) {
+      try {
+        await markRead.mutateAsync(notificationId)
+      } catch {
+        // ignore
+      }
+    }
 
-  if (error) {
-    return (
-      <div className="rounded-md border p-12 text-center">
-        <p className="text-destructive">데이터를 불러오는 중 오류가 발생했습니다.</p>
-      </div>
-    )
-  }
-
-  // Master 대시보드
-  const renderMasterDashboard = () => {
-    if (!data) return null
-
-    return (
-      <>
-        {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="전체 회원 수"
-            value={isLoading ? "로딩 중..." : `${data.stats.totalUsers.toLocaleString()}명`}
-            icon={<Users className="h-4 w-4" />}
-            href="/users"
-          />
-          <StatCard
-            title="신규 가입(오늘)"
-            value={isLoading ? "로딩 중..." : `+${data.stats.newUsersToday}명`}
-            icon={<UserPlus className="h-4 w-4" />}
-            href="/users"
-          />
-          <StatCard
-            title="미처리 신고"
-            value={isLoading ? "로딩 중..." : `${data.stats.pendingReports}건`}
-            icon={<AlertCircle className="h-4 w-4" />}
-            badge={
-              !isLoading && data.stats.pendingReports > 0
-                ? { label: "긴급", variant: "danger" }
-                : undefined
-            }
-            href="/users/reported"
-          />
-          <StatCard
-            title="미처리 경조사"
-            value={isLoading ? "로딩 중..." : `${data.stats.pendingEvents}건`}
-            icon={<Calendar className="h-4 w-4" />}
-            href="/events"
-          />
-        </div>
-
-        {/* Main Widgets */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* 최근 신고 접수 내역 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>최근 신고 접수 내역</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : data.recentReports && data.recentReports.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>대상</TableHead>
-                        <TableHead>사유</TableHead>
-                        <TableHead>접수일</TableHead>
-                        <TableHead>상태</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.recentReports.map((report) => {
-                        const badge = getStatusBadge(report.status)
-                        return (
-                          <TableRow
-                            key={report.id}
-                            className="cursor-pointer"
-                            onClick={() => router.push(`/reports/${report.id}`)}
-                          >
-                            <TableCell>{report.target}</TableCell>
-                            <TableCell className="max-w-[200px] truncate">
-                              {report.reason}
-                            </TableCell>
-                            <TableCell>
-                              {new Date(report.createdAt).toLocaleDateString("ko-KR")}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={badge.variant}>{badge.label}</Badge>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  최근 활동 내역이 없습니다.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 최근 가입 유저 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>최근 가입 유저</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : data.recentUsers && data.recentUsers.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>학번</TableHead>
-                        <TableHead>이름</TableHead>
-                        <TableHead>학과</TableHead>
-                        <TableHead>가입일</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.recentUsers.map((user) => {
-                        const badge = getStatusBadge(user.status)
-                        return (
-                          <TableRow
-                            key={user.id}
-                            className="cursor-pointer"
-                            onClick={() => router.push(`/users/${user.id}`)}
-                          >
-                            <TableCell>{user.studentNo}</TableCell>
-                            <TableCell>{user.name}</TableCell>
-                            <TableCell>{user.department}</TableCell>
-                            <TableCell>
-                              {new Date(user.joinedAt).toLocaleDateString("ko-KR")}
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  최근 활동 내역이 없습니다.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    )
-  }
-
-  // 학생회장 대시보드
-  const renderStudentCouncilDashboard = () => {
-    if (!data) return null
-
-    return (
-      <>
-        {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="재학생 수"
-            value={isLoading ? "로딩 중..." : `${data.stats.activeStudents.toLocaleString()}명`}
-            icon={<Users className="h-4 w-4" />}
-            href="/users"
-          />
-          <StatCard
-            title="가입 승인 대기"
-            value={isLoading ? "로딩 중..." : `${data.stats.pendingApprovals}명`}
-            icon={<Clock className="h-4 w-4" />}
-            badge={
-              !isLoading && data.stats.pendingApprovals > 0
-                ? { label: "대기", variant: "warning" }
-                : undefined
-            }
-            href="/users/pending"
-          />
-          <StatCard
-            title="학생회 공지"
-            value={isLoading ? "로딩 중..." : `${data.stats.studentCouncilNotices}개`}
-            icon={<Megaphone className="h-4 w-4" />}
-            href="/content"
-          />
-          <StatCard
-            title="문화부 공지"
-            value={isLoading ? "로딩 중..." : `${data.stats.cultureNotices}개`}
-            icon={<FileText className="h-4 w-4" />}
-            href="/content"
-          />
-        </div>
-
-        {/* 가입 승인 대기 목록 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>가입 승인 대기 목록</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : data.pendingApprovals && data.pendingApprovals.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>학번</TableHead>
-                      <TableHead>이름</TableHead>
-                      <TableHead>학과</TableHead>
-                      <TableHead>신청일</TableHead>
-                      <TableHead>관리</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.pendingApprovals.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.studentNo}</TableCell>
-                        <TableCell>{user.name}</TableCell>
-                        <TableCell>{user.department}</TableCell>
-                        <TableCell>
-                          {new Date(user.joinedAt).toLocaleDateString("ko-KR")}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            onClick={() => router.push(`/users/${user.id}`)}
-                          >
-                            승인
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                승인 대기 중인 회원이 없습니다.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </>
-    )
-  }
-
-  // 크자회장 대시보드
-  const renderAlumniCouncilDashboard = () => {
-    if (!data) return null
-
-    return (
-      <>
-        {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="졸업생 수"
-            value={isLoading ? "로딩 중..." : `${data.stats.alumniCount.toLocaleString()}명`}
-            icon={<GraduationCap className="h-4 w-4" />}
-            href="/users"
-          />
-          <StatCard
-            title="경조사 신청 대기"
-            value={isLoading ? "로딩 중..." : `${data.stats.pendingEventApplications}건`}
-            icon={<Calendar className="h-4 w-4" />}
-            badge={
-              !isLoading && data.stats.pendingEventApplications > 0
-                ? { label: "대기", variant: "warning" }
-                : undefined
-            }
-            href="/events"
-          />
-          <StatCard
-            title="오늘의 새 글"
-            value={isLoading ? "로딩 중..." : `${data.stats.newPostsToday}개`}
-            icon={<FileText className="h-4 w-4" />}
-            href="/content"
-          />
-          <StatCard
-            title="학부 공지"
-            value={isLoading ? "로딩 중..." : `${data.stats.departmentNotices}개`}
-            icon={<Megaphone className="h-4 w-4" />}
-            href="/content"
-          />
-        </div>
-
-        {/* Main Widgets */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* 경조사 신청 목록 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>경조사 신청 목록</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : data.recentEvents && data.recentEvents.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>신청자</TableHead>
-                        <TableHead>종류</TableHead>
-                        <TableHead>경조사일</TableHead>
-                        <TableHead>상태</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.recentEvents.map((event) => {
-                        const badge = getStatusBadge(event.status)
-                        return (
-                          <TableRow
-                            key={event.id}
-                            className="cursor-pointer"
-                            onClick={() => router.push(`/events/${event.id}`)}
-                          >
-                            <TableCell>
-                              {event.applicant} ({event.applicantNo})
-                            </TableCell>
-                            <TableCell>
-                              {event.type === "MARRIAGE" ? "결혼" : "부고"}
-                            </TableCell>
-                            <TableCell>
-                              {new Date(event.eventDate).toLocaleDateString("ko-KR")}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={badge.variant}>{badge.label}</Badge>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  최근 활동 내역이 없습니다.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 최근 동문 게시글 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>최근 동문 게시글</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : data.recentPosts && data.recentPosts.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>제목</TableHead>
-                        <TableHead>작성자</TableHead>
-                        <TableHead>게시판</TableHead>
-                        <TableHead>작성일</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.recentPosts.map((post) => (
-                        <TableRow
-                          key={post.id}
-                          className="cursor-pointer"
-                          onClick={() => router.push(`/content/${post.id}`)}
-                        >
-                          <TableCell className="max-w-[200px] truncate">
-                            {post.title}
-                          </TableCell>
-                          <TableCell>{post.author}</TableCell>
-                          <TableCell>{post.board}</TableCell>
-                          <TableCell>
-                            {new Date(post.createdAt).toLocaleDateString("ko-KR")}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  최근 활동 내역이 없습니다.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    )
+    router.push(href)
   }
 
   return (
-    <div className="space-y-6">
-      {/* Quick Links */}
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/content")}
-        >
-          <Pencil className="mr-2 h-4 w-4" />
-          공지사항 작성
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/users")}
-        >
-          <Search className="mr-2 h-4 w-4" />
-          유저 검색
-        </Button>
-      </div>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+      <section className="flex flex-col gap-3 rounded-2xl border bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          {data && (
+            <span className="text-sm text-muted-foreground">
+              기준일 {data.targetDate}
+            </span>
+          )}
+          {error && (
+            <span className="text-sm text-amber-600">
+              일부 지표는 대체 값으로 표시 중
+            </span>
+          )}
+        </div>
 
-      {/* 역할별 대시보드 렌더링 */}
-      {userRole === "MASTER" && renderMasterDashboard()}
-      {/* TODO: 실제 역할 정보를 가져오면 아래 코드 활성화 */}
-      {/* {userRole === "STUDENT_COUNCIL" && renderStudentCouncilDashboard()} */}
-      {/* {userRole === "ALUMNI_COUNCIL" && renderAlumniCouncilDashboard()} */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/users")}
+          >
+            <Search className="mr-2 h-4 w-4" />
+            유저 검색
+          </Button>
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-12">
+        {isLoading || !data ? (
+          <>
+            <div className="xl:col-span-7">
+              <DashboardCardSkeleton />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:col-span-5 xl:grid-cols-1">
+              <DashboardCardSkeleton />
+              <DashboardCardSkeleton />
+            </div>
+          </>
+        ) : (
+          <>
+            <Card
+              className="cursor-pointer border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white transition-all hover:-translate-y-0.5 hover:shadow-lg xl:col-span-7"
+              onClick={() => router.push("/users")}
+            >
+              <CardContent className="flex h-full flex-col justify-between gap-8 p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-3">
+                    <Badge className="bg-white/12 text-white hover:bg-white/12" variant="secondary">
+                      전체 사용자
+                    </Badge>
+                    <div>
+                      <p className="text-sm text-slate-300">총 사용자 수</p>
+                      <p className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
+                        {data.stats.totalUsers.toLocaleString()}명
+                      </p>
+                    </div>
+                  </div>
+                  <div className="rounded-full bg-white/10 p-3 text-slate-100">
+                    <Users className="h-5 w-5" />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-sm text-slate-300">
+                  <span>회원 관리로 이동</span>
+                  <ChevronRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:col-span-5 xl:grid-cols-1">
+              <Card
+                className="cursor-pointer border-slate-200 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                onClick={() => router.push("/users")}
+              >
+                <CardContent className="flex h-full items-start justify-between gap-4 p-6">
+                  <div className="space-y-3">
+                    <div className="inline-flex rounded-full bg-blue-50 p-2 text-blue-600">
+                      <UserPlus className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        일일 신규 가입
+                      </p>
+                      <p className="mt-2 text-3xl font-semibold tracking-tight">
+                        +{data.stats.newUsersToday.toLocaleString()}명
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {formatDateLabel(data.targetDate)}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </CardContent>
+              </Card>
+
+              <Card
+                className="cursor-pointer border-slate-200 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                onClick={() => router.push("/events")}
+              >
+                <CardContent className="flex h-full items-start justify-between gap-4 p-6">
+                  <div className="space-y-3">
+                    <div className="inline-flex rounded-full bg-orange-50 p-2 text-orange-600">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground">
+                          미처리 경조사
+                        </p>
+                        {data.stats.pendingEvents > 0 ? (
+                          <Badge variant="warning">확인 필요</Badge>
+                        ) : null}
+                      </div>
+                      <p className="mt-2 text-3xl font-semibold tracking-tight">
+                        {data.stats.pendingEvents.toLocaleString()}건
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+        <Card className="border-slate-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">읽지 않은 알림</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  가장 최근에 도착한 읽지 않은 알림입니다.
+                </p>
+              </div>
+              <Badge variant="secondary">
+                {formatNotificationCount(
+                  unreadCountData?.notificationLogCount
+                ) ?? "0"}
+              </Badge>
+            </div>
+
+            <div className="mt-5">
+              {isLatestNotificationLoading || isUnreadCountLoading ? (
+                <Skeleton className="h-28 w-full" />
+              ) : latestNotification ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleNotificationClick(
+                      latestNotification.notificationLogId,
+                      getNotificationHref(latestNotification),
+                      latestNotification.isRead
+                    )
+                  }
+                  className="w-full rounded-2xl border bg-slate-50 p-4 text-left transition-colors hover:border-primary"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant="outline">
+                      {getNotificationTypeLabel(latestNotification.noticeType)}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatNotificationTime(latestNotification.createdAt)}
+                    </span>
+                  </div>
+                  <p className="mt-3 font-medium">{latestNotification.title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {latestNotification.body}
+                  </p>
+                </button>
+              ) : (
+                <div className="rounded-2xl border border-dashed px-4 py-8 text-sm text-muted-foreground">
+                  읽지 않은 최신 알림이 없습니다.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">최근 7일 알림</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  최근 발생한 알림을 시간순으로 확인합니다.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {isNotificationFeedLoading ? (
+                Array.from({ length: 4 }, (_, index) => (
+                  <Skeleton key={index} className="h-20 w-full" />
+                ))
+              ) : notificationFeed && notificationFeed.length > 0 ? (
+                notificationFeed.map((item) => (
+                  <button
+                    key={item.notificationLogId}
+                    type="button"
+                    onClick={() =>
+                      handleNotificationClick(
+                        item.notificationLogId,
+                        getNotificationHref(item),
+                        item.isRead
+                      )
+                    }
+                    className="flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition-colors hover:border-primary"
+                  >
+                    <span
+                      className={[
+                        "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
+                        item.isRead ? "bg-slate-200" : "bg-red-500",
+                      ].join(" ")}
+                    />
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          {getNotificationTypeLabel(item.noticeType)}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {formatNotificationTime(item.createdAt)}
+                        </span>
+                      </div>
+                      <p className="truncate text-sm font-medium">{item.title}</p>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {item.body}
+                      </p>
+                    </div>
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed px-4 py-8 text-sm text-muted-foreground">
+                  최근 7일 알림이 없습니다.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   )
 }

@@ -133,7 +133,7 @@ export interface LockerApplicationPeriod {
   endAt: string
 }
 
-// 로그 액션 타입 (v1 호환)
+// 로그 액션 타입
 export type LockerLogAction =
   | "ASSIGN"
   | "EXTEND"
