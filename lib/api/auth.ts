@@ -1,101 +1,90 @@
+import axios from "axios"
 import {
   getAccessToken,
-  getRefreshToken,
-  setTokens,
+  setAuthSession,
   removeTokens,
 } from "@/lib/auth"
-import { api } from "../api"
 import { mockAuthApi } from "@/lib/mock/auth"
-import { signInV1 } from "./v1/auth"
-import type { MeResponse, SignInResponse } from "@/types/auth"
+import { unwrapV2 } from "./v2/response"
+import type { ApiResponse } from "@/types/api-v2"
+import type { AuthSession } from "@/types/auth"
 
 const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
+const backendOrigin = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080"
+const apiOrigin = typeof window === "undefined" ? backendOrigin : ""
+
+const authClient = axios.create({
+  baseURL: apiOrigin + "/api/v2",
+  withCredentials: true,
+})
 
 export interface LoginParams {
   email: string
   password: string
 }
 
-export type { SignInResponse }
-
-/** v1 토큰 재발급 응답: PUT /api/v1/users/token/update */
-export interface TokenUpdateResponse {
-  accessToken: string
-  refreshToken: string
-}
-
-/** @deprecated use SignInResponse */
-export type LoginResponse = SignInResponse
-
-export type { MeResponse }
+export type LoginResponse = AuthSession
+export type RefreshResponse = AuthSession
 
 const realAuthApi = {
-  /** v1 API: 실패 시 서버 v1 에러 응답(message) throw */
-  signIn: (params: LoginParams): Promise<SignInResponse> =>
-    signInV1(params),
-  tokenUpdate: async (refreshToken: string): Promise<TokenUpdateResponse> => {
-    const { data } = await api.put<TokenUpdateResponse>("/users/token/update", {
-      refreshToken,
+  signIn: async (params: LoginParams): Promise<AuthSession> => {
+    const response = await authClient.post<ApiResponse<AuthSession>>(
+      "/auth/login",
+      params
+    )
+    return unwrapV2(response)
+  },
+  refresh: async (): Promise<AuthSession> => {
+    const accessToken = getAccessToken()
+    if (!accessToken) {
+      throw new Error("accessToken이 없습니다.")
+    }
+
+    const response = await authClient.post<ApiResponse<AuthSession>>(
+      "/auth/refresh",
+      undefined,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    )
+
+    return unwrapV2(response)
+  },
+  signOut: async (): Promise<void> => {
+    const accessToken = getAccessToken()
+    if (!accessToken) return
+
+    await authClient.post("/auth/logout", undefined, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     })
-    return data
-  },
-  getMe: async (): Promise<MeResponse> => {
-    const { data } = await api.get<MeResponse>("/users/me")
-    return data
-  },
-  signOut: async (params: {
-    refreshToken: string
-    accessToken: string
-    fcmToken: string | null
-  }): Promise<void> => {
-    await api.post("/users/sign-out", params)
   },
 }
 
 const authApi = USE_MOCK_API ? mockAuthApi : realAuthApi
 
-/** 로그인 (v1: POST /users/sign-in). 성공 시 accessToken/refreshToken 저장. */
-export async function login(params: LoginParams): Promise<SignInResponse> {
+export async function login(params: LoginParams): Promise<AuthSession> {
   const res = await authApi.signIn(params)
-  if (res.accessToken && res.refreshToken) {
-    setTokens(res.accessToken, res.refreshToken)
-  }
+  setAuthSession(res)
   return res
 }
 
-/** 토큰 재발급 (v1: PUT /users/token/update). 성공 시 새 토큰 저장 후 반환. */
-export async function refreshTokens(): Promise<TokenUpdateResponse | null> {
-  const refresh = getRefreshToken()
-  if (!refresh) return null
+export async function refreshTokens(): Promise<AuthSession | null> {
   try {
-    const res = await authApi.tokenUpdate(refresh)
-    if (res.accessToken && res.refreshToken) {
-      setTokens(res.accessToken, res.refreshToken)
-      return res
-    }
-    return null
+    const res = await authApi.refresh()
+    setAuthSession(res)
+    return res
   } catch {
     return null
   }
 }
 
-/** 본인 조회 (v1: GET /users/me). Authorization: Bearer 필요. */
-export async function getMe(): Promise<MeResponse> {
-  return authApi.getMe()
-}
-
-/** 로그아웃 (v1: POST /users/sign-out). body에 refreshToken, accessToken, fcmToken(null) 전송 후 토큰 제거. */
 export async function signOut(): Promise<void> {
-  const accessToken = getAccessToken()
-  const refreshToken = getRefreshToken()
   try {
-    if (accessToken && refreshToken) {
-      await authApi.signOut({
-        refreshToken,
-        accessToken,
-        fcmToken: null,
-      })
-    }
+    await authApi.signOut()
   } finally {
     removeTokens()
   }

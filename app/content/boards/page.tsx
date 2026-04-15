@@ -49,7 +49,6 @@ import type {
 import {
   defaultV2Form,
   readScopeLabel,
-  writeScopeLabel,
   visibilityLabel,
   READ_SCOPES,
   WRITE_SCOPES,
@@ -197,22 +196,16 @@ export default function BoardsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">게시판 관리</h1>
-          <p className="text-muted-foreground mt-1">게시판을 생성, 수정, 삭제할 수 있습니다.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleOrderOpen} disabled={!fullBoards?.length}>
-            <GripVertical className="mr-2 h-4 w-4" />
-            정렬 수정
-          </Button>
-          <Button onClick={handleCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            게시판 생성
-          </Button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-end gap-2">
+        <Button variant="outline" size="sm" onClick={handleOrderOpen} disabled={!fullBoards?.length}>
+          <GripVertical className="mr-1.5 h-4 w-4" />
+          정렬 수정
+        </Button>
+        <Button size="sm" onClick={handleCreate}>
+          <Plus className="mr-1.5 h-4 w-4" />
+          게시판 생성
+        </Button>
       </div>
 
       <BoardFilter value={filter} onChange={setFilter} />
@@ -256,18 +249,18 @@ export default function BoardsPage() {
               </p>
             </div>
           ) : (
-            <div className="rounded-lg border overflow-x-auto bg-card [&_tbody_td]:py-5">
+            <div className="rounded-lg border overflow-x-auto bg-card [&_tbody_td]:py-3">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="text-center w-12">No</TableHead>
-                    <TableHead className="text-left w-48 min-w-[160px]">게시판명</TableHead>
-                    <TableHead className="text-left min-w-[240px]">설명</TableHead>
+                    <TableHead className="text-left w-52 min-w-[160px]">게시판명</TableHead>
+                    <TableHead className="text-left min-w-[200px]">설명</TableHead>
                     <TableHead className="text-center w-20">익명</TableHead>
-                    <TableHead className="text-center w-28 whitespace-nowrap">읽기 권한</TableHead>
-                    <TableHead className="text-center w-32 whitespace-nowrap">쓰기 권한</TableHead>
-                    <TableHead className="text-center w-20">알림</TableHead>
-                    <TableHead className="text-center w-24">노출</TableHead>
+                    <TableHead className="text-center w-24 whitespace-nowrap">읽기 권한</TableHead>
+                    <TableHead className="text-center w-24 whitespace-nowrap">쓰기 권한</TableHead>
+                    <TableHead className="text-center w-20 whitespace-nowrap">공식 계정</TableHead>
+                    <TableHead className="text-center w-20">노출</TableHead>
                     <TableHead className="text-center min-w-[100px] shrink-0">관리</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -277,36 +270,66 @@ export default function BoardsPage() {
                       <TableCell className="text-center w-12 text-muted-foreground font-medium">
                         {board.no ?? index + 1}
                       </TableCell>
-                      <TableCell className="text-left w-48 min-w-[160px] font-medium">
-                        {board.name}
+                      <TableCell className="text-left w-52 min-w-[160px] font-medium">
+                        <span className="block truncate max-w-[200px]" title={board.name}>
+                          {board.name}
+                        </span>
                       </TableCell>
-                      <TableCell className="text-left min-w-[240px] text-muted-foreground text-sm">
-                        {board.description}
+                      <TableCell className="text-left min-w-[200px] text-muted-foreground text-sm">
+                        <span className="line-clamp-2" title={board.description ?? undefined}>
+                          {board.description}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center w-20">
-                        <Badge variant="outline" className="font-normal">
-                          {board.isAnonymous ? "Y" : "N"}
-                        </Badge>
+                        {board.isAnonymous ? (
+                          <Badge className="font-normal bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
+                            익명
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
                       </TableCell>
-                      <TableCell className="text-center w-28 whitespace-nowrap">
-                        <Badge variant="secondary" className="font-normal">
+                      <TableCell className="text-center w-24">
+                        <Badge
+                          className={`font-normal whitespace-nowrap ${
+                            board.readScope === "BOTH"
+                              ? "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-50"
+                              : board.readScope === "ENROLLED"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                                : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50"
+                          }`}
+                        >
                           {readScopeLabel(board.readScope)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center w-32 whitespace-nowrap">
-                        <Badge variant="secondary" className="font-normal">
-                          {writeScopeLabel(board.writeScope)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center w-20">
-                        <Badge variant="outline" className="font-normal">
-                          {board.isNotice ? "Y" : "N"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center w-24">
                         <Badge
-                          variant={board.visibility === "VISIBLE" ? "default" : "outline"}
-                          className="font-normal"
+                          className={`font-normal whitespace-nowrap ${
+                            board.writeScope === "ONLY_ADMIN"
+                              ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-50"
+                              : "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-50"
+                          }`}
+                        >
+                          {board.writeScope === "ONLY_ADMIN" ? "관리자만" : "일반 유저"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center w-20">
+                        {board.isNotice ? (
+                          <Badge className="font-normal bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100">
+                            공식
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center w-20">
+                        <Badge
+                          variant="outline"
+                          className={`font-normal ${
+                            board.visibility === "VISIBLE"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "text-muted-foreground"
+                          }`}
                         >
                           {visibilityLabel(board.visibility)}
                         </Badge>
@@ -339,7 +362,7 @@ export default function BoardsPage() {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         title="게시판 생성"
-        description="새로운 게시판을 생성합니다. (v2 API)"
+        description="새로운 게시판을 생성합니다."
         confirmText="생성"
         onConfirm={handleCreateSubmit}
         isLoading={createBoardV2.isPending}
@@ -428,15 +451,35 @@ export default function BoardsPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="create-isNotice"
+              checked={formData.isNotice}
+              onCheckedChange={(checked) => {
+                const isNotice = checked === true
+                setFormData({
+                  ...formData,
+                  isNotice,
+                  writeScope: isNotice ? "ONLY_ADMIN" : formData.writeScope,
+                })
+              }}
+            />
+            <Label htmlFor="create-isNotice" className="cursor-pointer">
+              공식 계정 게시판
+            </Label>
+          </div>
           <div className="space-y-2">
-            <Label>쓰기 권한</Label>
+            <Label className={formData.isNotice ? "text-muted-foreground" : undefined}>
+              쓰기 권한{formData.isNotice && <span className="text-xs ml-1">(공식 계정 게시판은 관리자만 작성 가능)</span>}
+            </Label>
             <Select
               value={formData.writeScope}
               onValueChange={(value: BoardWriteScope) =>
                 setFormData({ ...formData, writeScope: value })
               }
+              disabled={formData.isNotice}
             >
-              <SelectTrigger>
+              <SelectTrigger className={formData.isNotice ? "opacity-60 cursor-not-allowed" : undefined}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -447,18 +490,6 @@ export default function BoardsPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="create-isNotice"
-              checked={formData.isNotice}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, isNotice: checked === true })
-              }
-            />
-            <Label htmlFor="create-isNotice" className="cursor-pointer">
-              알림 가능 게시판
-            </Label>
           </div>
           <div className="space-y-2">
             <Label>노출 여부</Label>

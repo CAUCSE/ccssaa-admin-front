@@ -30,7 +30,7 @@ export function usePostDetail(postId: number) {
   })
 }
 
-// 게시판 목록 조회 (v1/Mock)
+// 게시판 목록 조회
 export function useBoards() {
   return useQuery({
     queryKey: ["admin-boards"],
@@ -136,7 +136,7 @@ export function useDeleteComment() {
   })
 }
 
-// 게시판 생성 (v1: name, description만 — Mock/기존용)
+// 게시판 생성
 export function useCreateBoard() {
   const queryClient = useQueryClient()
   const showError = useApiErrorDialog()
@@ -229,7 +229,7 @@ export function useUpdateBoard() {
   })
 }
 
-// 게시판 삭제 (v1 API; v2 리스트 사용 시 boardId는 숫자로 전달)
+// 게시판 삭제
 export function useDeleteBoard() {
   const queryClient = useQueryClient()
   const showError = useApiErrorDialog()
@@ -266,4 +266,3 @@ export function useDeleteBoardV2() {
     },
   })
 }
-

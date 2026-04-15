@@ -47,7 +47,7 @@ export interface BoardSearchCondition {
   writeScope?: BoardWriteScope
   /** 읽기 권한 */
   readScope?: BoardReadScope
-  /** 알림 가능 게시판 여부 */
+  /** 공식 계정 게시판 여부 */
   isNotice?: boolean
 }
 
@@ -93,7 +93,7 @@ export interface BoardCreateRequestV2 {
   readScope: BoardReadScope
   /** 쓰기 권한 (BoardWriteScope) */
   writeScope: BoardWriteScope
-  /** 알림 가능 게시판 여부 */
+  /** 공식 계정 게시판 여부 */
   isNotice: boolean
   /** 노출 여부 (BoardVisibility) */
   visibility: BoardVisibility

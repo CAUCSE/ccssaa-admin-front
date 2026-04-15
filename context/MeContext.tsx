@@ -8,12 +8,11 @@ import {
   useState,
 } from "react"
 import { usePathname } from "next/navigation"
-import { getMe } from "@/lib/api/auth"
-import { isAuthenticated } from "@/lib/auth"
-import type { MeResponse } from "@/types/auth"
+import { getAuthSession, isAuthenticated } from "@/lib/auth"
+import type { AuthSession } from "@/types/auth"
 
 interface MeContextValue {
-  me: MeResponse | null
+  me: AuthSession | null
   isLoading: boolean
   refetch: () => Promise<void>
 }
@@ -22,7 +21,7 @@ const MeContext = createContext<MeContextValue | null>(null)
 
 export function MeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const [me, setMe] = useState<MeResponse | null>(null)
+  const [me, setMe] = useState<AuthSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchMe = useCallback(async () => {
@@ -33,10 +32,7 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
     }
     setIsLoading(true)
     try {
-      const data = await getMe()
-      setMe(data)
-    } catch {
-      setMe(null)
+      setMe(getAuthSession())
     } finally {
       setIsLoading(false)
     }

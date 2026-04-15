@@ -46,6 +46,7 @@ export function CalendarFormDialog({
   const [startTime, setStartTime] = useState("")
   const [endDate, setEndDate] = useState("")
   const [endTime, setEndTime] = useState("")
+  const [targetPostId, setTargetPostId] = useState("")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const isValidTime = (value: string) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(value)
@@ -56,6 +57,7 @@ export function CalendarFormDialog({
     if (event) {
       setTitle(event.title)
       setType(event.type)
+      setTargetPostId(event.targetPostId != null ? String(event.targetPostId) : "")
       
       // ISO 문자열에서 날짜/시간 직접 추출 (타임존 변환 방지)
       const startParts = event.start.split("T")
@@ -94,6 +96,7 @@ export function CalendarFormDialog({
       setStartTime("")
       setEndDate("")
       setEndTime("")
+      setTargetPostId("")
     }
   }, [event, initialDates, open])
 
@@ -129,6 +132,7 @@ export function CalendarFormDialog({
       type,
       start: start.toISOString(),
       end: end.toISOString(),
+      ...(targetPostId.trim() !== "" && { targetPostId: Number(targetPostId) }),
     }
 
     onSubmit(data)
@@ -168,7 +172,6 @@ export function CalendarFormDialog({
               <SelectItem value="DEPARTMENT">학부행사</SelectItem>
               <SelectItem value="CCSSAA">CCSSAA</SelectItem>
               <SelectItem value="STUDENT_COUNCIL">학생회</SelectItem>
-              <SelectItem value="COMPETITION">대회</SelectItem>
               <SelectItem value="HOLIDAY">공휴일</SelectItem>
             </SelectContent>
           </Select>
@@ -210,6 +213,18 @@ export function CalendarFormDialog({
               onChange={(e) => setEndTime(e.target.value)}
             />
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="targetPostId">연결 게시물 ID</Label>
+          <Input
+            id="targetPostId"
+            type="number"
+            min={1}
+            value={targetPostId}
+            onChange={(e) => setTargetPostId(e.target.value)}
+            placeholder="게시물 ID (선택사항)"
+          />
         </div>
       </div>
     </FormDialog>

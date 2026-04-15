@@ -24,34 +24,34 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Search, ArrowRight } from "lucide-react"
-import type { EventListParams, EventStatus } from "@/types/event"
+import type { CeremonyState, EventListParams } from "@/types/event"
 import { useRouter } from "next/navigation"
 
 function EventsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
-  const [startDate, setStartDate] = useState(searchParams.get("startDate") || "")
-  const [endDate, setEndDate] = useState(searchParams.get("endDate") || "")
-  const [status, setStatus] = useState<EventStatus | "ALL">(
-    (searchParams.get("status") as EventStatus | "ALL") || "ALL"
+  const [fromDate, setFromDate] = useState(searchParams.get("fromDate") || "")
+  const [toDate, setToDate] = useState(searchParams.get("toDate") || "")
+  const [state, setState] = useState<CeremonyState | "ALL">(
+    (searchParams.get("state") as CeremonyState | "ALL") || "ALL"
   )
 
   const params: EventListParams = {
     page: page - 1,
     size: 10,
-    startDate: startDate || undefined,
-    endDate: endDate || undefined,
-    status: status !== "ALL" ? status : undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    state: state !== "ALL" ? state : undefined,
   }
 
   const { data, isLoading, error } = useEvents(params)
 
   const handleSearch = () => {
     const params = new URLSearchParams()
-    if (startDate) params.set("startDate", startDate)
-    if (endDate) params.set("endDate", endDate)
-    if (status && status !== "ALL") params.set("status", status)
+    if (fromDate) params.set("fromDate", fromDate)
+    if (toDate) params.set("toDate", toDate)
+    if (state && state !== "ALL") params.set("state", state)
     router.push(`/events?${params.toString()}`)
     setPage(1)
   }
@@ -66,42 +66,42 @@ function EventsPageContent() {
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
   }
 
-  const getEventTypeLabel = (type: string) => {
+  const getCeremonyTypeLabel = (type: string) => {
     switch (type) {
-      case "MARRIAGE":
-        return "결혼"
-      case "FUNERAL":
-        return "부고"
-      case "BIRTH":
-        return "출산"
-      case "OTHER":
-        return "기타"
+      case "경사":
+        return "경사"
+      case "조사":
+        return "조사"
       default:
         return type
     }
   }
 
-  const getStatusBadgeVariant = (status: EventStatus) => {
+  const getStatusBadgeVariant = (status: CeremonyState) => {
     switch (status) {
-      case "PENDING":
+      case "AWAIT":
         return "warning"
-      case "APPROVED":
+      case "ACCEPT":
         return "success"
-      case "REJECTED":
+      case "REJECT":
         return "danger"
+      case "CLOSE":
+        return "neutral"
       default:
         return "neutral"
     }
   }
 
-  const getStatusLabel = (status: EventStatus) => {
+  const getStatusLabel = (status: CeremonyState) => {
     switch (status) {
-      case "PENDING":
+      case "AWAIT":
         return "대기"
-      case "APPROVED":
-        return "승인"
-      case "REJECTED":
+      case "ACCEPT":
+        return "수락"
+      case "REJECT":
         return "거부"
+      case "CLOSE":
+        return "종료"
       default:
         return status
     }
@@ -123,7 +123,7 @@ function EventsPageContent() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">경조사 관리</h1>
-        <p className="text-muted-foreground mt-1">경조사 신청 내역을 확인하고 승인/거부할 수 있습니다.</p>
+        <p className="text-muted-foreground mt-1">경조사 신청 내역을 조회하고 상세 정보를 확인할 수 있습니다.</p>
       </div>
 
       {/* 검색 및 필터 영역 */}
@@ -134,27 +134,28 @@ function EventsPageContent() {
               <Input
                 type="date"
                 placeholder="시작일"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
               />
             </div>
             <div className="flex-1">
               <Input
                 type="date"
                 placeholder="종료일"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
               />
             </div>
-            <Select value={status} onValueChange={(value) => setStatus(value as EventStatus | "ALL")}>
+            <Select value={state} onValueChange={(value) => setState(value as CeremonyState | "ALL")}>
               <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="상태" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">전체</SelectItem>
-                <SelectItem value="PENDING">대기</SelectItem>
-                <SelectItem value="APPROVED">승인</SelectItem>
-                <SelectItem value="REJECTED">거부</SelectItem>
+                <SelectItem value="AWAIT">대기</SelectItem>
+                <SelectItem value="ACCEPT">수락</SelectItem>
+                <SelectItem value="REJECT">거부</SelectItem>
+                <SelectItem value="CLOSE">종료</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={handleSearch} className="w-full sm:w-auto">
@@ -214,7 +215,7 @@ function EventsPageContent() {
               </TableHeader>
               <TableBody>
                 {data.content.map((event, index) => {
-                  const startIndex = (data.number) * data.size
+                  const startIndex = data.currentPage * data.size
                   return (
                     <TableRow
                       key={event.id}
@@ -228,17 +229,17 @@ function EventsPageContent() {
                         {formatDate(event.createdAt)}
                       </TableCell>
                       <TableCell className="text-center">
-                        {event.applicantName} ({event.applicantStudentNo})
+                        {event.applicantName} ({event.applicantStudentId})
                       </TableCell>
                       <TableCell className="text-center">
-                        {getEventTypeLabel(event.type)}
+                        {getCeremonyTypeLabel(event.category)}
                       </TableCell>
                       <TableCell className="text-center">
-                        {formatDate(event.eventDate)}
+                        {formatDate(event.startDate)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getStatusBadgeVariant(event.status)}>
-                          {getStatusLabel(event.status)}
+                        <Badge variant={getStatusBadgeVariant(event.state)}>
+                          {getStatusLabel(event.state)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -260,7 +261,7 @@ function EventsPageContent() {
           {/* Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
-              총 {data.totalElements}건 중 {(data.number) * data.size + 1}-{Math.min((data.number + 1) * data.size, data.totalElements)}건 표시
+              총 {data.totalElements}건 중 {data.currentPage * data.size + 1}-{Math.min((data.currentPage + 1) * data.size, data.totalElements)}건 표시
             </div>
             <div className="flex items-center gap-2">
               <Button

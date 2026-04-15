@@ -7,23 +7,35 @@ import axios, { type InternalAxiosRequestConfig } from "axios"
 import { getAccessToken, removeTokens } from "@/lib/auth"
 import { refreshTokens } from "@/lib/api/auth"
 
+const backendOrigin = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080"
+const apiOrigin = typeof window === "undefined" ? backendOrigin : ""
+
 export const apiV2 = axios.create({
-  baseURL:
-    (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080") +
-    "/api/v2",
-  withCredentials: false,
+  baseURL: apiOrigin + "/api/v2",
+  withCredentials: true,
 })
 
 let isRefreshing = false
-let refreshSubscribers: Array<(accessToken: string) => void> = []
+let refreshSubscribers: Array<{
+  resolve: (accessToken: string) => void
+  reject: (error: unknown) => void
+}> = []
 
 const onRefreshed = (accessToken: string) => {
-  refreshSubscribers.forEach((cb) => cb(accessToken))
+  refreshSubscribers.forEach(({ resolve }) => resolve(accessToken))
   refreshSubscribers = []
 }
 
-const addRefreshSubscriber = (cb: (accessToken: string) => void) => {
-  refreshSubscribers.push(cb)
+const onRefreshFailed = (error: unknown) => {
+  refreshSubscribers.forEach(({ reject }) => reject(error))
+  refreshSubscribers = []
+}
+
+const addRefreshSubscriber = (
+  resolve: (accessToken: string) => void,
+  reject: (error: unknown) => void
+) => {
+  refreshSubscribers.push({ resolve, reject })
 }
 
 apiV2.interceptors.request.use(
@@ -46,13 +58,24 @@ apiV2.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    if (
+      originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/refresh") ||
+      originalRequest?.url?.includes("/auth/logout")
+    ) {
+      return Promise.reject(error)
+    }
+
     if (!originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          addRefreshSubscriber((accessToken: string) => {
+        return new Promise((resolve, reject) => {
+          addRefreshSubscriber(
+            (accessToken: string) => {
             originalRequest.headers.Authorization = `Bearer ${accessToken}`
             resolve(apiV2(originalRequest))
-          })
+            },
+            reject
+          )
         })
       }
 
@@ -66,8 +89,9 @@ apiV2.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${res.accessToken}`
           return apiV2(originalRequest)
         }
-      } catch {
-        // ignore
+        onRefreshFailed(error)
+      } catch (refreshError) {
+        onRefreshFailed(refreshError)
       } finally {
         isRefreshing = false
       }

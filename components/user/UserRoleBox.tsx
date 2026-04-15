@@ -21,21 +21,27 @@ interface UserRoleBoxProps {
 }
 
 export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
-  // roles 배열의 첫 번째 역할을 기본값으로 사용 (또는 가장 높은 권한)
-  const primaryRole: UserRole = (user.roles && user.roles.length > 0 ? user.roles[0] : "USER") as UserRole
-  const [selectedRole, setSelectedRole] = useState<UserRole>(primaryRole)
+  const EDITABLE_ROLES: UserRole[] = ["ADMIN", "COMMON", "NONE"]
+  const primaryRole = user.roles?.[0] as UserRole | undefined
+  const hasCurrentRole = Boolean(primaryRole)
+  const [selectedRole, setSelectedRole] = useState<UserRole | undefined>(primaryRole)
   const [isEditing, setIsEditing] = useState(false)
   const updateRole = useUpdateUserRole()
+  const roleOptions = EDITABLE_ROLES.map((role) => [role, USER_ROLE_CONFIG[role]] as [UserRole, string])
 
   const handleSave = () => {
+    if (!primaryRole || !selectedRole) {
+      setIsEditing(false)
+      return
+    }
+
     if (selectedRole === primaryRole) {
       setIsEditing(false)
       return
     }
 
-    // TODO: API가 string ID를 받도록 수정 필요
     updateRole.mutate(
-      { userId: user.id, role: selectedRole },
+      { userId: user.id, currentRole: primaryRole, newRole: selectedRole },
       {
         onSuccess: () => {
           setIsEditing(false)
@@ -45,7 +51,7 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
   }
 
   const handleCancel = () => {
-    setSelectedRole(primaryRole as UserRole)
+    setSelectedRole(primaryRole)
     setIsEditing(false)
   }
 
@@ -58,11 +64,15 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
         <CardContent>
           <p className="text-sm text-muted-foreground mb-2">현재 역할</p>
           <div className="flex flex-wrap gap-1">
-            {(user.roles ?? []).map((role) => (
-              <Badge key={role} variant="secondary">
-                {USER_ROLE_CONFIG[role] ?? role}
-              </Badge>
-            ))}
+            {(user.roles ?? []).length > 0 ? (
+              (user.roles ?? []).map((role) => (
+                <Badge key={role} variant="secondary">
+                  {USER_ROLE_CONFIG[role as UserRole] ?? role}
+                </Badge>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">역할 없음</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -78,31 +88,37 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
         <div>
           <p className="text-sm text-muted-foreground mb-2">현재 역할</p>
           <div className="flex flex-wrap gap-1 mb-4">
-            {user.roles.map((role) => (
-              <Badge key={role} variant="secondary">
-                {role}
-              </Badge>
-            ))}
+            {(user.roles ?? []).length > 0 ? (
+              (user.roles ?? []).map((role) => (
+                <Badge key={role} variant="secondary">
+                  {USER_ROLE_CONFIG[role as UserRole] ?? role}
+                </Badge>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">역할 없음</p>
+            )}
           </div>
           <p className="text-sm text-muted-foreground mb-2">역할 선택</p>
           <Select
-            value={selectedRole}
+            value={selectedRole && EDITABLE_ROLES.includes(selectedRole) ? selectedRole : undefined}
             onValueChange={(value) => setSelectedRole(value as UserRole)}
-            disabled={!isEditing}
+            disabled={!isEditing || !hasCurrentRole}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="USER">{USER_ROLE_CONFIG.USER}</SelectItem>
-              <SelectItem value="ADMIN">{USER_ROLE_CONFIG.ADMIN}</SelectItem>
-              <SelectItem value="MASTER">{USER_ROLE_CONFIG.MASTER}</SelectItem>
+              {roleOptions.map(([role, label]) => (
+                <SelectItem key={role} value={role}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         {isEditing ? (
           <div className="flex gap-2">
-            <Button onClick={handleSave} disabled={updateRole.isPending}>
+            <Button onClick={handleSave} disabled={updateRole.isPending || !hasCurrentRole || !selectedRole}>
               변경
             </Button>
             <Button variant="outline" onClick={handleCancel}>
@@ -110,7 +126,9 @@ export function UserRoleBox({ user, isMaster }: UserRoleBoxProps) {
             </Button>
           </div>
         ) : (
-          <Button onClick={() => setIsEditing(true)}>역할 변경</Button>
+          <Button onClick={() => setIsEditing(true)} disabled={!hasCurrentRole}>
+            역할 변경
+          </Button>
         )}
       </CardContent>
     </Card>

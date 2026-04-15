@@ -92,8 +92,8 @@ export function UserFilter() {
               <SelectItem value="AWAIT">대기</SelectItem>
               <SelectItem value="ACTIVE">활성</SelectItem>
               <SelectItem value="DROP">추방</SelectItem>
-              <SelectItem value="INACTIVE">탈퇴</SelectItem>
               <SelectItem value="REJECT">거부</SelectItem>
+              <SelectItem value="GUEST">게스트</SelectItem>
             </SelectContent>
           </Select>
 

@@ -1,6 +1,12 @@
 "use client"
-
-import { Calendar, dateFnsLocalizer, View, ToolbarProps, Navigate, type Event as RBCEvent } from "react-big-calendar"
+ 
+import {
+  Calendar,
+  dateFnsLocalizer,
+  View,
+  Navigate,
+  type ToolbarProps as RBCToolbarProps,
+} from "react-big-calendar"
 import { format, parse, startOfWeek, getDay } from "date-fns"
 import { ko } from "date-fns/locale"
 import type { CalendarEvent, CalendarType } from "@/types/calendar"
@@ -40,7 +46,18 @@ interface CalendarViewProps {
   isLoading?: boolean
 }
 
-type CalendarRbcEvent = RBCEvent & { resource: CalendarEvent; order: number }
+// react-big-calendar 이벤트에 사용하는 로컬 타입
+// (start/end/title 필수, 추가로 resource/order/id를 포함)
+type CalendarRbcEvent = {
+  id: string
+  title: string
+  start: Date
+  end: Date
+  resource: CalendarEvent
+  order: number
+}
+
+type CalendarToolbarProps = RBCToolbarProps<CalendarRbcEvent, object>
 
 // 타입별 색상 매핑 (기존 Badge와 동일)
 const getEventColor = (type: CalendarType): string => {
@@ -53,8 +70,6 @@ const getEventColor = (type: CalendarType): string => {
       return "#7DD3FC" // sky
     case "STUDENT_COUNCIL":
       return "#FB923C" // orange
-    case "COMPETITION":
-      return "#A78BFA" // purple
     case "HOLIDAY":
       return "#F87171" // red
     default:
@@ -72,8 +87,6 @@ const getTypeLabel = (type: CalendarType): string => {
       return "CCSSAA"
     case "STUDENT_COUNCIL":
       return "학생회"
-    case "COMPETITION":
-      return "대회"
     case "HOLIDAY":
       return "공휴일"
     default:
@@ -95,12 +108,12 @@ export function CalendarView({
   const [currentDate, setCurrentDate] = useState(new Date())
 
   // CalendarEvent를 react-big-calendar 형식으로 변환 및 타입 필터링
-  const events = useMemo(() => {
+  const events = useMemo<CalendarRbcEvent[]>(() => {
     const filteredData = selectedTypes && selectedTypes.length > 0
       ? data.filter(event => selectedTypes.includes(event.type))
       : data
     
-    const mappedEvents = filteredData.map((event, index): CalendarRbcEvent => ({
+    const mappedEvents: CalendarRbcEvent[] = filteredData.map((event, index) => ({
       id: event.id,
       title: event.title,
       start: new Date(event.start),
@@ -164,7 +177,8 @@ export function CalendarView({
   }, [])
 
   // 커스텀 툴바 컴포넌트
-  const CustomToolbar = ({ date, onNavigate }: ToolbarProps) => {
+  // react-big-calendar의 ToolbarProps 제네릭이 복잡하므로 any로 단순화
+  const CustomToolbar = ({ date, onNavigate }: any) => {
     const goToBack = () => {
       const newDate = new Date(date.getFullYear(), date.getMonth() - 1, 1)
       setCurrentDate(newDate)
@@ -286,8 +300,6 @@ export function CalendarView({
                     ? "success"
                     : selectedEvent?.type === "CCSSAA"
                     ? "warning"
-                    : selectedEvent?.type === "COMPETITION"
-                    ? "destructive"
                     : selectedEvent?.type === "STUDENT_COUNCIL"
                     ? "secondary"
                     : "default"

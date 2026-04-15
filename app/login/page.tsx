@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { BrandLogo } from "@/components/layout/BrandLogo"
 import { login } from "@/lib/api/auth"
 import { toast } from "sonner"
 
@@ -44,10 +44,10 @@ export default function LoginPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-semibold">관리자 로그인</CardTitle>
-          <CardDescription>
-            이메일과 비밀번호를 입력해주세요.
-          </CardDescription>
+          <div className="flex justify-center pb-2">
+            <BrandLogo className="pointer-events-none" />
+          </div>
+          <CardTitle className="text-2xl font-semibold">CCSSAA 관리자 로그인</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

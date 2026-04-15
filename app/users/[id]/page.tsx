@@ -51,7 +51,7 @@ export default function UserDetailPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <UserProfileCard user={user} />
-        <UserRoleBox user={user} isMaster={isMaster} />
+        {user.state === "ACTIVE" && <UserRoleBox user={user} isMaster={isMaster} />}
       </div>
 
       <UserActionFooter user={user} isMaster={isMaster} />

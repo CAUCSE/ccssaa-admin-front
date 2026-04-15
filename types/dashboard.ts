@@ -1,18 +1,9 @@
-export type UserRole = "MASTER" | "STUDENT_COUNCIL" | "ALUMNI_COUNCIL"
-
 export interface DashboardStats {
   totalUsers: number
   newUsersToday: number
-  pendingReports: number
   pendingEvents: number
-  activeStudents: number
+  pendingReports: number
   pendingApprovals: number
-  studentCouncilNotices: number
-  cultureNotices: number
-  alumniCount: number
-  pendingEventApplications: number
-  newPostsToday: number
-  departmentNotices: number
 }
 
 export interface RecentReport {
@@ -33,36 +24,36 @@ export interface RecentUser {
   status: "PENDING" | "ACTIVE" | "BANNED"
 }
 
-export interface PendingApproval {
-  id: number
-  studentNo: string
-  name: string
-  department: string
-  joinedAt: string
-}
-
-export interface RecentEvent {
-  id: number
-  applicant: string
-  applicantNo: string
-  type: "MARRIAGE" | "DEATH"
-  eventDate: string
-  status: "PENDING" | "APPROVED" | "REJECTED"
-}
-
-export interface RecentPost {
-  id: number
+export interface DashboardActionItem {
+  id: string
   title: string
-  author: string
-  board: string
+  description: string
+  owner: string
+  priority: "HIGH" | "MEDIUM" | "LOW"
+  href: string
+}
+
+export interface DashboardFeedItem {
+  id: string
+  title: string
+  category: string
   createdAt: string
+  href: string
+}
+
+export interface DashboardHealthItem {
+  id: string
+  label: string
+  value: string
+  description: string
 }
 
 export interface DashboardData {
+  targetDate: string
   stats: DashboardStats
-  recentReports?: RecentReport[]
-  recentUsers?: RecentUser[]
-  pendingApprovals?: PendingApproval[]
-  recentEvents?: RecentEvent[]
-  recentPosts?: RecentPost[]
+  recentReports: RecentReport[]
+  recentUsers: RecentUser[]
+  actionItems: DashboardActionItem[]
+  activityFeed: DashboardFeedItem[]
+  contentHealth: DashboardHealthItem[]
 }
