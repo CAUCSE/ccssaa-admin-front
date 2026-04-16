@@ -1,31 +1,24 @@
 "use client"
 
-import { useState, useEffect, Suspense, useMemo } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { UserFilter } from "@/components/user/UserFilter"
-import { UserTable } from "@/components/user/UserTable"
-import { useUsers } from "@/hooks/useUsers"
+import { Skeleton } from "@/components/ui/skeleton"
+import { DeletedUserFilter } from "@/components/user/DeletedUserFilter"
+import { DeletedUserTable } from "@/components/user/DeletedUserTable"
+import { useDeletedUsers } from "@/hooks/useUsers"
 import {
   isAcademicStatus,
-  isUserStatus,
-  type UserListParams,
-  type UserListSortBy,
   type AcademicStatus,
+  type DeletedUserListParams,
+  type DeletedUserListSortBy,
   type Department,
 } from "@/types/user"
-import { Skeleton } from "@/components/ui/skeleton"
 
-function UsersPageContent() {
+function DeletedUsersPageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
 
-  const params: UserListParams = useMemo(() => {
-    const statesParam = searchParams.get("states")
-    const states = statesParam
-      ?.split(",")
-      .map((state) => state.trim())
-      .filter(isUserStatus)
-
+  const params: DeletedUserListParams = useMemo(() => {
     const academicStatusParam = searchParams.get("academicStatus")
     const academicStatus =
       academicStatusParam && isAcademicStatus(academicStatusParam)
@@ -34,14 +27,15 @@ function UsersPageContent() {
 
     const admissionYearFrom = searchParams.get("admissionYearFrom")
     const admissionYearTo = searchParams.get("admissionYearTo")
-    const sortBy = (searchParams.get("sortBy") as UserListSortBy | null) ?? "CREATED_AT_DESC"
+    const sortBy =
+      (searchParams.get("sortBy") as DeletedUserListSortBy | null) ??
+      "DELETED_AT_DESC"
 
     return {
       page: page - 1,
       size: 10,
       keyword: searchParams.get("keyword") || undefined,
       department: (searchParams.get("department") as Department) || undefined,
-      states: states?.length ? states : ["ACTIVE"],
       academicStatus: academicStatus as AcademicStatus | undefined,
       admissionYearFrom: admissionYearFrom ? Number(admissionYearFrom) : undefined,
       admissionYearTo: admissionYearTo ? Number(admissionYearTo) : undefined,
@@ -49,7 +43,7 @@ function UsersPageContent() {
     }
   }, [page, searchParams])
 
-  const { data, isLoading, error } = useUsers(params)
+  const { data, isLoading, error } = useDeletedUsers(params)
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
@@ -57,7 +51,7 @@ function UsersPageContent() {
   }
 
   useEffect(() => {
-    setPage(1) // 필터 변경 시 첫 페이지로
+    setPage(1)
   }, [searchParams])
 
   if (error) {
@@ -71,16 +65,16 @@ function UsersPageContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-2">전체 회원 목록</h1>
+        <h1 className="text-2xl font-bold mb-2">탈퇴/추방 회원 목록</h1>
         <p className="text-muted-foreground">
-          회원을 검색하고 관리할 수 있습니다.
+          삭제 처리된 회원만 조회합니다. 삭제일과 사유를 함께 확인할 수 있습니다.
         </p>
       </div>
 
-      <UserFilter />
+      <DeletedUserFilter />
 
       {data && (
-        <UserTable
+        <DeletedUserTable
           data={data.content}
           currentPage={page}
           totalPages={data.totalPages}
@@ -94,30 +88,21 @@ function UsersPageContent() {
   )
 }
 
-/**
- * 회원 목록 페이지
- * 전체 회원을 조회하고 관리할 수 있는 페이지입니다.
- * 
- * 기능:
- * - 회원 검색 (학번/이름, 학과, 상태)
- * - 회원 목록 표시 및 정렬
- * - 페이지네이션
- * - 회원 상세 페이지로 이동
- */
-export default function UsersPage() {
+export default function DeletedUsersPage() {
   return (
     <Suspense
       fallback={
         <div className="space-y-6">
           <div>
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-8 w-56 mb-2" />
+            <Skeleton className="h-4 w-80" />
           </div>
+          <Skeleton className="h-40 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>
       }
     >
-      <UsersPageContent />
+      <DeletedUsersPageContent />
     </Suspense>
   )
 }

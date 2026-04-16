@@ -1,5 +1,7 @@
 import { api } from "../api"
 import type {
+  DeletedUserListParams,
+  DeletedUserListResponse,
   UserListParams,
   UserListResponse,
   UserDetail,
@@ -9,7 +11,11 @@ import type {
   UserRoleUpdateResult,
 } from "@/types/user"
 import { mockUserApi } from "../mock/users"
-import { getAdminUserListV2, getAdminUserDetailV2 } from "./v2/users"
+import {
+  getAdminUserListV2,
+  getAdminUserDetailV2,
+  getDeletedUsersV2,
+} from "./v2/users"
 import { apiV2 } from "./v2/client"
 import { unwrapV2 } from "./v2/response"
 import type { ApiResponse } from "@/types/api-v2"
@@ -26,6 +32,11 @@ const realUserApi = {
   // 회원 상세 조회 (v2)
   getUserDetail: (userId: string): Promise<UserDetail> =>
     getAdminUserDetailV2(userId),
+
+  // 탈퇴/추방 회원 리스트 조회 (v2)
+  getDeletedUsers: (
+    params: DeletedUserListParams
+  ): Promise<DeletedUserListResponse> => getDeletedUsersV2(params),
 
   // 회원 승인
   approveUser: async (userId: string): Promise<void> => {
@@ -76,4 +87,3 @@ const realUserApi = {
 
 // Mock 모드에 따라 API 선택
 export const userApi = USE_MOCK_API ? mockUserApi : realUserApi
-

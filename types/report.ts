@@ -1,43 +1,81 @@
-export type ReportStatus = "UNRESOLVED" | "RESOLVED"
-export type ReportTargetType = "POST" | "COMMENT" | "USER"
-export type ReportAction = "REJECT" | "APPROVE"
+import type { AcademicStatus, UserStatus } from "@/types/user"
 
-export interface Report {
-  id: number
-  targetType: ReportTargetType
-  targetId: number
-  targetTitle?: string
-  targetContent?: string
-  targetAuthor?: string
-  targetDeleted?: boolean // 삭제된 글인지 여부
-  reason: string
-  reporter: string
-  reporterId?: number
-  createdAt: string
-  status: ReportStatus
-  resolvedAt?: string
-  resolvedBy?: string
-  action?: ReportAction // 처리 액션 (반려/승인)
+export type ReportedUserListSortBy = string
+
+export interface ReportedUserSummary {
+  userId: string
+  studentId: string
+  name: string
+  academicStatus: AcademicStatus
+  reportedCount: number
+  userState: UserStatus
 }
 
-export interface ReportListParams {
+export interface ReportedUserListParams {
+  keyword?: string
+  state?: UserStatus
+  academicStatus?: AcademicStatus | "ALL"
   page?: number
   size?: number
-  targetType?: ReportTargetType | "ALL"
-  status?: ReportStatus | "ALL"
+  sort?: ReportedUserListSortBy
 }
 
-export interface ReportListResponse {
-  content: Report[]
-  totalElements: number
-  totalPages: number
+export interface ReportedUserListResponse {
+  content: ReportedUserSummary[]
+  currentPage: number
   size: number
-  number: number
+  totalPages: number
+  totalElements: number
+  hasNext: boolean
+  hasPrev: boolean
 }
 
-export interface ReportActionParams {
-  reportId: number
-  action: ReportAction
-  targetId?: number // 제재 대상 ID (유저 ID 등)
+export interface ReportedUserContentParams {
+  page?: number
+  size?: number
 }
 
+export interface ReportedPost {
+  reportId: string
+  studentId: string
+  postId: string
+  postTitle: string
+  writerName: string
+  writerState: UserStatus
+  reportReasonDescription: string
+  reportCreatedAt: string
+  boardName: string
+  url: string
+}
+
+export interface ReportedPostListResponse {
+  content: ReportedPost[]
+  currentPage: number
+  size: number
+  totalPages: number
+  totalElements: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+export interface ReportedComment {
+  reportId: string
+  studentId: string
+  commentId: string
+  commentContent: string
+  writerName: string
+  writerState: UserStatus
+  reportReasonDescription: string
+  reportCreatedAt: string
+  url: string
+}
+
+export interface ReportedCommentListResponse {
+  content: ReportedComment[]
+  currentPage: number
+  size: number
+  totalPages: number
+  totalElements: number
+  hasNext: boolean
+  hasPrev: boolean
+}

@@ -12,8 +12,8 @@ import { NotificationCenter } from "./NotificationCenter"
 const pageTitles: Record<string, string> = {
   "/dashboard": "대시보드",
   "/users": "회원 관리",
-  "/users/pending": "가입 승인 대기",
-  "/users/reported": "신고된 회원",
+  "/users/pending": "승인 대기 요청",
+  "/users/deleted": "탈퇴/추방 회원",
   "/content": "게시판 관리",
   "/content/boards": "게시판 관리",
   "/reports": "신고 관리",
@@ -27,7 +27,7 @@ const pageTitles: Record<string, string> = {
 }
 
 const getPageTitle = (pathname: string): string => {
-  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending" && pathname !== "/users/reported") {
+  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending") {
     return "회원 상세"
   }
   if (pathname.startsWith("/content/") && pathname !== "/content" && pathname !== "/content/boards") {
@@ -47,11 +47,11 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
   "/users": [{ label: "회원 관리", href: "/users" }],
   "/users/pending": [
     { label: "회원 관리", href: "/users" },
-    { label: "가입 승인 대기", href: "/users/pending" },
+    { label: "승인 대기 요청", href: "/users/pending" },
   ],
-  "/users/reported": [
+  "/users/deleted": [
     { label: "회원 관리", href: "/users" },
-    { label: "신고된 회원", href: "/users/reported" },
+    { label: "탈퇴/추방 회원", href: "/users/deleted" },
   ],
   "/content": [{ label: "게시판 관리", href: "/content" }],
   "/content/boards": [
@@ -84,7 +84,7 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
 }
 
 const getBreadcrumbForPath = (pathname: string): { label: string; href: string }[] => {
-  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending" && pathname !== "/users/reported") {
+  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending") {
     return [
       { label: "회원 관리", href: "/users" },
       { label: "회원 상세", href: pathname },

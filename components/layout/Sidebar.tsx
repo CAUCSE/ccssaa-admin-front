@@ -50,10 +50,10 @@ const getSidebarItems = (
     icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
-    title: "회원 관리 (미구현)",
+    title: "회원 관리",
     href: "/users",
     icon: <Users className="h-5 w-5" />,
-    isUnimplemented: true,
+    isUnimplemented: false,
     children: [
       {
         title: "전체",
@@ -61,16 +61,15 @@ const getSidebarItems = (
         icon: <ChevronRight className="h-4 w-4" />,
       },
       {
-        title: "승인 대기",
+        title: "승인 대기 요청",
         href: "/users/pending",
         icon: <ChevronRight className="h-4 w-4" />,
         badge: pendingApprovals,
       },
       {
-        title: "신고된 회원",
-        href: "/users/reported",
+        title: "탈퇴/추방 회원",
+        href: "/users/deleted",
         icon: <ChevronRight className="h-4 w-4" />,
-        badge: pendingReports,
       },
       {
         title: "학적 상태 변경",
@@ -98,11 +97,11 @@ const getSidebarItems = (
     ],
   },
   {
-    title: "신고 관리 (미구현)",
+    title: "신고 관리",
     href: "/reports",
     icon: <AlertTriangle className="h-5 w-5" />,
     badge: pendingReports,
-    isUnimplemented: true,
+    isUnimplemented: false,
   },
   {
     title: "경조사",
