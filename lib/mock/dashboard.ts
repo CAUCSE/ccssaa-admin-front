@@ -89,7 +89,7 @@ const MOCK_RECENT_REPORTS: RecentReport[] = [
 const MOCK_ACTION_ITEMS: DashboardActionItem[] = [
   {
     id: "approval-queue",
-    title: "가입 승인 대기 검토",
+    title: "승인 대기 요청 검토",
     description: "학적 인증이 완료된 회원부터 우선 승인 처리",
     owner: "회원 관리",
     priority: "HIGH",

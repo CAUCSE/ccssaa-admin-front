@@ -91,13 +91,18 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImage(url)}
-                    className="block overflow-hidden rounded-md border hover:opacity-80 transition-opacity cursor-pointer"
+                    className="group block overflow-hidden rounded-md border bg-muted/20 text-left transition hover:border-primary/40 hover:bg-muted/30"
                   >
-                    <img
-                      src={url}
-                      alt={`첨부 이미지 ${idx + 1}`}
-                      className="w-full h-auto object-cover"
-                    />
+                    <div className="flex h-64 items-center justify-center overflow-hidden bg-background p-3">
+                      <img
+                        src={url}
+                        alt={`첨부 이미지 ${idx + 1}`}
+                        className="max-h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+                      />
+                    </div>
+                    <div className="border-t px-3 py-2 text-xs text-muted-foreground">
+                      첨부 이미지 {idx + 1} 클릭하여 확대
+                    </div>
                   </button>
                 ))}
               </div>

@@ -6,6 +6,7 @@ import type {
   RejectAdmissionRequest,
 } from "@/types/admission"
 import type { UserStatus, AcademicStatus, Department } from "@/types/user"
+import { upsertMockUserFromAdmission } from "./users"
 
 const departments: Department[] = [
   "DEPT_OF_AI",
@@ -103,8 +104,8 @@ export const mockAdmissionApi = {
       ...admission,
       description: "컴퓨터공학과 재학 중이며, 학생증 사진을 첨부합니다.",
       attachImageUrls: [
-        "https://placehold.co/600x400?text=학생증+앞면",
-        "https://placehold.co/600x400?text=학생증+뒷면",
+        "https://placehold.co/900x1800?text=세로+증빙+이미지",
+        "https://placehold.co/1600x900?text=가로+증빙+이미지",
       ],
       updatedAt: admission.createdAt,
     }
@@ -115,6 +116,7 @@ export const mockAdmissionApi = {
     const admission = mockAdmissions.find((a) => a.id === admissionId)
     if (admission) {
       admission.userState = "ACTIVE"
+      upsertMockUserFromAdmission(admission)
     }
   },
 

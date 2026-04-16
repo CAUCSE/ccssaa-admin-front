@@ -3,6 +3,7 @@ import { userApi } from "@/lib/api/users"
 import { getAdminUsersV2 } from "@/lib/api/v2/users"
 import type {
   AdminUsersSearchParamsV2,
+  DeletedUserListParams,
   UserListParams,
   UserDetail,
   UserRole,
@@ -15,6 +16,13 @@ export function useUsers(params: UserListParams) {
   return useQuery({
     queryKey: ["admin-users", params],
     queryFn: () => userApi.getUsers(params),
+  })
+}
+
+export function useDeletedUsers(params: DeletedUserListParams) {
+  return useQuery({
+    queryKey: ["deleted-users", params],
+    queryFn: () => userApi.getDeletedUsers(params),
   })
 }
 
@@ -96,6 +104,14 @@ export function useBanUser() {
       )
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
+      queryClient.invalidateQueries({ queryKey: ["deleted-users"] })
+      queryClient.invalidateQueries({ queryKey: ["reported-users"] })
+      queryClient.invalidateQueries({
+        queryKey: ["reported-user-posts", variables.userId],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ["reported-user-comments", variables.userId],
+      })
       toast.success("회원 추방이 완료되었습니다.")
     },
     onError: (error) => {
@@ -126,6 +142,7 @@ export function useRestoreUser() {
       )
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
+      queryClient.invalidateQueries({ queryKey: ["deleted-users"] })
       toast.success("복구가 완료되었습니다.")
     },
     onError: (error) => {
@@ -169,4 +186,3 @@ export function useUpdateUserRole() {
     },
   })
 }
-

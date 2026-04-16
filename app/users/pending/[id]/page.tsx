@@ -85,7 +85,7 @@ export default function AdmissionDetailPage() {
         title="재학인증 신청 상세"
         description="신청자의 상세 정보를 확인하고 승인 또는 거절할 수 있습니다."
         backHref="/users/pending"
-        backLabel="가입 인증 심사"
+        backLabel="승인 대기 요청"
         breadcrumbs={[{ label: admission.userName }]}
       />
 

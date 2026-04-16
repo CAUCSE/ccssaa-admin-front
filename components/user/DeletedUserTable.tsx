@@ -2,8 +2,6 @@
 
 import { useRouter } from "next/navigation"
 import { ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -12,12 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ACADEMIC_STATUS_CONFIG } from "@/types/user"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
-import type { ReportedUserSummary } from "@/types/report"
+import type { AcademicStatus, DeletedUserSummary } from "@/types/user"
+import { ACADEMIC_STATUS_CONFIG, DEPARTMENT_CONFIG } from "@/types/user"
 
-interface ReportTableProps {
-  data: ReportedUserSummary[]
+interface DeletedUserTableProps {
+  data: DeletedUserSummary[]
   currentPage: number
   totalPages: number
   totalElements: number
@@ -26,7 +26,7 @@ interface ReportTableProps {
   isLoading?: boolean
 }
 
-export function ReportTable({
+export function DeletedUserTable({
   data,
   currentPage,
   totalPages,
@@ -34,8 +34,26 @@ export function ReportTable({
   pageSize,
   onPageChange,
   isLoading,
-}: ReportTableProps) {
+}: DeletedUserTableProps) {
   const router = useRouter()
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+  }
+
+  const getDepartmentLabel = (code: string) => {
+    return DEPARTMENT_CONFIG[code as keyof typeof DEPARTMENT_CONFIG] ?? code
+  }
+
+  const getAcademicStatusLabel = (status: AcademicStatus) => {
+    return ACADEMIC_STATUS_CONFIG[status] ?? ""
+  }
+
   const startIndex = (currentPage - 1) * pageSize
 
   if (isLoading) {
@@ -44,18 +62,18 @@ export function ReportTable({
         <Table>
           <TableHeader>
             <TableRow>
-              {Array.from({ length: 7 }).map((_, index) => (
-                <TableHead key={index}>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <TableHead key={i}>
                   <div className="h-4 w-20 animate-pulse rounded bg-muted" />
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.from({ length: 10 }).map((_, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {Array.from({ length: 7 }).map((_, cellIndex) => (
-                  <TableCell key={cellIndex}>
+            {Array.from({ length: 10 }).map((_, i) => (
+              <TableRow key={i}>
+                {Array.from({ length: 10 }).map((_, j) => (
+                  <TableCell key={j}>
                     <div className="h-4 w-24 animate-pulse rounded bg-muted" />
                   </TableCell>
                 ))}
@@ -70,58 +88,75 @@ export function ReportTable({
   if (data.length === 0) {
     return (
       <div className="rounded-md border p-12 text-center">
-        <p className="text-muted-foreground">조회된 신고 회원이 없습니다.</p>
+        <p className="text-muted-foreground">조회된 탈퇴/추방 회원이 없습니다.</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground md:hidden">
+        표가 길어 좌우로 스크롤할 수 있습니다.
+      </p>
       <div className="rounded-md border">
-        <Table>
+        <Table className="min-w-[1250px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-16 text-center">No</TableHead>
               <TableHead className="text-center">학번</TableHead>
               <TableHead className="text-left">이름</TableHead>
+              <TableHead className="text-left">이메일</TableHead>
+              <TableHead className="text-center">입학년도</TableHead>
+              <TableHead className="text-left">학과</TableHead>
+              <TableHead className="text-center">상태</TableHead>
               <TableHead className="text-center">학적 상태</TableHead>
-              <TableHead className="text-center">신고 건수</TableHead>
-              <TableHead className="text-center">회원 상태</TableHead>
+              <TableHead className="text-center">삭제일</TableHead>
+              <TableHead className="text-left">사유</TableHead>
               <TableHead className="text-center">관리</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((user, index) => {
               const statusBadge = getStatusBadge(user.userState)
-              const href = `/reports/${user.userId}?name=${encodeURIComponent(user.name)}&studentId=${encodeURIComponent(user.studentId)}&academicStatus=${encodeURIComponent(user.academicStatus)}&reportedCount=${user.reportedCount}&userState=${encodeURIComponent(user.userState)}`
-
               return (
                 <TableRow
-                  key={user.userId}
+                  key={user.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => router.push(href)}
+                  onClick={() => router.push(`/users/${user.id}`)}
                 >
                   <TableCell className="text-center">{startIndex + index + 1}</TableCell>
-                  <TableCell className="text-center font-mono">{user.studentId}</TableCell>
+                  <TableCell className="text-center font-mono">{user.studentNo}</TableCell>
                   <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell className="text-center">
-                    {ACADEMIC_STATUS_CONFIG[user.academicStatus]}
+                  <TableCell className="max-w-[220px] text-muted-foreground">
+                    <span className="block truncate">{user.email}</span>
                   </TableCell>
-                  <TableCell className="text-center font-semibold">
-                    {user.reportedCount}건
-                  </TableCell>
+                  <TableCell className="text-center">{user.admissionYear}</TableCell>
+                  <TableCell>{getDepartmentLabel(user.department)}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {getAcademicStatusLabel(user.academicStatus)}
+                  </TableCell>
+                  <TableCell className="text-center text-muted-foreground">
+                    {formatDate(user.deletedAt)}
+                  </TableCell>
+                  <TableCell className="max-w-[260px]">
+                    <span className="block truncate text-muted-foreground">
+                      {user.dropReason || "-"}
+                    </span>
                   </TableCell>
                   <TableCell
                     className="text-center"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center justify-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => router.push(href)}>
-                        상세보기 <ArrowRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => router.push(`/users/${user.id}`)}
+                    >
+                      상세보기 <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               )

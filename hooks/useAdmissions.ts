@@ -26,9 +26,15 @@ export function useApproveAdmission() {
   return useMutation({
     mutationFn: (admissionId: string) =>
       admissionApi.approveAdmission(admissionId),
-    onSuccess: (_, admissionId) => {
-      queryClient.invalidateQueries({ queryKey: ["admissions"] })
-      queryClient.invalidateQueries({ queryKey: ["admission", admissionId] })
+    onSuccess: async (_, admissionId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admissions"] }),
+        queryClient.invalidateQueries({ queryKey: ["admission", admissionId] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-user"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users-search"] }),
+        queryClient.refetchQueries({ queryKey: ["admin-users"], type: "all" }),
+      ])
       toast.success("인증 신청이 승인되었습니다.")
     },
     onError: (error) => {
@@ -49,9 +55,15 @@ export function useRejectAdmission() {
       admissionId: string
       data: RejectAdmissionRequest
     }) => admissionApi.rejectAdmission(admissionId, data),
-    onSuccess: (_, { admissionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["admissions"] })
-      queryClient.invalidateQueries({ queryKey: ["admission", admissionId] })
+    onSuccess: async (_, { admissionId }) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admissions"] }),
+        queryClient.invalidateQueries({ queryKey: ["admission", admissionId] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-user"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin-users-search"] }),
+        queryClient.refetchQueries({ queryKey: ["admin-users"], type: "all" }),
+      ])
       toast.success("인증 신청이 거절되었습니다.")
     },
     onError: (error) => {

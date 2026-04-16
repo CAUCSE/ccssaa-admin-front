@@ -1,4 +1,8 @@
 import type {
+  DeletedUserListParams,
+  DeletedUserListResponse,
+  DeletedUserListSortBy,
+  DeletedUserSummary,
   UserSummary,
   UserDetail,
   UserListParams,
@@ -10,12 +14,15 @@ import type {
   UserRole,
   UserRestoreResult,
   UserRoleUpdateResult,
+  UserListSortBy,
 } from "@/types/user"
+import type { AdmissionSummary } from "@/types/admission"
 
 /** 목록/상세 모의 API가 공유하는 회원 내부 상태 (invalidate·refetch 후에도 유지) */
-type MockUser = UserSummary & {
+type MockUser = Omit<UserSummary, "email" | "admissionYear"> & {
   roles: UserRole[]
   rejectionOrDropReason: string | null
+  deletedAt: string | null
 }
 
 const DEFAULT_REJECTION_OR_DROP_REASON = "재학 증빙 서류 미제출"
@@ -34,10 +41,25 @@ const toUserSummary = (u: MockUser): UserSummary => ({
   id: u.id,
   studentNo: u.studentNo,
   name: u.name,
+  email: `${u.studentNo}@dongne.ac.kr`,
+  admissionYear: Number(u.studentNo.slice(0, 4)),
   department: u.department,
   status: u.status,
   academicStatus: u.academicStatus,
-  joinedAt: u.joinedAt,
+  createdAt: u.createdAt,
+})
+
+const toDeletedUserSummary = (u: MockUser): DeletedUserSummary => ({
+  id: u.id,
+  name: u.name,
+  email: `${u.studentNo}@dongne.ac.kr`,
+  studentNo: u.studentNo,
+  admissionYear: Number(u.studentNo.slice(0, 4)),
+  department: u.department,
+  userState: u.status,
+  academicStatus: u.academicStatus,
+  deletedAt: u.deletedAt ?? u.createdAt,
+  dropReason: u.rejectionOrDropReason,
 })
 
 // Mock 데이터 생성
@@ -69,7 +91,17 @@ const generateMockUsers = (): MockUser[] => {
     const studentNo = `${year}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`
     const status = statuses[Math.floor(Math.random() * statuses.length)]
     const academicStatus = academicStatuses[Math.floor(Math.random() * academicStatuses.length)]
-    const joinedDate = new Date(2023 + Math.floor(Math.random() * 2), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1)
+    const createdAt = new Date(
+      2023 + Math.floor(Math.random() * 3),
+      Math.floor(Math.random() * 12),
+      Math.floor(Math.random() * 28) + 1
+    )
+    const deletedAt =
+      status === "DROP"
+        ? new Date(
+            createdAt.getTime() + (Math.floor(Math.random() * 200) + 1) * 86400000
+          ).toISOString()
+        : null
 
     return {
       id: String(i + 1),
@@ -78,14 +110,88 @@ const generateMockUsers = (): MockUser[] => {
       department: departments[Math.floor(Math.random() * departments.length)],
       status,
       academicStatus,
-      joinedAt: joinedDate.toISOString(),
+      createdAt: createdAt.toISOString(),
       roles: initialRolesForStatus(status),
       rejectionOrDropReason: initialRejectionReasonForStatus(status),
+      deletedAt,
     }
   })
 }
 
 const mockUsers = generateMockUsers()
+
+export function upsertMockUserFromAdmission(admission: AdmissionSummary) {
+  const existingUser = mockUsers.find(
+    (user) => user.studentNo === admission.requestedStudentId
+  )
+
+  if (existingUser) {
+    existingUser.name = admission.userName
+    existingUser.department = admission.requestedDepartment
+    existingUser.academicStatus = admission.requestedAcademicStatus
+    existingUser.status = "ACTIVE"
+    existingUser.createdAt = admission.createdAt
+    existingUser.deletedAt = null
+    existingUser.rejectionOrDropReason = null
+    return
+  }
+
+  mockUsers.unshift({
+    id: `approved-${admission.id}`,
+    studentNo: admission.requestedStudentId,
+    name: admission.userName,
+    department: admission.requestedDepartment,
+    status: "ACTIVE",
+    academicStatus: admission.requestedAcademicStatus,
+    createdAt: admission.createdAt,
+    roles: ["COMMON"],
+    rejectionOrDropReason: null,
+    deletedAt: null,
+  })
+}
+
+function sortUsers(users: MockUser[], sortBy: UserListSortBy | undefined) {
+  switch (sortBy) {
+    case "CREATED_AT_ASC":
+      return users.sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+    case "NAME_ASC":
+      return users.sort((a, b) => a.name.localeCompare(b.name, "ko-KR"))
+    case "NAME_DSC":
+      return users.sort((a, b) => b.name.localeCompare(a.name, "ko-KR"))
+    case "STUDENT_ID_ASC":
+      return users.sort((a, b) => a.studentNo.localeCompare(b.studentNo))
+    case "CREATED_AT_DESC":
+    default:
+      return users.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+  }
+}
+
+function sortDeletedUsers(
+  users: MockUser[],
+  sortBy: DeletedUserListSortBy | undefined
+) {
+  switch (sortBy) {
+    case "DELETED_AT_ASC":
+      return users.sort(
+        (a, b) =>
+          new Date(a.deletedAt ?? a.createdAt).getTime() -
+          new Date(b.deletedAt ?? b.createdAt).getTime()
+      )
+    case "NAME_ASC":
+      return users.sort((a, b) => a.name.localeCompare(b.name, "ko-KR"))
+    case "DELETED_AT_DESC":
+    default:
+      return users.sort(
+        (a, b) =>
+          new Date(b.deletedAt ?? b.createdAt).getTime() -
+          new Date(a.deletedAt ?? a.createdAt).getTime()
+      )
+  }
+}
 
 // Mock API 함수들
 export const mockUserApi = {
@@ -102,7 +208,8 @@ export const mockUserApi = {
       filteredUsers = filteredUsers.filter(
         (user) =>
           user.name.toLowerCase().includes(keyword) ||
-          user.studentNo.includes(keyword)
+          user.studentNo.includes(keyword) ||
+          `${user.studentNo}@dongne.ac.kr`.toLowerCase().includes(keyword)
       )
     }
 
@@ -114,10 +221,12 @@ export const mockUserApi = {
     }
 
     // 상태 필터링
-    if (params.status && params.status !== "ALL") {
+    if (params.states?.length) {
       filteredUsers = filteredUsers.filter(
-        (user) => user.status === params.status
+        (user) => params.states?.includes(user.status)
       )
+    } else {
+      filteredUsers = filteredUsers.filter((user) => user.status === "ACTIVE")
     }
 
     // 학적 상태 필터링
@@ -127,10 +236,19 @@ export const mockUserApi = {
       )
     }
 
-    // 정렬 (기본: 가입일 내림차순)
-    filteredUsers.sort((a, b) => {
-      return new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime()
-    })
+    if (params.admissionYearFrom != null) {
+      filteredUsers = filteredUsers.filter(
+        (user) => Number(user.studentNo.slice(0, 4)) >= params.admissionYearFrom!
+      )
+    }
+
+    if (params.admissionYearTo != null) {
+      filteredUsers = filteredUsers.filter(
+        (user) => Number(user.studentNo.slice(0, 4)) <= params.admissionYearTo!
+      )
+    }
+
+    sortUsers(filteredUsers, params.sortBy)
 
     // 페이지네이션
     const page = params.page || 0
@@ -144,7 +262,68 @@ export const mockUserApi = {
       totalElements: filteredUsers.length,
       totalPages: Math.ceil(filteredUsers.length / size),
       size,
-      number: page,
+      currentPage: page,
+      hasNext: end < filteredUsers.length,
+      hasPrev: page > 0,
+    }
+  },
+
+  getDeletedUsers: async (
+    params: DeletedUserListParams
+  ): Promise<DeletedUserListResponse> => {
+    await new Promise((resolve) => setTimeout(resolve, 400))
+
+    let filteredUsers = mockUsers.filter((user) => user.deletedAt != null)
+
+    if (params.keyword) {
+      const keyword = params.keyword.toLowerCase()
+      filteredUsers = filteredUsers.filter(
+        (user) =>
+          user.name.toLowerCase().includes(keyword) ||
+          user.studentNo.includes(keyword) ||
+          `${user.studentNo}@dongne.ac.kr`.toLowerCase().includes(keyword)
+      )
+    }
+
+    if (params.department) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.department === params.department
+      )
+    }
+
+    if (params.academicStatus && params.academicStatus !== "ALL") {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.academicStatus === params.academicStatus
+      )
+    }
+
+    if (params.admissionYearFrom != null) {
+      filteredUsers = filteredUsers.filter(
+        (user) => Number(user.studentNo.slice(0, 4)) >= params.admissionYearFrom!
+      )
+    }
+
+    if (params.admissionYearTo != null) {
+      filteredUsers = filteredUsers.filter(
+        (user) => Number(user.studentNo.slice(0, 4)) <= params.admissionYearTo!
+      )
+    }
+
+    sortDeletedUsers(filteredUsers, params.sortBy)
+
+    const page = params.page || 0
+    const size = params.size || 10
+    const start = page * size
+    const end = start + size
+
+    return {
+      content: filteredUsers.slice(start, end).map(toDeletedUserSummary),
+      totalElements: filteredUsers.length,
+      totalPages: Math.ceil(filteredUsers.length / size),
+      size,
+      currentPage: page,
+      hasNext: end < filteredUsers.length,
+      hasPrev: page > 0,
     }
   },
 
@@ -171,7 +350,7 @@ export const mockUserApi = {
       academicStatus: user.academicStatus,
       phoneNumber: `010-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}-${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`,
       rejectionOrDropReason: user.rejectionOrDropReason,
-      createdAt: user.joinedAt,
+      createdAt: user.createdAt,
     }
   },
 
@@ -183,6 +362,7 @@ export const mockUserApi = {
       user.status = "ACTIVE"
       user.roles = ["COMMON"]
       user.rejectionOrDropReason = null
+      user.deletedAt = null
     }
   },
 
@@ -210,6 +390,7 @@ export const mockUserApi = {
       user.status = "DROP"
       user.roles = ["NONE"]
       user.rejectionOrDropReason = dropReason
+      user.deletedAt = new Date().toISOString()
       return {
         id: user.id,
         state: "DROP",
@@ -228,6 +409,7 @@ export const mockUserApi = {
       user.status = "ACTIVE"
       user.roles = ["COMMON"]
       user.rejectionOrDropReason = null
+      user.deletedAt = null
       return {
         id: user.id,
         state: "ACTIVE",
@@ -255,4 +437,3 @@ export const mockUserApi = {
     throw new Error("User not found")
   },
 }
-

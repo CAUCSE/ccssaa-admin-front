@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, RotateCcw } from "lucide-react"
+import { RotateCcw, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -13,46 +13,22 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import {
   ACADEMIC_STATUS_CONFIG,
   DEPARTMENT_CONFIG,
   isAcademicStatus,
-  isUserStatus,
-  type UserListSortBy,
-  type UserStatus,
   type AcademicStatus,
+  type DeletedUserListSortBy,
 } from "@/types/user"
 
-const USER_STATE_OPTIONS: { value: UserStatus; label: string }[] = [
-  { value: "ACTIVE", label: "활성" },
-  { value: "AWAIT", label: "대기" },
-  { value: "DROP", label: "추방" },
-  { value: "REJECT", label: "거부" },
-  { value: "GUEST", label: "게스트" },
-]
-
-const SORT_OPTIONS: { value: UserListSortBy; label: string }[] = [
-  { value: "CREATED_AT_DESC", label: "가입일 최신순" },
-  { value: "CREATED_AT_ASC", label: "가입일 오래된순" },
+const SORT_OPTIONS: { value: DeletedUserListSortBy; label: string }[] = [
+  { value: "DELETED_AT_DESC", label: "삭제일 최신순" },
+  { value: "DELETED_AT_ASC", label: "삭제일 오래된순" },
   { value: "NAME_ASC", label: "이름 오름차순" },
-  { value: "NAME_DSC", label: "이름 내림차순" },
-  { value: "STUDENT_ID_ASC", label: "학번 오름차순" },
 ]
 
-const DEFAULT_STATES: UserStatus[] = ["ACTIVE"]
-
-function parseStates(value: string | null): UserStatus[] {
-  const states = value
-    ?.split(",")
-    .map((item) => item.trim())
-    .filter(isUserStatus)
-
-  return states?.length ? states : DEFAULT_STATES
-}
-
-export function UserFilter() {
+export function DeletedUserFilter() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -61,8 +37,7 @@ export function UserFilter() {
   const [academicStatus, setAcademicStatus] = useState<AcademicStatus | "ALL">("ALL")
   const [admissionYearFrom, setAdmissionYearFrom] = useState("")
   const [admissionYearTo, setAdmissionYearTo] = useState("")
-  const [sortBy, setSortBy] = useState<UserListSortBy>("CREATED_AT_DESC")
-  const [states, setStates] = useState<UserStatus[]>(DEFAULT_STATES)
+  const [sortBy, setSortBy] = useState<DeletedUserListSortBy>("DELETED_AT_DESC")
 
   useEffect(() => {
     setKeyword(searchParams.get("keyword") || "")
@@ -81,14 +56,12 @@ export function UserFilter() {
     const nextSortBy = searchParams.get("sortBy")
     setSortBy(
       SORT_OPTIONS.some((option) => option.value === nextSortBy)
-        ? (nextSortBy as UserListSortBy)
-        : "CREATED_AT_DESC"
+        ? (nextSortBy as DeletedUserListSortBy)
+        : "DELETED_AT_DESC"
     )
-
-    setStates(parseStates(searchParams.get("states")))
   }, [searchParams])
 
-  const pushSearch = (nextStates: UserStatus[]) => {
+  const handleSearch = () => {
     const params = new URLSearchParams()
 
     if (keyword.trim()) {
@@ -96,9 +69,6 @@ export function UserFilter() {
     }
     if (department !== "ALL") {
       params.set("department", department)
-    }
-    if (nextStates.length) {
-      params.set("states", nextStates.join(","))
     }
     if (academicStatus !== "ALL") {
       params.set("academicStatus", academicStatus)
@@ -109,35 +79,22 @@ export function UserFilter() {
     if (admissionYearTo.trim()) {
       params.set("admissionYearTo", admissionYearTo.trim())
     }
-    if (sortBy !== "CREATED_AT_DESC") {
+    if (sortBy !== "DELETED_AT_DESC") {
       params.set("sortBy", sortBy)
     }
 
     const query = params.toString()
-    router.push(query ? `/users?${query}` : "/users")
-  }
-
-  const handleSearch = () => {
-    pushSearch(states.length ? states : DEFAULT_STATES)
+    router.push(query ? `/users/deleted?${query}` : "/users/deleted")
   }
 
   const handleReset = () => {
     setKeyword("")
     setDepartment("ALL")
-    setStates(DEFAULT_STATES)
     setAcademicStatus("ALL")
     setAdmissionYearFrom("")
     setAdmissionYearTo("")
-    setSortBy("CREATED_AT_DESC")
-    router.push("/users")
-  }
-
-  const handleStateToggle = (target: UserStatus, checked: boolean) => {
-    const nextStates = checked
-      ? Array.from(new Set([...states, target]))
-      : states.filter((state) => state !== target)
-
-    setStates(nextStates)
+    setSortBy("DELETED_AT_DESC")
+    router.push("/users/deleted")
   }
 
   const handleKeywordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -152,9 +109,9 @@ export function UserFilter() {
         <div className="space-y-5">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
             <div className="space-y-2">
-              <Label htmlFor="user-keyword">검색</Label>
+              <Label htmlFor="deleted-user-keyword">검색</Label>
               <Input
-                id="user-keyword"
+                id="deleted-user-keyword"
                 placeholder="학번, 이름, 이메일 검색"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
@@ -201,7 +158,7 @@ export function UserFilter() {
 
             <div className="space-y-2">
               <Label>정렬</Label>
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as UserListSortBy)}>
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as DeletedUserListSortBy)}>
                 <SelectTrigger>
                   <SelectValue placeholder="정렬 기준" />
                 </SelectTrigger>
@@ -216,45 +173,23 @@ export function UserFilter() {
             </div>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_auto] lg:items-end">
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div className="space-y-2">
-                <Label>회원 상태</Label>
-                <div className="flex flex-wrap gap-x-4 gap-y-3 rounded-md border px-3 py-3">
-                  {USER_STATE_OPTIONS.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-center gap-2 text-sm text-foreground"
-                    >
-                      <Checkbox
-                        checked={states.includes(option.value)}
-                        onCheckedChange={(checked) =>
-                          handleStateToggle(option.value, checked)
-                        }
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>입학년도</Label>
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                  <Input
-                    inputMode="numeric"
-                    placeholder="예: 2020"
-                    value={admissionYearFrom}
-                    onChange={(e) => setAdmissionYearFrom(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  />
-                  <span className="text-sm text-muted-foreground">~</span>
-                  <Input
-                    inputMode="numeric"
-                    placeholder="예: 2023"
-                    value={admissionYearTo}
-                    onChange={(e) => setAdmissionYearTo(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  />
-                </div>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div className="space-y-2">
+              <Label>입학년도</Label>
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 md:max-w-md">
+                <Input
+                  inputMode="numeric"
+                  placeholder="예: 2020"
+                  value={admissionYearFrom}
+                  onChange={(e) => setAdmissionYearFrom(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                />
+                <span className="text-sm text-muted-foreground">~</span>
+                <Input
+                  inputMode="numeric"
+                  placeholder="예: 2023"
+                  value={admissionYearTo}
+                  onChange={(e) => setAdmissionYearTo(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                />
               </div>
             </div>
 

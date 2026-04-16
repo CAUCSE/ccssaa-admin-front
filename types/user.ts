@@ -16,6 +16,16 @@ export type UserRole =
   | "NONE"
 export type AcademicStatus = "ENROLLED" | "GRADUATED" | "UNDETERMINED"
 export type Department = "DEPT_OF_AI" | "SCHOOL_OF_SW" | "SCHOOL_OF_CSE" | "DEPT_OF_CSE" | "DEPT_OF_CS"
+export type UserListSortBy =
+  | "CREATED_AT_DESC"
+  | "CREATED_AT_ASC"
+  | "NAME_ASC"
+  | "NAME_DSC"
+  | "STUDENT_ID_ASC"
+export type DeletedUserListSortBy =
+  | "DELETED_AT_DESC"
+  | "DELETED_AT_ASC"
+  | "NAME_ASC"
 
 // ============ Configuration & Constants ============
 
@@ -95,10 +105,12 @@ export interface UserSummary {
   id: string
   studentNo: string
   name: string
+  email: string
+  admissionYear: number
   department: Department
   status: UserStatus
   academicStatus: AcademicStatus
-  joinedAt: string
+  createdAt: string
 }
 
 export interface UserDetail {
@@ -140,9 +152,12 @@ export interface UserListParams {
   page?: number
   size?: number
   keyword?: string
+  states?: UserStatus[]
   department?: Department
-  status?: UserStatus | "ALL"
   academicStatus?: AcademicStatus | "ALL"
+  admissionYearFrom?: number
+  admissionYearTo?: number
+  sortBy?: UserListSortBy
 }
 
 export interface UserListResponse {
@@ -150,7 +165,43 @@ export interface UserListResponse {
   totalElements: number
   totalPages: number
   size: number
-  number: number
+  currentPage: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+export interface DeletedUserSummary {
+  id: string
+  name: string
+  email: string
+  studentNo: string
+  admissionYear: number
+  department: Department
+  userState: UserStatus
+  academicStatus: AcademicStatus
+  deletedAt: string
+  dropReason: string | null
+}
+
+export interface DeletedUserListParams {
+  page?: number
+  size?: number
+  keyword?: string
+  department?: Department
+  academicStatus?: AcademicStatus | "ALL"
+  admissionYearFrom?: number
+  admissionYearTo?: number
+  sortBy?: DeletedUserListSortBy
+}
+
+export interface DeletedUserListResponse {
+  content: DeletedUserSummary[]
+  totalElements: number
+  totalPages: number
+  size: number
+  currentPage: number
+  hasNext: boolean
+  hasPrev: boolean
 }
 
 /** 관리자 유저 ID (UUID 문자열) */
