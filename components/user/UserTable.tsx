@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { ArrowRight } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -15,8 +15,6 @@ import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserSummary, AcademicStatus } from "@/types/user"
 import { ACADEMIC_STATUS_CONFIG, DEPARTMENT_CONFIG } from "@/types/user"
-import { ChevronUp, ChevronDown, ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface UserTableProps {
   data: UserSummary[]
@@ -25,35 +23,9 @@ interface UserTableProps {
   totalElements: number
   pageSize: number
   onPageChange: (page: number) => void
-  sortBy?: string
-  sortOrder?: "asc" | "desc"
-  onSort: (field: string) => void
   isLoading?: boolean
 }
 
-/**
- * UserTable 컴포넌트
- * 회원 목록을 테이블 형태로 표시하는 컴포넌트입니다.
- * 
- * 기능:
- * - 회원 목록 표시 (학번, 이름, 학과, 상태, 학적 상태)
- * - 정렬 기능 (학번, 이름, 학과, 상태, 학적 상태)
- * - 페이지네이션
- * - 로딩 상태 표시
- * - Empty State 처리
- * - 행 클릭 시 상세 페이지로 이동
- * 
- * @param data - 표시할 회원 데이터 배열
- * @param currentPage - 현재 페이지 번호
- * @param totalPages - 전체 페이지 수
- * @param totalElements - 전체 항목 수
- * @param pageSize - 페이지당 항목 수
- * @param onPageChange - 페이지 변경 핸들러
- * @param sortBy - 현재 정렬 필드
- * @param sortOrder - 정렬 순서 (asc/desc)
- * @param onSort - 정렬 핸들러
- * @param isLoading - 로딩 상태
- */
 export function UserTable({
   data,
   currentPage,
@@ -61,9 +33,6 @@ export function UserTable({
   totalElements,
   pageSize,
   onPageChange,
-  sortBy,
-  sortOrder,
-  onSort,
   isLoading,
 }: UserTableProps) {
   const router = useRouter()
@@ -76,19 +45,13 @@ export function UserTable({
     return ACADEMIC_STATUS_CONFIG[status] ?? ""
   }
 
-  const getSortIcon = (field: string) => {
-    if (sortBy !== field) {
-      return null
-    }
-    return sortOrder === "asc" ? (
-      <ChevronUp className="h-4 w-4" />
-    ) : (
-      <ChevronDown className="h-4 w-4" />
-    )
-  }
-
-  const handleSort = (field: string) => {
-    onSort(field)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
   }
 
   const startIndex = (currentPage - 1) * pageSize
@@ -100,9 +63,9 @@ export function UserTable({
           <Table>
             <TableHeader>
               <TableRow>
-                {Array.from({ length: 7 }).map((_, i) => (
+                {Array.from({ length: 10 }).map((_, i) => (
                   <TableHead key={i}>
-                    <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-20 animate-pulse rounded bg-muted" />
                   </TableHead>
                 ))}
               </TableRow>
@@ -110,9 +73,9 @@ export function UserTable({
             <TableBody>
               {Array.from({ length: 10 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 7 }).map((_, j) => (
+                  {Array.from({ length: 10 }).map((_, j) => (
                     <TableCell key={j}>
-                      <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                      <div className="h-4 w-24 animate-pulse rounded bg-muted" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -134,64 +97,29 @@ export function UserTable({
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground md:hidden">
+        표가 길어 좌우로 스크롤할 수 있습니다.
+      </p>
       <div className="rounded-md border">
-        <Table>
+        <Table className="min-w-[1100px]">
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center w-16">
-                No
-              </TableHead>
-              <TableHead className="text-center">
-                <button
-                  onClick={() => handleSort("studentNo")}
-                  className="flex items-center justify-center gap-1 hover:text-foreground"
-                >
-                  학번
-                  {getSortIcon("studentNo")}
-                </button>
-              </TableHead>
-              <TableHead className="text-left">
-                <button
-                  onClick={() => handleSort("name")}
-                  className="flex items-center gap-1 hover:text-foreground"
-                >
-                  이름
-                  {getSortIcon("name")}
-                </button>
-              </TableHead>
-              <TableHead className="text-left">
-                <button
-                  onClick={() => handleSort("department")}
-                  className="flex items-center gap-1 hover:text-foreground"
-                >
-                  학과
-                  {getSortIcon("department")}
-                </button>
-              </TableHead>
-              <TableHead className="text-center">
-                <button
-                  onClick={() => handleSort("status")}
-                  className="flex items-center justify-center gap-1 hover:text-foreground"
-                >
-                  상태
-                  {getSortIcon("status")}
-                </button>
-              </TableHead>
-              <TableHead className="text-center">
-                <button
-                  onClick={() => handleSort("academicStatus")}
-                  className="flex items-center justify-center gap-1 hover:text-foreground"
-                >
-                  학적 상태
-                  {getSortIcon("academicStatus")}
-                </button>
-              </TableHead>
+              <TableHead className="w-16 text-center">No</TableHead>
+              <TableHead className="text-center">학번</TableHead>
+              <TableHead className="text-left">이름</TableHead>
+              <TableHead className="text-left">이메일</TableHead>
+              <TableHead className="text-center">입학년도</TableHead>
+              <TableHead className="text-left">학과</TableHead>
+              <TableHead className="text-center">상태</TableHead>
+              <TableHead className="text-center">학적 상태</TableHead>
+              <TableHead className="text-center">가입일</TableHead>
               <TableHead className="text-center">관리</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((user, index) => {
               const statusBadge = getStatusBadge(user.status)
+
               return (
                 <TableRow
                   key={user.id}
@@ -204,17 +132,25 @@ export function UserTable({
                   <TableCell className="text-center font-mono">
                     {user.studentNo}
                   </TableCell>
-                  <TableCell className="text-left">{user.name}</TableCell>
+                  <TableCell className="text-left font-medium">{user.name}</TableCell>
+                  <TableCell className="max-w-[220px] text-left text-muted-foreground">
+                    <span className="block truncate">{user.email}</span>
+                  </TableCell>
+                  <TableCell className="text-center">{user.admissionYear}</TableCell>
                   <TableCell className="text-left">{getDepartmentLabel(user.department)}</TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={statusBadge.variant}>
-                      {statusBadge.label}
-                    </Badge>
+                    <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     {getAcademicStatusLabel(user.academicStatus)}
                   </TableCell>
-                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-center text-muted-foreground">
+                    {formatDate(user.createdAt)}
+                  </TableCell>
+                  <TableCell
+                    className="text-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Button
                       variant="ghost"
                       size="sm"
@@ -230,7 +166,6 @@ export function UserTable({
         </Table>
       </div>
 
-      {/* Pagination */}
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="text-sm text-muted-foreground">
           총 {totalElements}명 중 {startIndex + 1}-{Math.min(startIndex + pageSize, totalElements)}명 표시
@@ -256,6 +191,7 @@ export function UserTable({
               } else {
                 pageNum = currentPage - 2 + i
               }
+
               return (
                 <Button
                   key={pageNum}
@@ -281,4 +217,3 @@ export function UserTable({
     </div>
   )
 }
-

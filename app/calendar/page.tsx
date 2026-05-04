@@ -158,10 +158,6 @@ function CalendarPageContent() {
     }
   }
 
-  if (error) {
-    return <ErrorMessage message="데이터를 불러오는 중 오류가 발생했습니다." />
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -205,7 +201,9 @@ function CalendarPageContent() {
         onTypeChange={viewMode === "calendar" ? setSelectedTypes : undefined}
       />
 
-      {viewMode === "list" ? (
+      {error ? (
+        <ErrorMessage message="데이터를 불러오는 중 오류가 발생했습니다." />
+      ) : viewMode === "list" ? (
         data ? (
           <CalendarTable
             data={data.data}

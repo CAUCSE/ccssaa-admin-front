@@ -2,8 +2,8 @@ export type CalendarType =
   | "ACADEMIC" 
   | "DEPARTMENT" 
   | "CCSSAA" 
+  | "COMPETITION"
   | "STUDENT_COUNCIL" 
-  | "COMPETITION" 
   | "HOLIDAY"
 
 export interface CalendarEvent {
@@ -12,6 +12,7 @@ export interface CalendarEvent {
   type: CalendarType
   start: string
   end: string
+  targetPostId?: number
 }
 
 export interface CalendarListParams {
@@ -30,6 +31,7 @@ export interface CreateCalendarEventRequest {
   type: CalendarType
   start: string
   end: string
+  targetPostId?: number
 }
 
 export interface UpdateCalendarEventRequest {
@@ -37,4 +39,5 @@ export interface UpdateCalendarEventRequest {
   type: CalendarType
   start: string
   end: string
+  targetPostId?: number
 }

@@ -1,9 +1,31 @@
 // ============ Types ============
 
-export type UserStatus = "AWAIT" | "ACTIVE" | "DROP" | "INACTIVE" | "REJECT"
-export type UserRole = "USER" | "ADMIN" | "MASTER"
+export type UserStatus = "AWAIT" | "ACTIVE" | "DROP" | "REJECT" | "GUEST"
+export type UserRole =
+  | "ADMIN"
+  | "PRESIDENT"
+  | "VICE_PRESIDENT"
+  | "COUNCIL"
+  | "LEADER_1"
+  | "LEADER_2"
+  | "LEADER_3"
+  | "LEADER_4"
+  | "LEADER_ALUMNI"
+  | "ALUMNI_MANAGER"
+  | "COMMON"
+  | "NONE"
 export type AcademicStatus = "ENROLLED" | "GRADUATED" | "UNDETERMINED"
 export type Department = "DEPT_OF_AI" | "SCHOOL_OF_SW" | "SCHOOL_OF_CSE" | "DEPT_OF_CSE" | "DEPT_OF_CS"
+export type UserListSortBy =
+  | "CREATED_AT_DESC"
+  | "CREATED_AT_ASC"
+  | "NAME_ASC"
+  | "NAME_DSC"
+  | "STUDENT_ID_ASC"
+export type DeletedUserListSortBy =
+  | "DELETED_AT_DESC"
+  | "DELETED_AT_ASC"
+  | "NAME_ASC"
 
 // ============ Configuration & Constants ============
 
@@ -26,11 +48,11 @@ export const USER_STATUS_CONFIG = {
   },
   DROP: {
     label: "추방",
-    className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
   },
-  INACTIVE: {
-    label: "탈퇴",
-    className: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+  GUEST: {
+    label: "게스트",
+    className: "bg-gray-200 text-white dark:bg-gray-700 dark:text-white",
   },
   REJECT: {
     label: "거부",
@@ -39,9 +61,18 @@ export const USER_STATUS_CONFIG = {
 } as const
 
 export const USER_ROLE_CONFIG = {
-  USER: "일반 회원",
   ADMIN: "관리자",
-  MASTER: "마스터",
+  PRESIDENT: "학생회장",
+  VICE_PRESIDENT: "부학생회장",
+  COUNCIL: "학생회",
+  LEADER_1: "1학년 대표",
+  LEADER_2: "2학년 대표",
+  LEADER_3: "3학년 대표",
+  LEADER_4: "4학년 대표",
+  LEADER_ALUMNI: "동문회장",
+  ALUMNI_MANAGER: "크자회 운영자",
+  COMMON: "일반",
+  NONE: "없음",
 } as const
 
 export const ACADEMIC_STATUS_CONFIG = {
@@ -61,7 +92,7 @@ export const DEPARTMENT_CONFIG = {
 // ============ Type Guards ============
 
 export function isUserStatus(value: unknown): value is UserStatus {
-  return typeof value === "string" && ["AWAIT", "ACTIVE", "DROP", "INACTIVE", "REJECT"].includes(value)
+  return typeof value === "string" && ["AWAIT", "ACTIVE", "DROP", "REJECT", "GUEST"].includes(value)
 }
 
 export function isAcademicStatus(value: unknown): value is AcademicStatus {
@@ -74,10 +105,12 @@ export interface UserSummary {
   id: string
   studentNo: string
   name: string
+  email: string
+  admissionYear: number
   department: Department
   status: UserStatus
   academicStatus: AcademicStatus
-  joinedAt: string
+  createdAt: string
 }
 
 export interface UserDetail {
@@ -97,13 +130,34 @@ export interface UserDetail {
   createdAt: string
 }
 
+export interface UserRoleUpdateResult {
+  id: string
+  roles: UserRole[]
+}
+
+export interface UserRestoreResult {
+  id: string
+  state: UserStatus
+  roles: UserRole[]
+}
+
+export interface UserDropResult {
+  id: string
+  state: UserStatus
+  roles: UserRole[]
+  dropReason: string
+}
+
 export interface UserListParams {
   page?: number
   size?: number
   keyword?: string
+  states?: UserStatus[]
   department?: Department
-  status?: UserStatus | "ALL"
   academicStatus?: AcademicStatus | "ALL"
+  admissionYearFrom?: number
+  admissionYearTo?: number
+  sortBy?: UserListSortBy
 }
 
 export interface UserListResponse {
@@ -111,10 +165,46 @@ export interface UserListResponse {
   totalElements: number
   totalPages: number
   size: number
-  number: number
+  currentPage: number
+  hasNext: boolean
+  hasPrev: boolean
 }
 
-/** v2 API 관리자 유저 ID (UUID 문자열). v1 UserSummary/UserDetail의 id(number)와 구분. */
+export interface DeletedUserSummary {
+  id: string
+  name: string
+  email: string
+  studentNo: string
+  admissionYear: number
+  department: Department
+  userState: UserStatus
+  academicStatus: AcademicStatus
+  deletedAt: string
+  dropReason: string | null
+}
+
+export interface DeletedUserListParams {
+  page?: number
+  size?: number
+  keyword?: string
+  department?: Department
+  academicStatus?: AcademicStatus | "ALL"
+  admissionYearFrom?: number
+  admissionYearTo?: number
+  sortBy?: DeletedUserListSortBy
+}
+
+export interface DeletedUserListResponse {
+  content: DeletedUserSummary[]
+  totalElements: number
+  totalPages: number
+  size: number
+  currentPage: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+/** 관리자 유저 ID (UUID 문자열) */
 export type UserIdV2 = string
 
 /** GET /api/v2/admin/users/search 검색 파라미터 (query) */

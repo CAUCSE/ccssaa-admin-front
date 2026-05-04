@@ -61,3 +61,15 @@ lerna-debug.log*
 # Redis
 dump.rdb
 appendonly.aof
+
+.claude/**
+.bkit/**
+CLAUDE.md
+.bkit-memory.json
+
+docs
+.mcp.json
+
+.codex
+
+.playwright-mcp

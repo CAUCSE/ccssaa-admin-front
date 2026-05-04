@@ -1,6 +1,6 @@
 /**
  * API 에러에서 응답 message 추출
- * v2: { code, message }, v1: { errorCode, message }, Axios response.data
+ * 서버 응답 형태와 무관하게 message를 우선 추출한다.
  */
 
 import type { AxiosError } from "axios"

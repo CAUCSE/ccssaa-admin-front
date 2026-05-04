@@ -1,35 +1,48 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { Skeleton } from "@/components/ui/skeleton"
 import { ReportFilter } from "@/components/report/ReportFilter"
 import { ReportTable } from "@/components/report/ReportTable"
-import { useReports } from "@/hooks/useReports"
-import type { ReportListParams, ReportTargetType, ReportStatus } from "@/types/report"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useReportedUsers } from "@/hooks/useReports"
+import {
+  isAcademicStatus,
+  type AcademicStatus,
+} from "@/types/user"
+import type { ReportedUserListParams } from "@/types/report"
 
 function ReportsPageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
 
-  const params: ReportListParams = {
-    page: page - 1, // API는 0-based
-    size: 10,
-    targetType:
-      (searchParams.get("targetType") as ReportTargetType | "ALL") || undefined,
-    status: (searchParams.get("status") as ReportStatus | "ALL") || undefined,
-  }
+  const params: ReportedUserListParams = useMemo(() => {
+    const academicStatusParam = searchParams.get("academicStatus")
+    const academicStatus =
+      academicStatusParam && isAcademicStatus(academicStatusParam)
+        ? academicStatusParam
+        : undefined
 
-  const { data, isLoading, error } = useReports(params)
+    return {
+      keyword: searchParams.get("keyword") || undefined,
+      state: "ACTIVE",
+      academicStatus: academicStatus as AcademicStatus | undefined,
+      page: page - 1,
+      size: 10,
+      sort: searchParams.get("sort") || undefined,
+    }
+  }, [page, searchParams])
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+  const { data, isLoading, error } = useReportedUsers(params)
 
   useEffect(() => {
-    setPage(1) // 필터 변경 시 첫 페이지로
+    setPage(1)
   }, [searchParams])
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   if (error) {
     return (
@@ -42,9 +55,9 @@ function ReportsPageContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-2">신고 관리</h1>
+        <h1 className="text-2xl font-bold mb-2">신고 회원 관리</h1>
         <p className="text-muted-foreground">
-          신고 내역을 확인하고 처리할 수 있습니다.
+          신고된 ACTIVE 회원을 조회하고, 해당 회원의 신고된 게시글과 댓글을 상세 페이지에서 확인합니다.
         </p>
       </div>
 
@@ -71,9 +84,10 @@ export default function ReportsPage() {
       fallback={
         <div className="space-y-6">
           <div>
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-64" />
+            <Skeleton className="mb-2 h-8 w-48" />
+            <Skeleton className="h-4 w-96" />
           </div>
+          <Skeleton className="h-40 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>
       }
@@ -82,4 +96,3 @@ export default function ReportsPage() {
     </Suspense>
   )
 }
-

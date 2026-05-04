@@ -1,42 +1,59 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import { UserFilter } from "@/components/user/UserFilter"
 import { UserTable } from "@/components/user/UserTable"
 import { useUsers } from "@/hooks/useUsers"
-import type { UserListParams, UserStatus, AcademicStatus, Department } from "@/types/user"
+import {
+  isAcademicStatus,
+  isUserStatus,
+  type UserListParams,
+  type UserListSortBy,
+  type AcademicStatus,
+  type Department,
+} from "@/types/user"
 import { Skeleton } from "@/components/ui/skeleton"
 
 function UsersPageContent() {
   const searchParams = useSearchParams()
   const [page, setPage] = useState(1)
-  const [sortBy, setSortBy] = useState<string>("")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
 
-  const params: UserListParams = {
-    page: page - 1, // API는 0-based
-    size: 10,
-    keyword: searchParams.get("keyword") || undefined,
-    department: (searchParams.get("department") as Department) || undefined,
-    status: (searchParams.get("status") as UserStatus) || undefined,
-    academicStatus: (searchParams.get("academicStatus") as AcademicStatus) || undefined,
-  }
+  const params: UserListParams = useMemo(() => {
+    const statesParam = searchParams.get("states")
+    const states = statesParam
+      ?.split(",")
+      .map((state) => state.trim())
+      .filter(isUserStatus)
+
+    const academicStatusParam = searchParams.get("academicStatus")
+    const academicStatus =
+      academicStatusParam && isAcademicStatus(academicStatusParam)
+        ? academicStatusParam
+        : undefined
+
+    const admissionYearFrom = searchParams.get("admissionYearFrom")
+    const admissionYearTo = searchParams.get("admissionYearTo")
+    const sortBy = (searchParams.get("sortBy") as UserListSortBy | null) ?? "CREATED_AT_DESC"
+
+    return {
+      page: page - 1,
+      size: 10,
+      keyword: searchParams.get("keyword") || undefined,
+      department: (searchParams.get("department") as Department) || undefined,
+      states: states?.length ? states : ["ACTIVE"],
+      academicStatus: academicStatus as AcademicStatus | undefined,
+      admissionYearFrom: admissionYearFrom ? Number(admissionYearFrom) : undefined,
+      admissionYearTo: admissionYearTo ? Number(admissionYearTo) : undefined,
+      sortBy,
+    }
+  }, [page, searchParams])
 
   const { data, isLoading, error } = useUsers(params)
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
     window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  const handleSort = (field: string) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-    } else {
-      setSortBy(field)
-      setSortOrder("asc")
-    }
   }
 
   useEffect(() => {
@@ -70,9 +87,6 @@ function UsersPageContent() {
           totalElements={data.totalElements}
           pageSize={data.size}
           onPageChange={handlePageChange}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          onSort={handleSort}
           isLoading={isLoading}
         />
       )}

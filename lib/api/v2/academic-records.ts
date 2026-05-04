@@ -2,8 +2,8 @@
  * v2 학적 상태 변경 요청 API (순수 v2 호출)
  * GET   /api/v2/admin/academic-records/applications (목록)
  * GET   /api/v2/admin/academic-records/applications/{applicationId} (상세)
- * PATCH /api/v2/admin/academic-records/applications/{applicationId}/approve (승인)
- * PATCH /api/v2/admin/academic-records/applications/{applicationId}/reject (거절)
+ * POST  /api/v2/admin/academic-records/applications/{applicationId}/approve (승인)
+ * POST  /api/v2/admin/academic-records/applications/{applicationId}/reject (거절)
  */
 
 import { apiV2 } from "./client"
@@ -53,8 +53,9 @@ export async function getAcademicRecordApplicationDetail(
 export async function approveAcademicRecordApplication(
   applicationId: string
 ): Promise<unknown> {
-  const res = await apiV2.patch<ApiResponse<unknown>>(
-    `/admin/academic-records/applications/${encodeURIComponent(applicationId)}/approve`
+  const res = await apiV2.post<ApiResponse<unknown>>(
+    `/admin/academic-records/applications/${encodeURIComponent(applicationId)}/approve`,
+    undefined
   )
   return unwrapV2(res)
 }
@@ -64,7 +65,7 @@ export async function rejectAcademicRecordApplication(
   applicationId: string,
   rejectReason: string
 ): Promise<unknown> {
-  const res = await apiV2.patch<ApiResponse<unknown>>(
+  const res = await apiV2.post<ApiResponse<unknown>>(
     `/admin/academic-records/applications/${encodeURIComponent(applicationId)}/reject`,
     { rejectReason }
   )

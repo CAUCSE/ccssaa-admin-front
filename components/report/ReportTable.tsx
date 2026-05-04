@@ -1,6 +1,9 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -9,13 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import type { Report } from "@/types/report"
-import { ArrowRight } from "lucide-react"
+import { ACADEMIC_STATUS_CONFIG } from "@/types/user"
+import { getStatusBadge } from "@/lib/utils/status-badge"
+import type { ReportedUserSummary } from "@/types/report"
 
 interface ReportTableProps {
-  data: Report[]
+  data: ReportedUserSummary[]
   currentPage: number
   totalPages: number
   totalElements: number
@@ -34,62 +36,33 @@ export function ReportTable({
   isLoading,
 }: ReportTableProps) {
   const router = useRouter()
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
-  }
-
-  const getTargetTypeLabel = (type: Report["targetType"]) => {
-    switch (type) {
-      case "POST":
-        return "게시글"
-      case "COMMENT":
-        return "댓글"
-      case "USER":
-        return "유저"
-      default:
-        return type
-    }
-  }
-
-  const getStatusBadgeVariant = (status: Report["status"]) => {
-    return status === "UNRESOLVED" ? "warning" : "success"
-  }
-
-  const getStatusLabel = (status: Report["status"]) => {
-    return status === "UNRESOLVED" ? "미처리" : "완료"
-  }
-
   const startIndex = (currentPage - 1) * pageSize
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <TableHead key={i}>
-                    <div className="h-4 w-20 bg-muted animate-pulse rounded" />
-                  </TableHead>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {Array.from({ length: 7 }).map((_, index) => (
+                <TableHead key={index}>
+                  <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 10 }).map((_, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {Array.from({ length: 7 }).map((_, cellIndex) => (
+                  <TableCell key={cellIndex}>
+                    <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                  </TableCell>
                 ))}
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <TableRow key={i}>
-                  {Array.from({ length: 6 }).map((_, j) => (
-                    <TableCell key={j}>
-                      <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     )
   }
@@ -97,74 +70,69 @@ export function ReportTable({
   if (data.length === 0) {
     return (
       <div className="rounded-md border p-12 text-center">
-        <p className="text-muted-foreground">조회된 신고가 없습니다.</p>
+        <p className="text-muted-foreground">조회된 신고 회원이 없습니다.</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border overflow-x-auto">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center w-16">No</TableHead>
-              <TableHead className="text-center">대상</TableHead>
-              <TableHead className="text-left">사유</TableHead>
-              <TableHead className="text-center">신고자</TableHead>
-              <TableHead className="text-center">접수일</TableHead>
-              <TableHead className="text-center">상태</TableHead>
+              <TableHead className="w-16 text-center">No</TableHead>
+              <TableHead className="text-center">학번</TableHead>
+              <TableHead className="text-left">이름</TableHead>
+              <TableHead className="text-center">학적 상태</TableHead>
+              <TableHead className="text-center">신고 건수</TableHead>
+              <TableHead className="text-center">회원 상태</TableHead>
+              <TableHead className="text-center">관리</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((report, index) => {
-              const handleRowClick = (e: React.MouseEvent) => {
-                e.preventDefault()
-                e.stopPropagation()
-                const reportPath = `/reports/${report.id}`
-                console.log("Navigating to report detail:", reportPath, "report.id:", report.id)
-                router.push(reportPath)
-              }
+            {data.map((user, index) => {
+              const statusBadge = getStatusBadge(user.userState)
+              const href = `/reports/${user.userId}?name=${encodeURIComponent(user.name)}&studentId=${encodeURIComponent(user.studentId)}&academicStatus=${encodeURIComponent(user.academicStatus)}&reportedCount=${user.reportedCount}&userState=${encodeURIComponent(user.userState)}`
 
               return (
                 <TableRow
-                  key={report.id}
+                  key={user.userId}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={handleRowClick}
+                  onClick={() => router.push(href)}
                 >
-                <TableCell className="text-center">
-                  {startIndex + index + 1}
-                </TableCell>
-                <TableCell className="text-center">
-                  {getTargetTypeLabel(report.targetType)}
-                </TableCell>
-                <TableCell className="text-left">
-                  <span className="max-w-[300px] truncate block">
-                    {report.reason}
-                  </span>
-                </TableCell>
-                <TableCell className="text-center">
-                  {report.reporter === "익명" ? "익명" : report.reporter}
-                </TableCell>
-                <TableCell className="text-center">
-                  {formatDateTime(report.createdAt)}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant={getStatusBadgeVariant(report.status)}>
-                    {getStatusLabel(report.status)}
-                  </Badge>
-                </TableCell>
-              </TableRow>
+                  <TableCell className="text-center">{startIndex + index + 1}</TableCell>
+                  <TableCell className="text-center font-mono">{user.studentId}</TableCell>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell className="text-center">
+                    {ACADEMIC_STATUS_CONFIG[user.academicStatus]}
+                  </TableCell>
+                  <TableCell className="text-center font-semibold">
+                    {user.reportedCount}건
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+                  </TableCell>
+                  <TableCell
+                    className="text-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => router.push(href)}>
+                        상세보기 <ArrowRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
               )
             })}
           </TableBody>
         </Table>
       </div>
 
-      {/* Pagination */}
       <div className="flex flex-col items-center justify-center gap-4">
         <div className="text-sm text-muted-foreground">
-          총 {totalElements}건 중 {startIndex + 1}-{Math.min(startIndex + pageSize, totalElements)}건 표시
+          총 {totalElements}명 중 {startIndex + 1}-{Math.min(startIndex + pageSize, totalElements)}명 표시
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -187,6 +155,7 @@ export function ReportTable({
               } else {
                 pageNum = currentPage - 2 + i
               }
+
               return (
                 <Button
                   key={pageNum}
@@ -212,4 +181,3 @@ export function ReportTable({
     </div>
   )
 }
-

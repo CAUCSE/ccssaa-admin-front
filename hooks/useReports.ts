@@ -1,51 +1,32 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { reportApi } from "@/lib/api/reports"
-import type { ReportListParams, ReportAction } from "@/types/report"
-import { toast } from "sonner"
-import { useApiErrorDialog } from "@/components/ApiErrorDialog"
+import type { ReportedUserContentParams, ReportedUserListParams } from "@/types/report"
 
-// 신고 리스트 조회
-export function useReports(params: ReportListParams) {
+export function useReportedUsers(params: ReportedUserListParams) {
   return useQuery({
-    queryKey: ["admin-reports", params],
-    queryFn: () => reportApi.getReports(params),
+    queryKey: ["reported-users", params],
+    queryFn: () => reportApi.getReportedUsers(params),
   })
 }
 
-// 신고 상세 조회
-export function useReportDetail(reportId: number) {
+export function useReportedUserPosts(
+  userId: string,
+  params: ReportedUserContentParams
+) {
   return useQuery({
-    queryKey: ["admin-report", reportId],
-    queryFn: () => reportApi.getReportDetail(reportId),
-    enabled: !!reportId,
+    queryKey: ["reported-user-posts", userId, params],
+    queryFn: () => reportApi.getReportedUserPosts(userId, params),
+    enabled: Boolean(userId),
   })
 }
 
-// 신고 처리 (반려/승인)
-export function useProcessReport() {
-  const queryClient = useQueryClient()
-  const showError = useApiErrorDialog()
-
-  return useMutation({
-    mutationFn: ({
-      reportId,
-      action,
-      targetId,
-    }: {
-      reportId: number
-      action: ReportAction
-      targetId?: number
-    }) => reportApi.processReport(reportId, action, targetId),
-    onSuccess: (_, { reportId, action }) => {
-      queryClient.invalidateQueries({ queryKey: ["admin-reports"] })
-      queryClient.invalidateQueries({ queryKey: ["admin-report", reportId] })
-      toast.success(
-        action === "APPROVE" ? "신고가 승인되어 처리되었습니다." : "신고가 반려되었습니다."
-      )
-    },
-    onError: (error) => {
-      showError?.(error)
-    },
+export function useReportedUserComments(
+  userId: string,
+  params: ReportedUserContentParams
+) {
+  return useQuery({
+    queryKey: ["reported-user-comments", userId, params],
+    queryFn: () => reportApi.getReportedUserComments(userId, params),
+    enabled: Boolean(userId),
   })
 }
-

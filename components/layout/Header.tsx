@@ -7,12 +7,13 @@ import { signOut } from "@/lib/api/auth"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useMeOptional } from "@/context/MeContext"
+import { NotificationCenter } from "./NotificationCenter"
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "대시보드",
   "/users": "회원 관리",
-  "/users/pending": "가입 승인 대기",
-  "/users/reported": "신고된 회원",
+  "/users/pending": "승인 대기 요청",
+  "/users/deleted": "탈퇴/추방 회원",
   "/content": "게시판 관리",
   "/content/boards": "게시판 관리",
   "/reports": "신고 관리",
@@ -25,25 +26,19 @@ const pageTitles: Record<string, string> = {
   "/settings/design": "디자인 / 배너 관리",
 }
 
-// 동적 경로 패턴 매칭을 위한 헬퍼 함수
 const getPageTitle = (pathname: string): string => {
-  // /users/[id] 패턴
-  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending" && pathname !== "/users/reported") {
+  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending") {
     return "회원 상세"
   }
-  // /content/[id] 패턴
   if (pathname.startsWith("/content/") && pathname !== "/content" && pathname !== "/content/boards") {
     return "게시글 상세"
   }
-  // /reports/[id] 패턴
   if (pathname.startsWith("/reports/") && pathname !== "/reports") {
     return "신고 상세"
   }
-  // /lockers/policies/[id]/edit 패턴
   if (pathname.match(/^\/lockers\/policies\/\d+\/edit$/)) {
     return "정책 수정"
   }
-  // 기본 pageTitles에서 찾기
   return pageTitles[pathname] || "관리자 페이지"
 }
 
@@ -52,11 +47,11 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
   "/users": [{ label: "회원 관리", href: "/users" }],
   "/users/pending": [
     { label: "회원 관리", href: "/users" },
-    { label: "가입 승인 대기", href: "/users/pending" },
+    { label: "승인 대기 요청", href: "/users/pending" },
   ],
-  "/users/reported": [
+  "/users/deleted": [
     { label: "회원 관리", href: "/users" },
-    { label: "신고된 회원", href: "/users/reported" },
+    { label: "탈퇴/추방 회원", href: "/users/deleted" },
   ],
   "/content": [{ label: "게시판 관리", href: "/content" }],
   "/content/boards": [
@@ -88,30 +83,25 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
   ],
 }
 
-// 동적 경로 패턴 매칭을 위한 헬퍼 함수
 const getBreadcrumbForPath = (pathname: string): { label: string; href: string }[] => {
-  // /users/[id] 패턴
-  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending" && pathname !== "/users/reported") {
+  if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending") {
     return [
       { label: "회원 관리", href: "/users" },
       { label: "회원 상세", href: pathname },
     ]
   }
-  // /content/[id] 패턴
   if (pathname.startsWith("/content/") && pathname !== "/content" && pathname !== "/content/boards") {
     return [
       { label: "게시판 관리", href: "/content" },
       { label: "게시글 상세", href: pathname },
     ]
   }
-  // /reports/[id] 패턴
   if (pathname.startsWith("/reports/") && pathname !== "/reports") {
     return [
       { label: "신고 관리", href: "/reports" },
       { label: "신고 상세", href: pathname },
     ]
   }
-  // /lockers/policies/[id]/edit 패턴
   const policyEditMatch = pathname.match(/^(\/lockers\/policies\/(\d+)\/edit)$/)
   if (policyEditMatch) {
     return [
@@ -119,7 +109,6 @@ const getBreadcrumbForPath = (pathname: string): { label: string; href: string }
       { label: "정책 수정", href: pathname },
     ]
   }
-  // 기본 breadcrumbMap에서 찾기
   return breadcrumbMap[pathname] || []
 }
 
@@ -142,64 +131,64 @@ export function Header({ onMenuClick }: HeaderProps) {
   }
 
   return (
-    <header className="flex min-h-[80px] flex-col border-b bg-card">
-      <div className="flex flex-col space-y-2 px-6 py-6">
-        {/* 제목 및 액션 영역 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* 모바일 햄버거 버튼 */}
-            <button
-              onClick={onMenuClick}
-              className="lg:hidden rounded-md p-1 hover:bg-accent"
-              aria-label="메뉴 열기"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-            <h2 className="text-lg font-semibold">{currentPageTitle}</h2>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="h-4 w-4" />
-              <span>{displayName}</span>
-            </div>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              로그아웃
-            </Button>
-          </div>
-        </div>
-        {/* 브레드크럼 (PC 환경에서만) */}
-        {breadcrumbs.length > 0 && (
-          <nav className="hidden lg:block" aria-label="Breadcrumb">
-            <ol className="flex items-center gap-2 text-sm text-muted-foreground">
-              <li>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center hover:text-foreground transition-colors"
-                >
-                  <Home className="h-4 w-4" />
-                </Link>
-              </li>
+    <header className="flex h-14 items-center border-b bg-card px-4 lg:px-6">
+      <div className="flex flex-1 items-center justify-between gap-4">
+        {/* Left: hamburger + breadcrumb */}
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden rounded-md p-1.5 hover:bg-accent shrink-0"
+            aria-label="메뉴 열기"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
+          {/* PC: breadcrumb */}
+          {breadcrumbs.length > 0 ? (
+            <nav className="hidden lg:flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
+              <Link
+                href="/dashboard"
+                className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              >
+                <Home className="h-4 w-4" />
+              </Link>
               {breadcrumbs.map((crumb, index) => (
-                <li key={`${index}-${crumb.href}-${crumb.label}`} className="flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4" />
+                <span key={`${index}-${crumb.href}`} className="flex items-center gap-1.5">
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   {index === breadcrumbs.length - 1 ? (
-                    <span className="text-foreground font-medium">{crumb.label}</span>
+                    <span className="font-medium text-foreground">{crumb.label}</span>
                   ) : (
                     <Link
                       href={crumb.href}
-                      className="hover:text-foreground transition-colors"
+                      className="text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {crumb.label}
                     </Link>
                   )}
-                </li>
+                </span>
               ))}
-            </ol>
-          </nav>
-        )}
+            </nav>
+          ) : (
+            <span className="hidden lg:block text-sm font-medium">{currentPageTitle}</span>
+          )}
+
+          {/* Mobile: title only */}
+          <span className="lg:hidden text-sm font-semibold truncate">{currentPageTitle}</span>
+        </div>
+
+        {/* Right: user info + logout */}
+        <div className="flex items-center gap-1 shrink-0">
+          <NotificationCenter />
+          <div className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground mr-2">
+            <User className="h-4 w-4 shrink-0" />
+            <span className="truncate max-w-[120px]">{displayName}</span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-1.5">
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">로그아웃</span>
+          </Button>
+        </div>
       </div>
     </header>
   )
 }
-

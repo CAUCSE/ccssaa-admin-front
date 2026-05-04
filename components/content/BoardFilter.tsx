@@ -106,13 +106,13 @@ export function BoardFilter({ value, onChange }: BoardFilterProps) {
               value={value.isNotice}
               onValueChange={(v) => handleChange({ isNotice: v as "ALL" | "Y" | "N" })}
             >
-              <SelectTrigger className="w-full sm:w-[120px] h-9">
-                <SelectValue placeholder="알림 여부" />
+              <SelectTrigger className="w-full sm:w-[140px] h-9">
+                <SelectValue placeholder="공식 계정 여부" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">알림 전체</SelectItem>
-                <SelectItem value="Y">알림 가능</SelectItem>
-                <SelectItem value="N">알림 불가</SelectItem>
+                <SelectItem value="ALL">공식 계정 전체</SelectItem>
+                <SelectItem value="Y">공식 계정</SelectItem>
+                <SelectItem value="N">일반 게시판</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex gap-2">
