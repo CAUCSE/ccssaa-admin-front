@@ -57,7 +57,7 @@ export function CalendarFormDialog({
     if (event) {
       setTitle(event.title)
       setType(event.type)
-      setTargetPostId(event.targetPostId != null ? String(event.targetPostId) : "")
+      setTargetPostId(event.targetPostId ?? "")
       
       // ISO 문자열에서 날짜/시간 직접 추출 (타임존 변환 방지)
       const startParts = event.start.split("T")
@@ -71,6 +71,7 @@ export function CalendarFormDialog({
       // 달력에서 날짜 클릭 시 초기값 설정
       setTitle("")
       setType("ACADEMIC")
+      setTargetPostId("")
       
       const startYear = initialDates.start.getFullYear()
       const startMonth = String(initialDates.start.getMonth() + 1).padStart(2, '0')
@@ -132,7 +133,7 @@ export function CalendarFormDialog({
       type,
       start: start.toISOString(),
       end: end.toISOString(),
-      ...(targetPostId.trim() !== "" && { targetPostId: Number(targetPostId) }),
+      ...(targetPostId.trim() !== "" && { targetPostId: targetPostId.trim() }),
     }
 
     onSubmit(data)
@@ -219,8 +220,7 @@ export function CalendarFormDialog({
           <Label htmlFor="targetPostId">연결 게시물 ID</Label>
           <Input
             id="targetPostId"
-            type="number"
-            min={1}
+            type="text"
             value={targetPostId}
             onChange={(e) => setTargetPostId(e.target.value)}
             placeholder="게시물 ID (선택사항)"

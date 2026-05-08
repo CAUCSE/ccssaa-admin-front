@@ -12,7 +12,7 @@ export interface CalendarEvent {
   type: CalendarType
   start: string
   end: string
-  targetPostId?: number
+  targetPostId?: string
 }
 
 export interface CalendarListParams {
@@ -31,7 +31,7 @@ export interface CreateCalendarEventRequest {
   type: CalendarType
   start: string
   end: string
-  targetPostId?: number
+  targetPostId?: string
 }
 
 export interface UpdateCalendarEventRequest {
@@ -39,5 +39,5 @@ export interface UpdateCalendarEventRequest {
   type: CalendarType
   start: string
   end: string
-  targetPostId?: number
+  targetPostId?: string
 }
