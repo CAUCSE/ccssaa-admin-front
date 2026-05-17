@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { notificationApi } from "@/lib/api/notifications"
 import type { NotificationLogItem } from "@/types/notification"
+import {
+  pushAdminNotificationV2,
+  type AdminPushNotificationRequest,
+} from "@/lib/api/v2/notifications"
+import { mockNotificationApi } from "@/lib/mock/notifications"
+import { toast } from "sonner"
+import { useApiErrorDialog } from "@/components/ApiErrorDialog"
 
 export function useNotificationLogs(isRead: boolean) {
   return useQuery({
@@ -140,6 +147,29 @@ export function useMarkNotificationRead() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications", "count"] })
       queryClient.invalidateQueries({ queryKey: ["notifications", "latest"] })
+    },
+  })
+}
+
+export function usePushAdminNotification() {
+  const queryClient = useQueryClient()
+  const showError = useApiErrorDialog()
+
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
+
+  return useMutation({
+    mutationFn: (data: AdminPushNotificationRequest) =>
+      useMock
+        ? mockNotificationApi.pushAdminNotification(data)
+        : pushAdminNotificationV2(data),
+    onSuccess: (_data, variables) => {
+      if (variables.saveNotification) {
+        queryClient.invalidateQueries({ queryKey: ["notifications"] })
+      }
+      toast.success("알림이 전송되었습니다.")
+    },
+    onError: (error) => {
+      showError?.(error)
     },
   })
 }

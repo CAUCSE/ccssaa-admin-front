@@ -6,6 +6,13 @@ import type {
   NotificationLogItem,
 } from "@/types/notification"
 
+export interface AdminPushNotificationRequest {
+  userId: string
+  title: string
+  body: string
+  saveNotification: boolean
+}
+
 export async function getNotificationLogsV2(
   isRead: boolean
 ): Promise<NotificationLogItem[]> {
@@ -41,6 +48,17 @@ export async function getUnreadNotificationCountV2(): Promise<NotificationLogCou
 export async function markNotificationReadV2(id: string): Promise<void> {
   const res = await apiV2.patch<ApiResponse<Record<string, never>>>(
     `/notifications/log/${encodeURIComponent(id)}/read`
+  )
+  unwrapV2(res)
+}
+
+/** 관리자 커스텀 푸시 알림 전송 */
+export async function pushAdminNotificationV2(
+  data: AdminPushNotificationRequest
+): Promise<void> {
+  const res = await apiV2.post<ApiResponse<Record<string, never>>>(
+    "/admin/notifications/push",
+    data
   )
   unwrapV2(res)
 }
