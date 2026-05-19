@@ -16,6 +16,7 @@ import {
   Calendar,
   Lock,
   CalendarDays,
+  Bell,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -134,6 +135,12 @@ const getSidebarItems = (
     title: "캘린더 관리",
     href: "/calendar",
     icon: <CalendarDays className="h-5 w-5" />,
+  },
+  {
+    title: "알림 발송",
+    href: "/users/push",
+    icon: <Bell className="h-5 w-5" />,
+    isUnimplemented: false,
   },
   {
     title: "시스템 설정 (미구현)",
