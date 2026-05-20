@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import { X } from "lucide-react"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import { DEPARTMENT_CONFIG, ACADEMIC_STATUS_CONFIG } from "@/types/user"
@@ -91,12 +92,14 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImage(url)}
-                    className="group block overflow-hidden rounded-md border bg-muted/20 text-left transition hover:border-primary/40 hover:bg-muted/30"
+                    className="group block overflow-hidden rounded-lg border bg-muted/20 text-left transition hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
                   >
                     <div className="flex h-64 items-center justify-center overflow-hidden bg-background p-3">
-                      <img
+                      <Image
                         src={url}
                         alt={`첨부 이미지 ${idx + 1}`}
+                        width={640}
+                        height={360}
                         className="max-h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.02]"
                       />
                     </div>
@@ -119,15 +122,17 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-4 right-4 text-white hover:bg-white/20"
+            className="absolute right-4 top-4 text-white hover:bg-white/20"
             onClick={() => setSelectedImage(null)}
           >
             <X className="h-6 w-6" />
           </Button>
-          <img
+          <Image
             src={selectedImage}
             alt="첨부 이미지 확대"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded"
+            width={1200}
+            height={900}
+            className="max-h-[90vh] max-w-[90vw] rounded object-contain"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
