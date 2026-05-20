@@ -41,15 +41,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 px-4">
+    <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 px-4 py-10">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
+        <CardHeader className="space-y-1.5 p-6 text-center">
           <div className="flex justify-center pb-2">
             <BrandLogo className="pointer-events-none" />
           </div>
-          <CardTitle className="text-2xl font-semibold">CCSSAA 관리자 로그인</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">CCSSAA 관리자 로그인</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            관리자 계정으로 로그인해주세요.
+          </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 pt-0">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">이메일</Label>
