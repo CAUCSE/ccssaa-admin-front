@@ -55,8 +55,8 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "transition-all hover:shadow-md",
-        isClickable && "cursor-pointer hover:border-primary",
+        "transition-all",
+        isClickable && "cursor-pointer hover:-translate-y-0.5 hover:border-primary hover:shadow-md",
         className
       )}
       onClick={isClickable ? handleClick : undefined}
@@ -65,7 +65,7 @@ export function StatCard({
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        {icon && <div className="text-muted-foreground">{icon}</div>}
+        {icon && <div className="rounded-full bg-muted p-2 text-muted-foreground">{icon}</div>}
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
