@@ -282,7 +282,7 @@ export default function BoardsPage() {
                       </TableCell>
                       <TableCell className="text-center w-20">
                         {board.isAnonymous ? (
-                          <Badge className="font-normal bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
+                          <Badge variant="info" className="font-normal">
                             익명
                           </Badge>
                         ) : (
@@ -291,31 +291,29 @@ export default function BoardsPage() {
                       </TableCell>
                       <TableCell className="text-center w-24">
                         <Badge
-                          className={`font-normal whitespace-nowrap ${
+                          variant={
                             board.readScope === "BOTH"
-                              ? "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-50"
+                              ? "info"
                               : board.readScope === "ENROLLED"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
-                                : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50"
-                          }`}
+                                ? "success"
+                                : "warning"
+                          }
+                          className="font-normal whitespace-nowrap"
                         >
                           {readScopeLabel(board.readScope)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center w-24">
                         <Badge
-                          className={`font-normal whitespace-nowrap ${
-                            board.writeScope === "ONLY_ADMIN"
-                              ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-50"
-                              : "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-50"
-                          }`}
+                          variant={board.writeScope === "ONLY_ADMIN" ? "warning" : "info"}
+                          className="font-normal whitespace-nowrap"
                         >
                           {board.writeScope === "ONLY_ADMIN" ? "관리자만" : "일반 유저"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center w-20">
                         {board.isNotice ? (
-                          <Badge className="font-normal bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100">
+                          <Badge variant="neutral" className="font-normal">
                             공식
                           </Badge>
                         ) : (
@@ -324,12 +322,8 @@ export default function BoardsPage() {
                       </TableCell>
                       <TableCell className="text-center w-20">
                         <Badge
-                          variant="outline"
-                          className={`font-normal ${
-                            board.visibility === "VISIBLE"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "text-muted-foreground"
-                          }`}
+                          variant={board.visibility === "VISIBLE" ? "success" : "muted"}
+                          className="font-normal"
                         >
                           {visibilityLabel(board.visibility)}
                         </Badge>
