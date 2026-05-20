@@ -148,7 +148,7 @@ export function UserFilter() {
 
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent className="p-6">
         <div className="space-y-5">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
             <div className="space-y-2">
@@ -220,11 +220,11 @@ export function UserFilter() {
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div className="space-y-2">
                 <Label>회원 상태</Label>
-                <div className="flex flex-wrap gap-x-4 gap-y-3 rounded-md border px-3 py-3">
+                <div className="flex flex-wrap gap-x-4 gap-y-3 rounded-md border bg-muted/20 px-3 py-3">
                   {USER_STATE_OPTIONS.map((option) => (
                     <label
                       key={option.value}
-                      className="flex items-center gap-2 text-sm text-foreground"
+                      className="flex items-center gap-2 rounded-md text-sm text-foreground"
                     >
                       <Checkbox
                         checked={states.includes(option.value)}

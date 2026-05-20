@@ -30,13 +30,16 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>회원 정보</CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle>회원 정보</CardTitle>
+          <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 프로필 이미지 */}
         {user.profileImageUrl && (
           <div className="flex justify-center mb-4">
-            <div className="relative w-24 h-24 rounded-full overflow-hidden border-2">
+            <div className="relative h-24 w-24 overflow-hidden rounded-full border bg-muted">
               <Image
                 src={user.profileImageUrl}
                 alt={`${user.name} 프로필`}
@@ -70,9 +73,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-1">상태</p>
-            <Badge variant={statusBadge.variant}>
-              {statusBadge.label}
-            </Badge>
+            <p className="font-medium">{statusBadge.label}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-1">연락처</p>
@@ -87,7 +88,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
               <p className="text-sm text-muted-foreground mb-1">
                 {user.state === "REJECT" ? "거부 사유" : "추방 사유"}
               </p>
-              <p className="font-medium text-destructive">{user.rejectionOrDropReason}</p>
+              <p className="rounded-md border border-[hsl(var(--danger-border))] bg-[hsl(var(--danger-background))] px-3 py-2 text-sm font-medium text-[hsl(var(--danger))]">{user.rejectionOrDropReason}</p>
             </div>
           )}
           <div>

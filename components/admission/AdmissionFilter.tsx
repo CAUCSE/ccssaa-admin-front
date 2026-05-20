@@ -56,10 +56,14 @@ export function AdmissionFilter() {
 
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
+      <CardContent className="p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+          <div className="flex-1 space-y-2">
+            <label className="text-sm font-medium" htmlFor="admission-keyword">
+              검색
+            </label>
             <Input
+              id="admission-keyword"
               placeholder="이름 또는 학번으로 검색"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
@@ -67,20 +71,23 @@ export function AdmissionFilter() {
             />
           </div>
 
-          <Select value={userState} onValueChange={setUserState}>
-            <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue placeholder="상태" />
-            </SelectTrigger>
-            <SelectContent>
-              {USER_STATE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2 sm:w-[150px]">
+            <label className="text-sm font-medium">상태</label>
+            <Select value={userState} onValueChange={setUserState}>
+              <SelectTrigger>
+                <SelectValue placeholder="상태" />
+              </SelectTrigger>
+              <SelectContent>
+                {USER_STATE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:pb-0">
             <Button onClick={handleSearch} className="flex-1 sm:flex-none">
               <Search className="mr-2 h-4 w-4" />
               검색
