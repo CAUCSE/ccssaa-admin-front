@@ -40,6 +40,9 @@ import type {
 import { useState, useEffect } from "react"
 import { Trash2, Pencil } from "lucide-react"
 import { BoardAdminEditModal } from "@/components/content/BoardAdminEditModal"
+import { BoardOfficialProfileFields } from "@/components/content/BoardOfficialProfileFields"
+import { uploadStorageFileV2 } from "@/lib/api/v2/storage"
+import { toast } from "sonner"
 
 export default function BoardEditPage() {
   const params = useParams()
@@ -56,6 +59,9 @@ export default function BoardEditPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState("")
   const [adminModalOpen, setAdminModalOpen] = useState(false)
+  const [officialProfileFile, setOfficialProfileFile] = useState<File | null>(null)
+  const [officialProfilePreviewUrl, setOfficialProfilePreviewUrl] = useState<string | null>(null)
+  const [isUploadingOfficialProfile, setIsUploadingOfficialProfile] = useState(false)
 
   const DELETE_CONFIRM_PHRASE = "삭제하겠습니다"
 
@@ -79,6 +85,8 @@ export default function BoardEditPage() {
       writeScope,
       isNotice: board.isNotice,
       visibility,
+      officialNickname: board.officialNickname ?? null,
+      officialProfileImageUrl: board.officialProfileImageUrl ?? null,
     })
     setAdmins(board.admins ?? [])
     setFormSynced(true)
@@ -87,16 +95,56 @@ export default function BoardEditPage() {
   // boardId가 바뀌면 동기화 플래그 리셋 (다른 게시판으로 이동 시)
   useEffect(() => {
     setFormSynced(false)
+    setOfficialProfileFile(null)
   }, [boardId])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!officialProfileFile) {
+      setOfficialProfilePreviewUrl(null)
+      return
+    }
+    const objectUrl = URL.createObjectURL(officialProfileFile)
+    setOfficialProfilePreviewUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [officialProfileFile])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const adminUserIds = admins.map((a) => a.id)
-    updateBoardV2.mutate({
-      ...formData,
-      boardId,
-      adminUserIds,
-    })
+    if (isUploadingOfficialProfile || updateBoardV2.isPending) return
+
+    setIsUploadingOfficialProfile(true)
+    try {
+      const uploadedImageUrl = officialProfileFile
+        ? await uploadStorageFileV2(officialProfileFile)
+        : formData.officialProfileImageUrl
+      const adminUserIds = admins.map((a) => a.id)
+
+      updateBoardV2.mutate(
+        {
+          ...formData,
+          boardId,
+          officialNickname: formData.officialNickname?.trim() || null,
+          officialProfileImageUrl: uploadedImageUrl || null,
+          adminUserIds,
+        },
+        {
+          onSuccess: () => {
+            setFormData((prev) => ({
+              ...prev,
+              officialNickname: prev.officialNickname?.trim() || null,
+              officialProfileImageUrl: uploadedImageUrl || null,
+            }))
+            setOfficialProfileFile(null)
+          },
+          onSettled: () => setIsUploadingOfficialProfile(false),
+        }
+      )
+    } catch (error) {
+      setIsUploadingOfficialProfile(false)
+      toast.error(
+        error instanceof Error ? error.message : "프로필 이미지 업로드에 실패했습니다."
+      )
+    }
   }
 
   if (isLoading) {
@@ -228,6 +276,17 @@ export default function BoardEditPage() {
                 placeholder="게시판 설명을 입력하세요"
               />
             </div>
+            <BoardOfficialProfileFields
+              inputIdPrefix="edit"
+              officialNickname={formData.officialNickname ?? ""}
+              previewUrl={officialProfilePreviewUrl ?? formData.officialProfileImageUrl ?? null}
+              selectedFileName={officialProfileFile?.name}
+              disabled={updateBoardV2.isPending || isUploadingOfficialProfile}
+              onNicknameChange={(officialNickname) =>
+                setFormData({ ...formData, officialNickname })
+              }
+              onFileChange={setOfficialProfileFile}
+            />
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <Label>관리자</Label>
@@ -348,8 +407,8 @@ export default function BoardEditPage() {
               >
                 취소
               </Button>
-              <Button type="submit" disabled={updateBoardV2.isPending}>
-                {updateBoardV2.isPending ? "저장 중..." : "수정"}
+              <Button type="submit" disabled={updateBoardV2.isPending || isUploadingOfficialProfile}>
+                {updateBoardV2.isPending || isUploadingOfficialProfile ? "저장 중..." : "수정"}
               </Button>
             </div>
           </CardContent>

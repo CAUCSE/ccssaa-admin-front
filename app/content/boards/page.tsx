@@ -55,7 +55,10 @@ import {
   VISIBILITIES,
 } from "@/lib/constants/board-v2-form"
 import { BoardAdminEditModal } from "@/components/content/BoardAdminEditModal"
+import { BoardOfficialProfileFields } from "@/components/content/BoardOfficialProfileFields"
 import { BoardFilter, type BoardFilterValues } from "@/components/content/BoardFilter"
+import { uploadStorageFileV2 } from "@/lib/api/v2/storage"
+import { toast } from "sonner"
 
 /** displayOrder 기준 정렬 */
 function sortByDisplayOrder(items: BoardListItemV2[]): BoardListItemV2[] {
@@ -138,10 +141,28 @@ export default function BoardsPage() {
 
   const [formData, setFormData] = useState(defaultV2Form)
   const [createAdmins, setCreateAdmins] = useState<BoardAdminInfo[]>([])
+  const [officialProfileFile, setOfficialProfileFile] = useState<File | null>(null)
+  const [officialProfilePreviewUrl, setOfficialProfilePreviewUrl] = useState<string | null>(null)
+  const [isUploadingOfficialProfile, setIsUploadingOfficialProfile] = useState(false)
 
-  const handleCreate = () => {
+  useEffect(() => {
+    if (!officialProfileFile) {
+      setOfficialProfilePreviewUrl(null)
+      return
+    }
+    const objectUrl = URL.createObjectURL(officialProfileFile)
+    setOfficialProfilePreviewUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [officialProfileFile])
+
+  const resetCreateForm = () => {
     setFormData(defaultV2Form)
     setCreateAdmins([])
+    setOfficialProfileFile(null)
+  }
+
+  const handleCreate = () => {
+    resetCreateForm()
     setCreateDialogOpen(true)
   }
 
@@ -181,18 +202,37 @@ export default function BoardsPage() {
     setOrderBoardIds(next)
   }
 
-  const handleCreateSubmit = () => {
-    const adminUserIds = createAdmins.map((a) => a.id)
-    createBoardV2.mutate(
-      { ...formData, adminUserIds },
-      {
-        onSuccess: () => {
-          setCreateDialogOpen(false)
-          setFormData(defaultV2Form)
-          setCreateAdmins([])
+  const handleCreateSubmit = async () => {
+    if (isUploadingOfficialProfile || createBoardV2.isPending) return
+
+    setIsUploadingOfficialProfile(true)
+    try {
+      const uploadedImageUrl = officialProfileFile
+        ? await uploadStorageFileV2(officialProfileFile)
+        : formData.officialProfileImageUrl
+      const adminUserIds = createAdmins.map((a) => a.id)
+
+      createBoardV2.mutate(
+        {
+          ...formData,
+          officialNickname: formData.officialNickname?.trim() || null,
+          officialProfileImageUrl: uploadedImageUrl || null,
+          adminUserIds,
         },
-      }
-    )
+        {
+          onSuccess: () => {
+            setCreateDialogOpen(false)
+            resetCreateForm()
+          },
+          onSettled: () => setIsUploadingOfficialProfile(false),
+        }
+      )
+    } catch (error) {
+      setIsUploadingOfficialProfile(false)
+      toast.error(
+        error instanceof Error ? error.message : "프로필 이미지 업로드에 실패했습니다."
+      )
+    }
   }
 
   return (
@@ -359,7 +399,7 @@ export default function BoardsPage() {
         description="새로운 게시판을 생성합니다."
         confirmText="생성"
         onConfirm={handleCreateSubmit}
-        isLoading={createBoardV2.isPending}
+        isLoading={createBoardV2.isPending || isUploadingOfficialProfile}
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="space-y-2">
@@ -380,6 +420,17 @@ export default function BoardsPage() {
               placeholder="게시판 설명을 입력하세요"
             />
           </div>
+          <BoardOfficialProfileFields
+            inputIdPrefix="create"
+            officialNickname={formData.officialNickname ?? ""}
+            previewUrl={officialProfilePreviewUrl ?? formData.officialProfileImageUrl ?? null}
+            selectedFileName={officialProfileFile?.name}
+            disabled={createBoardV2.isPending || isUploadingOfficialProfile}
+            onNicknameChange={(officialNickname) =>
+              setFormData({ ...formData, officialNickname })
+            }
+            onFileChange={setOfficialProfileFile}
+          />
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label>관리자</Label>

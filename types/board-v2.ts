@@ -75,6 +75,10 @@ export interface BoardDetailV2 {
   visibility: BoardVisibility
   displayOrder: number
   admins: BoardAdminInfo[]
+  /** 공지 작성자 공식 닉네임 */
+  officialNickname?: string | null
+  /** 공지 작성자 공식 프로필 이미지 URL */
+  officialProfileImageUrl?: string | null
 }
 
 /** v2 게시판 생성/수정 요청 Body */
@@ -97,4 +101,8 @@ export interface BoardCreateRequestV2 {
   isNotice: boolean
   /** 노출 여부 (BoardVisibility) */
   visibility: BoardVisibility
+  /** 공지 작성자 공식 닉네임 */
+  officialNickname?: string | null
+  /** 공지 작성자 공식 프로필 이미지 URL */
+  officialProfileImageUrl?: string | null
 }

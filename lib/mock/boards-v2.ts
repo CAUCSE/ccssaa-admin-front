@@ -41,6 +41,8 @@ const createMockBoard = (
     visibility: "VISIBLE" as BoardVisibility,
     displayOrder: 0,
     admins,
+    officialNickname: null,
+    officialProfileImageUrl: null,
   }
 
   return {
@@ -64,6 +66,8 @@ const mockBoards: BoardDetailV2[] = [
     visibility: "VISIBLE",
     displayOrder: 0,
     admins: [],
+    officialNickname: "소프트웨어학부 학생회",
+    officialProfileImageUrl: "https://picsum.photos/seed/student-council/160/160",
   },
   {
     boardId: "2",
@@ -176,6 +180,8 @@ export const mockBoardsV2Api = {
         writeScope: data.writeScope,
         isNotice: data.isNotice,
         visibility: data.visibility,
+        officialNickname: data.officialNickname ?? null,
+        officialProfileImageUrl: data.officialProfileImageUrl ?? null,
         displayOrder: mockBoards.length,
       },
       admins
@@ -200,6 +206,8 @@ export const mockBoardsV2Api = {
       writeScope: data.writeScope,
       isNotice: data.isNotice,
       visibility: data.visibility,
+      officialNickname: data.officialNickname ?? null,
+      officialProfileImageUrl: data.officialProfileImageUrl ?? null,
       admins,
     }
     return mockBoards[idx]

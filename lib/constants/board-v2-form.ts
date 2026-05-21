@@ -43,6 +43,8 @@ export const defaultV2Form: Omit<BoardCreateRequestV2, "boardId"> = {
   writeScope: "ONLY_ADMIN",
   isNotice: false,
   visibility: "VISIBLE",
+  officialNickname: null,
+  officialProfileImageUrl: null,
 }
 
 export function parseAdminUserIds(value: string): string[] {
