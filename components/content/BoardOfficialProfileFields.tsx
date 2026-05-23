@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useStorageImageSrc } from "@/hooks/useStorageImageSrc"
@@ -7,6 +8,7 @@ import { useStorageImageSrc } from "@/hooks/useStorageImageSrc"
 interface BoardOfficialProfileFieldsProps {
   officialNickname: string
   previewUrl: string | null
+  selectedFile?: File | null
   selectedFileName?: string
   inputIdPrefix: string
   disabled?: boolean
@@ -17,6 +19,7 @@ interface BoardOfficialProfileFieldsProps {
 export function BoardOfficialProfileFields({
   officialNickname,
   previewUrl,
+  selectedFile,
   selectedFileName,
   inputIdPrefix,
   disabled = false,
@@ -24,7 +27,25 @@ export function BoardOfficialProfileFields({
   onFileChange,
 }: BoardOfficialProfileFieldsProps) {
   const fileInputId = `${inputIdPrefix}-official-profile-image`
-  const { src: imageSrc, isLoading: isImageLoading } = useStorageImageSrc(previewUrl)
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null)
+  const { src: storageSrc, isLoading: isStorageLoading } = useStorageImageSrc(
+    selectedFile ? null : previewUrl
+  )
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setLocalPreviewUrl(null)
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile)
+    setLocalPreviewUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [selectedFile])
+
+  const imageSrc = localPreviewUrl ?? storageSrc
+  const isImageLoading = !localPreviewUrl && isStorageLoading
+  const hasPreviewTarget = Boolean(selectedFile || previewUrl)
 
   return (
     <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
@@ -61,7 +82,9 @@ export function BoardOfficialProfileFields({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span>{isImageLoading ? "로딩…" : previewUrl ? "미리보기 불가" : "Preview"}</span>
+              <span>
+                {isImageLoading ? "로딩…" : hasPreviewTarget ? "미리보기 불가" : "Preview"}
+              </span>
             )}
           </div>
           <div className="flex-1 space-y-1">
@@ -75,7 +98,7 @@ export function BoardOfficialProfileFields({
             <p className="text-xs text-muted-foreground">
               {selectedFileName
                 ? `선택된 파일: ${selectedFileName}`
-                : "새 이미지를 선택하면 저장 전에 먼저 업로드됩니다."}
+                : "새 이미지를 선택하면 저장 전에도 미리보기가 표시됩니다."}
             </p>
           </div>
         </div>

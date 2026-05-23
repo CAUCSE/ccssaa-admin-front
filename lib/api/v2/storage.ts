@@ -37,6 +37,14 @@ export interface StorageUploadResponse {
   path?: string
 }
 
+/** GET /api/v2/storage/{fileId} 응답 */
+export interface StorageFileInfo {
+  fileId: string
+  fileUrl: string
+  originalFileName?: string
+  extension?: string
+}
+
 function extractUploadedUrl(data: string | StorageUploadResponse | null | undefined): string {
   if (typeof data === "string") {
     const resolved = resolveStorageImageUrl(data)
@@ -132,4 +140,37 @@ export async function uploadStorageFileIdV2(
   )
 
   return extractUploadedFileId(unwrapV2(res))
+}
+
+/** 파일 메타 조회 — GET /api/v2/storage/{fileId} (fileUrl로 미리보기 경로 확보) */
+export async function getStorageFileInfoV2(
+  fileId: string
+): Promise<StorageFileInfo | null> {
+  if (USE_MOCK_API) {
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    return {
+      fileId,
+      fileUrl: `https://picsum.photos/seed/${encodeURIComponent(fileId)}/160/160`,
+      originalFileName: "mock.png",
+      extension: "png",
+    }
+  }
+
+  const res = await apiV2.get<ApiResponse<StorageFileInfo> | StorageFileInfo>(
+    `/storage/${encodeURIComponent(fileId)}`
+  )
+  const data = unwrapV2(res)
+  if (!data || typeof data !== "object") return null
+
+  const info = data as StorageFileInfo & { id?: string }
+  const resolvedFileId = info.fileId ?? info.id ?? fileId
+  const fileUrl = info.fileUrl?.trim()
+  if (!fileUrl) return null
+
+  return {
+    fileId: resolvedFileId,
+    fileUrl,
+    originalFileName: info.originalFileName,
+    extension: info.extension,
+  }
 }

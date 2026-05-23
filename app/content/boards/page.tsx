@@ -411,6 +411,7 @@ export default function BoardsPage() {
             inputIdPrefix="create"
             officialNickname={formData.officialNickname ?? ""}
             previewUrl={formData.officialProfileImageId ?? null}
+            selectedFile={officialProfileFile}
             selectedFileName={officialProfileFile?.name}
             disabled={isUploadingOfficialProfile || createBoardV2.isPending}
             onNicknameChange={(value) =>

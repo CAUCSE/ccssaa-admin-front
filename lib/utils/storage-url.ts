@@ -73,6 +73,13 @@ export function resolveStorageImageUrl(raw: string | null | undefined): string |
   return trimmed
 }
 
+/** 문자열 전체가 storage file UUID인지 */
+export function isBareStorageFileId(raw: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    raw.trim()
+  )
+}
+
 /** 인증 포함 blob 다운로드용 API 경로 후보 (순서대로 시도) */
 export function getStorageFileBlobRequestPaths(raw: string): string[] {
   const paths: string[] = []
@@ -84,6 +91,7 @@ export function getStorageFileBlobRequestPaths(raw: string): string[] {
 
   const fileId = extractStorageFileId(raw)
   if (fileId) {
+    paths.push(`/storage/${encodeURIComponent(fileId)}`)
     paths.push(`/storage/${encodeURIComponent(fileId)}/download`)
     paths.push(`/storage/${encodeURIComponent(fileId)}/file`)
   }

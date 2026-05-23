@@ -269,6 +269,7 @@ export default function BoardEditPage() {
               inputIdPrefix="edit"
               officialNickname={formData.officialNickname ?? ""}
               previewUrl={formData.officialProfileImageId ?? null}
+              selectedFile={officialProfileFile}
               selectedFileName={officialProfileFile?.name}
               disabled={isUploadingOfficialProfile || updateBoardV2.isPending}
               onNicknameChange={(value) =>
