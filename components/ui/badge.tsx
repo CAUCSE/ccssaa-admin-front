@@ -3,28 +3,43 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+const semanticDot =
+  "before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:content-['']"
+
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        success:
-          "border-transparent bg-green-500 text-white hover:bg-green-600",
-        warning:
-          "border-transparent bg-orange-500 text-white hover:bg-orange-600",
-        danger:
-          "border-transparent bg-red-500 text-white hover:bg-red-600",
-        neutral:
-          "border-transparent bg-gray-500 text-white hover:bg-gray-600",
+          "border-[hsl(var(--danger-border))] bg-[hsl(var(--danger-background))] text-[hsl(var(--danger))]",
+        outline: "border-border bg-transparent text-foreground",
+        success: cn(
+          semanticDot,
+          "border-[hsl(var(--success-border))] bg-[hsl(var(--success-background))] text-[hsl(var(--success))] before:bg-[hsl(var(--success))]"
+        ),
+        warning: cn(
+          semanticDot,
+          "border-[hsl(var(--warning-border))] bg-[hsl(var(--warning-background))] text-[hsl(var(--warning))] before:bg-[hsl(var(--warning))]"
+        ),
+        danger: cn(
+          semanticDot,
+          "border-[hsl(var(--danger-border))] bg-[hsl(var(--danger-background))] text-[hsl(var(--danger))] before:bg-[hsl(var(--danger))]"
+        ),
+        neutral: cn(
+          semanticDot,
+          "border-[hsl(var(--neutral-border))] bg-[hsl(var(--neutral-background))] text-[hsl(var(--neutral))] before:bg-[hsl(var(--neutral))]"
+        ),
         muted:
-          "border-transparent bg-gray-300 text-white hover:bg-gray-400",
+          "border-[hsl(var(--neutral-border))] bg-[hsl(var(--neutral-background))] text-muted-foreground",
+        info: cn(
+          semanticDot,
+          "border-[hsl(var(--info-border))] bg-[hsl(var(--info-background))] text-[hsl(var(--info))] before:bg-[hsl(var(--info))]"
+        ),
       },
     },
     defaultVariants: {
@@ -44,4 +59,3 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
-

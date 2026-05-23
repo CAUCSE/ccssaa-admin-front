@@ -66,7 +66,7 @@ export function NotificationCenter() {
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-4 w-4" />
             {unreadBadge ? (
-              <span className="absolute right-1 top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+              <span className="absolute right-1 top-1 rounded-full bg-[hsl(var(--danger))] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
                 {unreadBadge}
               </span>
             ) : null}
@@ -104,7 +104,7 @@ export function NotificationCenter() {
                         latestNotification.isRead
                       )
                     }
-                    className="w-full rounded-2xl border bg-slate-50 p-4 text-left transition-colors hover:border-primary"
+                    className="w-full rounded-2xl border bg-slate-50 p-4 text-left transition-colors hover:border-primary focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <Badge variant="secondary">
@@ -146,12 +146,12 @@ export function NotificationCenter() {
                           item.isRead
                         )
                       }
-                      className="flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition-colors hover:border-primary"
+                      className="flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition-colors hover:border-primary focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
                     >
                       <span
                         className={[
                           "mt-1 h-2.5 w-2.5 shrink-0 rounded-full",
-                          item.isRead ? "bg-slate-200" : "bg-red-500",
+                          item.isRead ? "bg-slate-200" : "bg-[hsl(var(--danger))]",
                         ].join(" ")}
                       />
                       <div className="min-w-0 flex-1 space-y-1">
@@ -188,7 +188,7 @@ export function NotificationCenter() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="hidden max-w-[280px] items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:border-primary xl:flex"
+          className="hidden max-w-[280px] items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:border-primary focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))] xl:flex"
         >
           <Badge variant="secondary" className="shrink-0">
             새 알림

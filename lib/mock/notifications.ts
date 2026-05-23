@@ -1,7 +1,5 @@
-import type {
-  NotificationLogCount,
-  NotificationLogItem,
-} from "@/types/notification"
+import type { AdminPushNotificationRequest } from "@/lib/api/v2/notifications"
+import type { NotificationLogCount, NotificationLogItem } from "@/types/notification"
 
 const mockNotificationLogs: NotificationLogItem[] = [
   {
@@ -85,5 +83,24 @@ export const mockNotificationApi = {
     if (notification) {
       notification.isRead = true
     }
+  },
+
+  pushAdminNotification: async (
+    data: AdminPushNotificationRequest
+  ): Promise<void> => {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    if (!data.saveNotification) {
+      return
+    }
+    mockNotificationLogs.unshift({
+      notificationLogId: `notification-mock-${Date.now()}`,
+      title: data.title,
+      body: data.body,
+      noticeType: "SYSTEM",
+      targetId: null,
+      targetParentId: null,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    })
   },
 }

@@ -55,7 +55,10 @@ import {
   VISIBILITIES,
 } from "@/lib/constants/board-v2-form"
 import { BoardAdminEditModal } from "@/components/content/BoardAdminEditModal"
+import { BoardOfficialProfileFields } from "@/components/content/BoardOfficialProfileFields"
 import { BoardFilter, type BoardFilterValues } from "@/components/content/BoardFilter"
+import { uploadStorageFileIdV2 } from "@/lib/api/v2/storage"
+import { toast } from "sonner"
 
 /** displayOrder 기준 정렬 */
 function sortByDisplayOrder(items: BoardListItemV2[]): BoardListItemV2[] {
@@ -138,10 +141,13 @@ export default function BoardsPage() {
 
   const [formData, setFormData] = useState(defaultV2Form)
   const [createAdmins, setCreateAdmins] = useState<BoardAdminInfo[]>([])
+  const [officialProfileFile, setOfficialProfileFile] = useState<File | null>(null)
+  const [isUploadingOfficialProfile, setIsUploadingOfficialProfile] = useState(false)
 
   const handleCreate = () => {
     setFormData(defaultV2Form)
     setCreateAdmins([])
+    setOfficialProfileFile(null)
     setCreateDialogOpen(true)
   }
 
@@ -181,18 +187,39 @@ export default function BoardsPage() {
     setOrderBoardIds(next)
   }
 
-  const handleCreateSubmit = () => {
-    const adminUserIds = createAdmins.map((a) => a.id)
-    createBoardV2.mutate(
-      { ...formData, adminUserIds },
-      {
-        onSuccess: () => {
-          setCreateDialogOpen(false)
-          setFormData(defaultV2Form)
-          setCreateAdmins([])
+  const handleCreateSubmit = async () => {
+    if (isUploadingOfficialProfile || createBoardV2.isPending) return
+
+    setIsUploadingOfficialProfile(true)
+    try {
+      const officialProfileImageId = officialProfileFile
+        ? await uploadStorageFileIdV2(officialProfileFile, "ETC")
+        : formData.officialProfileImageId
+      const adminUserIds = createAdmins.map((a) => a.id)
+
+      createBoardV2.mutate(
+        {
+          ...formData,
+          officialNickname: formData.officialNickname?.trim() || null,
+          officialProfileImageId: officialProfileImageId || null,
+          adminUserIds,
         },
-      }
-    )
+        {
+          onSuccess: () => {
+            setCreateDialogOpen(false)
+            setFormData(defaultV2Form)
+            setCreateAdmins([])
+            setOfficialProfileFile(null)
+          },
+          onSettled: () => setIsUploadingOfficialProfile(false),
+        }
+      )
+    } catch (error) {
+      setIsUploadingOfficialProfile(false)
+      toast.error(
+        error instanceof Error ? error.message : "프로필 이미지 업로드에 실패했습니다."
+      )
+    }
   }
 
   return (
@@ -282,7 +309,7 @@ export default function BoardsPage() {
                       </TableCell>
                       <TableCell className="text-center w-20">
                         {board.isAnonymous ? (
-                          <Badge className="font-normal bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
+                          <Badge variant="info" className="font-normal">
                             익명
                           </Badge>
                         ) : (
@@ -291,31 +318,29 @@ export default function BoardsPage() {
                       </TableCell>
                       <TableCell className="text-center w-24">
                         <Badge
-                          className={`font-normal whitespace-nowrap ${
+                          variant={
                             board.readScope === "BOTH"
-                              ? "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-50"
+                              ? "info"
                               : board.readScope === "ENROLLED"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
-                                : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50"
-                          }`}
+                                ? "success"
+                                : "warning"
+                          }
+                          className="font-normal whitespace-nowrap"
                         >
                           {readScopeLabel(board.readScope)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center w-24">
                         <Badge
-                          className={`font-normal whitespace-nowrap ${
-                            board.writeScope === "ONLY_ADMIN"
-                              ? "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-50"
-                              : "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-50"
-                          }`}
+                          variant={board.writeScope === "ONLY_ADMIN" ? "warning" : "info"}
+                          className="font-normal whitespace-nowrap"
                         >
                           {board.writeScope === "ONLY_ADMIN" ? "관리자만" : "일반 유저"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center w-20">
                         {board.isNotice ? (
-                          <Badge className="font-normal bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100">
+                          <Badge variant="neutral" className="font-normal">
                             공식
                           </Badge>
                         ) : (
@@ -324,12 +349,8 @@ export default function BoardsPage() {
                       </TableCell>
                       <TableCell className="text-center w-20">
                         <Badge
-                          variant="outline"
-                          className={`font-normal ${
-                            board.visibility === "VISIBLE"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "text-muted-foreground"
-                          }`}
+                          variant={board.visibility === "VISIBLE" ? "success" : "muted"}
+                          className="font-normal"
                         >
                           {visibilityLabel(board.visibility)}
                         </Badge>
@@ -365,7 +386,7 @@ export default function BoardsPage() {
         description="새로운 게시판을 생성합니다."
         confirmText="생성"
         onConfirm={handleCreateSubmit}
-        isLoading={createBoardV2.isPending}
+        isLoading={createBoardV2.isPending || isUploadingOfficialProfile}
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
           <div className="space-y-2">
@@ -386,6 +407,18 @@ export default function BoardsPage() {
               placeholder="게시판 설명을 입력하세요"
             />
           </div>
+          <BoardOfficialProfileFields
+            inputIdPrefix="create"
+            officialNickname={formData.officialNickname ?? ""}
+            previewUrl={formData.officialProfileImageId ?? null}
+            selectedFile={officialProfileFile}
+            selectedFileName={officialProfileFile?.name}
+            disabled={isUploadingOfficialProfile || createBoardV2.isPending}
+            onNicknameChange={(value) =>
+              setFormData({ ...formData, officialNickname: value })
+            }
+            onFileChange={setOfficialProfileFile}
+          />
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label>관리자</Label>

@@ -16,6 +16,7 @@ import {
   Calendar,
   Lock,
   CalendarDays,
+  Bell,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -136,6 +137,12 @@ const getSidebarItems = (
     icon: <CalendarDays className="h-5 w-5" />,
   },
   {
+    title: "알림 발송",
+    href: "/users/push",
+    icon: <Bell className="h-5 w-5" />,
+    isUnimplemented: false,
+  },
+  {
     title: "시스템 설정 (미구현)",
     href: "/settings",
     icon: <Settings className="h-5 w-5" />,
@@ -228,7 +235,7 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
         {isMobile && onClose && (
           <button
             onClick={onClose}
-            className="rounded-md p-1.5 hover:bg-accent"
+            className="rounded-md p-1.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
             aria-label="메뉴 닫기"
           >
             <X className="h-4 w-4" />
@@ -247,13 +254,13 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
                   type="button"
                   onClick={() => toggleSection(item.href)}
                   className={cn(
-                    "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors",
+                    "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]",
                     isActive(item.href)
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground"
                   )}
                 >
-                  <span className="shrink-0 text-muted-foreground">{item.icon}</span>
+                  <span className={cn("shrink-0", isActive(item.href) ? "text-accent-foreground" : "text-muted-foreground")}>{item.icon}</span>
                   <span className="flex-1 truncate">{item.title}</span>
                   {(() => {
                     const badgeValue = getBadgeValue(item.badge)
@@ -273,7 +280,7 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
                   href={item.href}
                   onClick={handleLinkClick}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]",
                     isActive(item.href)
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground"
@@ -298,7 +305,7 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
                       href={child.href}
                       onClick={handleLinkClick}
                       className={cn(
-                        "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
+                        "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]",
                         pathname === child.href
                           ? "bg-primary/10 text-primary font-medium"
                           : "text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground"

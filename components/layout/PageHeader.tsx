@@ -71,7 +71,7 @@ export function PageHeader({
                     {crumb.href ? (
                       <Link
                         href={crumb.href}
-                        className="hover:text-foreground transition-colors"
+                        className="rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
                       >
                         {crumb.label}
                       </Link>
@@ -91,9 +91,9 @@ export function PageHeader({
 
       {/* 제목 및 설명 영역 */}
       <div>
-        <h1 className="text-2xl font-bold">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         {description && (
-          <p className="text-muted-foreground mt-1">{description}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         )}
       </div>
     </div>

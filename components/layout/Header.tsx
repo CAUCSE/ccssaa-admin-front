@@ -21,6 +21,7 @@ const pageTitles: Record<string, string> = {
   "/lockers/policies": "신청 정책 관리",
   "/lockers/policies/new": "정책 등록",
   "/lockers/logs": "로그 조회",
+  "/users/push": "알림 발송",
   "/settings": "시스템 설정",
   "/settings/roles": "권한 및 역할 관리",
   "/settings/design": "디자인 / 배너 관리",
@@ -72,6 +73,7 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "사물함 관리", href: "/lockers" },
     { label: "로그 조회", href: "/lockers/logs" },
   ],
+  "/users/push": [{ label: "알림 발송", href: "/users/push" }],
   "/settings": [{ label: "시스템 설정", href: "/settings" }],
   "/settings/roles": [
     { label: "시스템 설정", href: "/settings" },
@@ -137,7 +139,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={onMenuClick}
-            className="lg:hidden rounded-md p-1.5 hover:bg-accent shrink-0"
+            className="shrink-0 rounded-md p-1.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))] lg:hidden"
             aria-label="메뉴 열기"
           >
             <Menu className="h-5 w-5" />
@@ -148,7 +150,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             <nav className="hidden lg:flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
               <Link
                 href="/dashboard"
-                className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                className="shrink-0 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
               >
                 <Home className="h-4 w-4" />
               </Link>
@@ -160,7 +162,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                   ) : (
                     <Link
                       href={crumb.href}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      className="rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
                     >
                       {crumb.label}
                     </Link>

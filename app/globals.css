@@ -1,9 +1,9 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* react-big-calendar 스타일 */
-@import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 @layer base {
   :root {
@@ -27,6 +27,24 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* CCSSAA Admin design-system semantic tokens */
+    --success: 142 76% 23%;
+    --success-background: 151 81% 96%;
+    --success-border: 149 80% 90%;
+    --warning: 32 95% 27%;
+    --warning-background: 55 92% 95%;
+    --warning-border: 48 96% 89%;
+    --danger: 0 74% 35%;
+    --danger-background: 0 86% 97%;
+    --danger-border: 0 93% 94%;
+    --info: 221 83% 33%;
+    --info-background: 214 100% 97%;
+    --info-border: 214 95% 93%;
+    --neutral: 215 25% 27%;
+    --neutral-background: 210 40% 96%;
+    --neutral-border: 214 32% 91%;
+    --focus-ring-soft: 222.2 47.4% 11.2% / 0.12;
   }
 
   .dark {
@@ -57,7 +75,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Pretendard Variable", Pretendard, -apple-system,
+      BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }
 
