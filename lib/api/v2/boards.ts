@@ -60,7 +60,7 @@ export async function createBoardV2(
   return unwrapV2(res)
 }
 
-/** v2 게시판 설정 수정 — PUT /api/v2/admin/boards/{boardId}, body: boardId, name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility */
+/** v2 게시판 설정 수정 — PUT /api/v2/admin/boards/{boardId}, body: boardId, name, description, adminUserIds, isAnonymous, readScope, writeScope, isNotice, visibility, officialNickname, officialProfileImageId */
 export async function updateBoardV2(
   data: BoardCreateRequestV2 & { boardId: string }
 ): Promise<unknown> {

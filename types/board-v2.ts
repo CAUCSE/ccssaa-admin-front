@@ -74,6 +74,10 @@ export interface BoardDetailV2 {
   isNotice: boolean
   visibility: BoardVisibility
   displayOrder: number
+  /** 공지글 마스킹용 공식 닉네임 */
+  officialNickname?: string | null
+  /** 공지글 마스킹용 공식 프로필 이미지 (storage file id) */
+  officialProfileImageId?: string | null
   admins: BoardAdminInfo[]
 }
 
@@ -97,4 +101,8 @@ export interface BoardCreateRequestV2 {
   isNotice: boolean
   /** 노출 여부 (BoardVisibility) */
   visibility: BoardVisibility
+  /** 공지글 마스킹용 공식 닉네임 */
+  officialNickname?: string | null
+  /** 공지글 마스킹용 공식 프로필 이미지 (storage file id) */
+  officialProfileImageId?: string | null
 }

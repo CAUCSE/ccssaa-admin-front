@@ -40,6 +40,8 @@ const createMockBoard = (
     isNotice: false,
     visibility: "VISIBLE" as BoardVisibility,
     displayOrder: 0,
+    officialNickname: null,
+    officialProfileImageId: null,
     admins,
   }
 
@@ -177,6 +179,8 @@ export const mockBoardsV2Api = {
         isNotice: data.isNotice,
         visibility: data.visibility,
         displayOrder: mockBoards.length,
+        officialNickname: data.officialNickname ?? null,
+        officialProfileImageId: data.officialProfileImageId ?? null,
       },
       admins
     )
@@ -200,6 +204,8 @@ export const mockBoardsV2Api = {
       writeScope: data.writeScope,
       isNotice: data.isNotice,
       visibility: data.visibility,
+      officialNickname: data.officialNickname ?? null,
+      officialProfileImageId: data.officialProfileImageId ?? null,
       admins,
     }
     return mockBoards[idx]
