@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import { StorageImage } from "@/components/ui/storage-image"
 import { useParams, useRouter } from "next/navigation"
 import {
   useAcademicRecordApplicationDetail,
@@ -234,7 +234,7 @@ export default function AcademicRecordDetailPage() {
                   className="group relative overflow-hidden rounded-lg border cursor-pointer text-left"
                 >
                   <div className="relative h-48 w-full">
-                    <Image
+                    <StorageImage
                       src={url}
                       alt={`첨부 서류 ${index + 1}`}
                       fill
@@ -273,7 +273,7 @@ export default function AcademicRecordDetailPage() {
             className="relative h-[90vh] w-[90vw]"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            <StorageImage
               src={previewImage}
               alt="첨부 서류 미리보기"
               fill

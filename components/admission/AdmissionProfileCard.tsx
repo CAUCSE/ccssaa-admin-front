@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
+import { StorageImage } from "@/components/ui/storage-image"
 import { X } from "lucide-react"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import { DEPARTMENT_CONFIG, ACADEMIC_STATUS_CONFIG } from "@/types/user"
@@ -95,7 +95,7 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
                     className="group block overflow-hidden rounded-lg border bg-muted/20 text-left transition hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
                   >
                     <div className="flex h-64 items-center justify-center overflow-hidden bg-background p-3">
-                      <Image
+                      <StorageImage
                         src={url}
                         alt={`첨부 이미지 ${idx + 1}`}
                         width={640}
@@ -127,7 +127,7 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
           >
             <X className="h-6 w-6" />
           </Button>
-          <Image
+          <StorageImage
             src={selectedImage}
             alt="첨부 이미지 확대"
             width={1200}

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import type { UserDetail, AcademicStatus } from "@/types/user"
 import { ACADEMIC_STATUS_CONFIG, DEPARTMENT_CONFIG } from "@/types/user"
-import Image from "next/image"
+import { StorageImage } from "@/components/ui/storage-image"
 
 interface UserProfileCardProps {
   user: UserDetail
@@ -40,7 +40,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
         {user.profileImageUrl && (
           <div className="flex justify-center mb-4">
             <div className="relative h-24 w-24 overflow-hidden rounded-full border bg-muted">
-              <Image
+              <StorageImage
                 src={user.profileImageUrl}
                 alt={`${user.name} 프로필`}
                 fill

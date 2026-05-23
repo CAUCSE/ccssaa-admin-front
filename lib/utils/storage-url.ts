@@ -50,6 +50,17 @@ export function isLocalStoragePath(raw: string): boolean {
   )
 }
 
+/** next/image에 안전하게 넣을 수 있는 http(s) URL인지 (file://, 로컬 경로, storage API 경로 제외) */
+export function canUseNextImageSrc(raw: string | null | undefined): boolean {
+  if (!raw) return false
+  const trimmed = raw.trim()
+  if (!trimmed) return false
+  if (trimmed.startsWith("file:")) return false
+  if (isLocalStoragePath(trimmed)) return false
+  if (trimmed.includes("/api/v2/storage")) return false
+  return isHttpUrl(trimmed)
+}
+
 /** DB/API 저장용 — 브라우저에서 접근 가능한 same-origin 경로 */
 export function toStorageFileHttpPath(relativePath: string): string {
   const normalized = relativePath.replace(/\\/g, "/").replace(/^\/+/, "")

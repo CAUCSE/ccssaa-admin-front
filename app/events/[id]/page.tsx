@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import { StorageImage } from "@/components/ui/storage-image"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -261,9 +261,13 @@ export default function EventDetailPage() {
                           className="group relative h-32 overflow-hidden rounded-md border bg-muted"
                           onClick={() => setPreviewImageUrl(imageUrl)}
                         >
-                          <div
-                            className="h-full w-full bg-cover bg-center transition-transform duration-200 group-hover:scale-105"
-                            style={{ backgroundImage: `url("${imageUrl}")` }}
+                          <StorageImage
+                            src={imageUrl}
+                            alt={getImageFileName(imageUrl)}
+                            fill
+                            unoptimized
+                            sizes="(max-width: 640px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-200 group-hover:scale-105"
                           />
                           <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
                             <p className="truncate text-[10px] text-white">{getImageFileName(imageUrl)}</p>
@@ -432,7 +436,7 @@ export default function EventDetailPage() {
               className="relative h-full w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <Image
+              <StorageImage
                 src={previewImageUrl}
                 alt="첨부 이미지 미리보기"
                 fill
