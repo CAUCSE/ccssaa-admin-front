@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { StorageImage } from "@/components/ui/storage-image"
 import { X } from "lucide-react"
 import { getStatusBadge } from "@/lib/utils/status-badge"
 import { DEPARTMENT_CONFIG, ACADEMIC_STATUS_CONFIG } from "@/types/user"
@@ -95,11 +94,10 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
                     className="group block overflow-hidden rounded-lg border bg-muted/20 text-left transition hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
                   >
                     <div className="flex h-64 items-center justify-center overflow-hidden bg-background p-3">
-                      <StorageImage
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={url}
                         alt={`첨부 이미지 ${idx + 1}`}
-                        width={640}
-                        height={360}
                         className="max-h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.02]"
                       />
                     </div>
@@ -127,11 +125,10 @@ export function AdmissionProfileCard({ admission }: AdmissionProfileCardProps) {
           >
             <X className="h-6 w-6" />
           </Button>
-          <StorageImage
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={selectedImage}
             alt="첨부 이미지 확대"
-            width={1200}
-            height={900}
             className="max-h-[90vh] max-w-[90vw] rounded object-contain"
             onClick={(e) => e.stopPropagation()}
           />
