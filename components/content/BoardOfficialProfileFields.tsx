@@ -1,9 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useStorageImageSrc } from "@/hooks/useStorageImageSrc"
+import {
+  ACCEPTED_IMAGE_TYPES,
+  IMAGE_VALIDATION_MESSAGE,
+  validateImageFile,
+} from "@/lib/constants/image"
 
 interface BoardOfficialProfileFieldsProps {
   officialNickname: string
@@ -27,6 +33,7 @@ export function BoardOfficialProfileFields({
   onFileChange,
 }: BoardOfficialProfileFieldsProps) {
   const fileInputId = `${inputIdPrefix}-official-profile-image`
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null)
   const { src: storageSrc, isLoading: isStorageLoading } = useStorageImageSrc(
     selectedFile ? null : previewUrl
@@ -46,6 +53,23 @@ export function BoardOfficialProfileFields({
   const imageSrc = localPreviewUrl ?? storageSrc
   const isImageLoading = !localPreviewUrl && isStorageLoading
   const hasPreviewTarget = Boolean(selectedFile || previewUrl)
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null
+    if (!file) {
+      onFileChange(null)
+      return
+    }
+
+    const error = validateImageFile(file)
+    if (error) {
+      toast.error(IMAGE_VALIDATION_MESSAGE[error])
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      return
+    }
+
+    onFileChange(file)
+  }
 
   return (
     <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
@@ -90,15 +114,16 @@ export function BoardOfficialProfileFields({
           <div className="flex-1 space-y-1">
             <Input
               id={fileInputId}
+              ref={fileInputRef}
               type="file"
-              accept="image/*"
-              onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
+              accept={ACCEPTED_IMAGE_TYPES}
+              onChange={handleFileSelect}
               disabled={disabled}
             />
             <p className="text-xs text-muted-foreground">
               {selectedFileName
                 ? `선택된 파일: ${selectedFileName}`
-                : "새 이미지를 선택하면 저장 전에도 미리보기가 표시됩니다."}
+                : "JPG·PNG·GIF·BMP, 최대 5MB. 선택 시 저장 전에도 미리보기가 표시됩니다."}
             </p>
           </div>
         </div>
