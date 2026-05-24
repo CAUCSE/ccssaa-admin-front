@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { StorageImage } from "@/components/ui/storage-image"
 import { useParams, useRouter } from "next/navigation"
 import {
   useAcademicRecordApplicationDetail,
@@ -234,13 +233,11 @@ export default function AcademicRecordDetailPage() {
                   className="group relative overflow-hidden rounded-lg border cursor-pointer text-left"
                 >
                   <div className="relative h-48 w-full">
-                    <StorageImage
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={url}
                       alt={`첨부 서류 ${index + 1}`}
-                      fill
-                      unoptimized
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-transform group-hover:scale-105"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-105"
                     />
                   </div>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -273,13 +270,11 @@ export default function AcademicRecordDetailPage() {
             className="relative h-[90vh] w-[90vw]"
             onClick={(e) => e.stopPropagation()}
           >
-            <StorageImage
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={previewImage}
               alt="첨부 서류 미리보기"
-              fill
-              unoptimized
-              sizes="90vw"
-              className="rounded-lg object-contain"
+              className="absolute inset-0 h-full w-full rounded-lg object-contain"
             />
           </div>
         </div>
