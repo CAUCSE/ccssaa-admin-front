@@ -235,7 +235,7 @@ export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarPro
         {isMobile && onClose && (
           <button
             onClick={onClose}
-            className="rounded-md p-1.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
+            className="rounded-md p-2 min-h-[44px] min-w-[44px] transition-colors hover:bg-accent focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))]"
             aria-label="메뉴 닫기"
           >
             <X className="h-4 w-4" />

@@ -276,7 +276,37 @@ export default function BoardsPage() {
               </p>
             </div>
           ) : (
-            <div className="rounded-lg border overflow-x-auto bg-card [&_tbody_td]:py-3">
+            <>
+            {/* Mobile: card view */}
+            <div className="block md:hidden space-y-3">
+              {boards.map((board, index) => (
+                <div key={board.boardId} className="rounded-lg border bg-card p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <p className="font-semibold text-base">{board.name}</p>
+                    <Badge variant={board.visibility === "VISIBLE" ? "success" : "muted"} className="font-normal shrink-0">
+                      {visibilityLabel(board.visibility)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{board.description || "설명 없음"}</p>
+                  <div className="flex flex-wrap gap-1.5 text-xs mb-3">
+                    <Badge variant="info" className="font-normal">{readScopeLabel(board.readScope)}</Badge>
+                    <Badge variant={board.writeScope === "ONLY_ADMIN" ? "warning" : "info"} className="font-normal">
+                      {board.writeScope === "ONLY_ADMIN" ? "관리자만" : "일반 유저"}
+                    </Badge>
+                    {board.isAnonymous && <Badge variant="secondary" className="font-normal">익명</Badge>}
+                    {board.isNotice && <Badge variant="neutral" className="font-normal">공식</Badge>}
+                  </div>
+                  <Button variant="ghost" size="sm" asChild className="w-full">
+                    <Link href={`/content/boards/${board.boardId}/edit`}>
+                      상세보기 <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table view */}
+            <div className="hidden md:block rounded-lg border overflow-x-auto bg-card [&_tbody_td]:py-3">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -374,7 +404,7 @@ export default function BoardsPage() {
                 </TableBody>
               </Table>
             </div>
-          )}
+          </>)}
         </CardContent>
       </Card>
 
