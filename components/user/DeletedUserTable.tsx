@@ -95,10 +95,54 @@ export function DeletedUserTable({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground md:hidden">
-        표가 길어 좌우로 스크롤할 수 있습니다.
-      </p>
-      <div className="rounded-md border">
+      {/* Mobile: card view */}
+      <div className="block md:hidden space-y-3">
+        {data.map((user, index) => {
+          const statusBadge = getStatusBadge(user.userState)
+          return (
+            <div
+              key={user.id}
+              className="rounded-lg border bg-card p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={() => router.push(`/users/${user.id}`)}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <p className="font-semibold text-base">{user.name}</p>
+                  <p className="text-sm text-muted-foreground">{user.studentNo}</p>
+                </div>
+                <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <p className="text-muted-foreground">학과</p>
+                <p>{getDepartmentLabel(user.department)}</p>
+                <p className="text-muted-foreground">학적</p>
+                <p>{getAcademicStatusLabel(user.academicStatus)}</p>
+                <p className="text-muted-foreground">삭제일</p>
+                <p>{formatDate(user.deletedAt)}</p>
+                <p className="text-muted-foreground">사유</p>
+                <p className="truncate">{user.dropReason || "-"}</p>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    router.push(`/users/${user.id}`)
+                  }}
+                >
+                  상세보기 <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: table view */}
+      <div className="hidden md:block rounded-md border">
         <Table className="min-w-[1250px]">
           <TableHeader>
             <TableRow>

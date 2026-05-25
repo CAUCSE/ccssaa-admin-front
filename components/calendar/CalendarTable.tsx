@@ -88,10 +88,35 @@ export function CalendarTable({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground md:hidden">
-        표가 길어 좌우로 스크롤할 수 있습니다.
-      </p>
-      <div className="rounded-md border max-h-[600px] overflow-y-auto overflow-x-auto">
+      {/* Mobile: card view */}
+      <div className="block md:hidden space-y-3">
+        {data.map((event) => {
+          const typeBadge = getTypeBadge(event.type)
+          return (
+            <div key={event.id} className="rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="font-semibold text-base">{event.title}</p>
+                <Badge variant={typeBadge.variant} className="shrink-0">{typeBadge.label}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <p className="text-muted-foreground">시작</p>
+                <p>{formatDateTime(event.start)}</p>
+                <p className="text-muted-foreground">종료</p>
+                <p>{formatDateTime(event.end)}</p>
+              </div>
+              {(onEdit || onDelete) && (
+                <div className="mt-3 flex items-center gap-2">
+                  {onEdit && <Button variant="outline" size="sm" className="flex-1" onClick={() => onEdit(event)}>수정</Button>}
+                  {onDelete && <Button variant="destructive" size="sm" className="flex-1" onClick={() => onDelete(event.id)}>삭제</Button>}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: table view */}
+      <div className="hidden md:block rounded-md border max-h-[600px] overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

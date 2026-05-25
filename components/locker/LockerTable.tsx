@@ -132,7 +132,73 @@ export function LockerTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border overflow-x-auto">
+      {/* Mobile: card view */}
+      <div className="block md:hidden space-y-3">
+        {data.map((locker) => {
+          const isDisabled = locker.status === "DISABLED"
+          const usageStatus = getUsageStatus(locker)
+          const statusBadge = isDisabled
+            ? getStatusBadge("DISABLED")
+            : usageStatus === "EMPTY"
+              ? getStatusBadge("AVAILABLE")
+              : usageStatus === "IN_USE"
+                ? getStatusBadge("IN_USE")
+                : getStatusBadge("INACTIVE")
+          const statusLabel = isDisabled
+            ? "비활성"
+            : usageStatus === "EMPTY"
+              ? "비어있음"
+              : usageStatus === "IN_USE"
+                ? "사용중"
+                : "만료됨"
+          const isActive = locker.status !== "DISABLED"
+          return (
+            <div key={locker.id ?? `${locker.location ?? ""}-${locker.number}`} className="rounded-lg border bg-card p-4">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <p className="font-semibold text-base">{locker.location || "-"} {locker.number}번</p>
+                <Badge variant={statusBadge.variant}>{statusLabel}</Badge>
+              </div>
+              {locker.currentUserName && (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mb-3">
+                  <p className="text-muted-foreground">사용자</p>
+                  <p className="font-medium truncate">{locker.currentUserStudentNo ? `${locker.currentUserName} (${locker.currentUserStudentNo})` : locker.currentUserName}</p>
+                  <p className="text-muted-foreground">만료일</p>
+                  <p className="tabular-nums">{locker.expiredAt ? formatDate(locker.expiredAt) : "—"}</p>
+                </div>
+              )}
+              {!locker.currentUserName && (
+                <p className="text-sm text-muted-foreground mb-3">배정된 사용자가 없습니다</p>
+              )}
+              <div className="flex flex-wrap gap-1.5">
+                {!isDisabled && usageStatus === "EMPTY" && onAssignClick && (
+                  <Button variant="outline" size="sm" className="min-w-[40px] min-h-[40px]" onClick={() => onAssignClick?.(locker)}>배정</Button>
+                )}
+                {!isDisabled && usageStatus === "IN_USE" && (
+                  <>
+                    {onExtendClick && <Button variant="outline" size="sm" className="min-w-[40px] min-h-[40px]" onClick={() => onExtendClick?.(locker)}>연장</Button>}
+                    {onRevokeClick && <Button variant="outline" size="sm" className="min-w-[40px] min-h-[40px]" onClick={() => onRevokeClick?.(locker)}>회수</Button>}
+                  </>
+                )}
+                {!isDisabled && usageStatus === "EXPIRED" && onCleanupClick && (
+                  <Button variant="outline" size="sm" className="min-w-[40px] min-h-[40px]" onClick={() => onCleanupClick?.(locker)}>정리</Button>
+                )}
+                {isActive && onDisableClick && (
+                  <Button variant="outline" size="sm" className="min-w-[40px] min-h-[40px]" onClick={() => onDisableClick?.(locker)}>비활성화</Button>
+                )}
+                {!isActive && onEnableClick && (
+                  <Button variant="outline" size="sm" className="min-w-[40px] min-h-[40px]" onClick={() => onEnableClick?.(locker)}>활성화</Button>
+                )}
+                {onLogsClick && (
+                  <Button variant="ghost" size="sm" className="min-w-[40px] min-h-[40px]" onClick={() => onLogsClick?.(locker)}>로그</Button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: table view */}
+      <div className="hidden md:block rounded-md border overflow-x-auto">
         <div className="flex items-center justify-end gap-2 px-4 py-2 border-b bg-muted/30">
           <Dialog>
             <DialogTrigger asChild>

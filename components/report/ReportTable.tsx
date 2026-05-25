@@ -77,10 +77,42 @@ export function ReportTable({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground md:hidden">
-        표가 길어 좌우로 스크롤할 수 있습니다.
-      </p>
-      <div className="rounded-md border">
+      {/* Mobile: card view */}
+      <div className="block md:hidden space-y-3">
+        {data.map((user, index) => {
+          const statusBadge = getStatusBadge(user.userState)
+          const href = `/reports/${user.userId}?name=${encodeURIComponent(user.name)}&studentId=${encodeURIComponent(user.studentId)}&academicStatus=${encodeURIComponent(user.academicStatus)}&reportedCount=${user.reportedCount}&userState=${encodeURIComponent(user.userState)}`
+          return (
+            <div
+              key={user.userId}
+              className="rounded-lg border bg-card p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={() => router.push(href)}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <p className="font-semibold text-base">{user.name}</p>
+                  <p className="text-sm text-muted-foreground">{user.studentId}</p>
+                </div>
+                <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <p className="text-muted-foreground">학적</p>
+                <p>{ACADEMIC_STATUS_CONFIG[user.academicStatus]}</p>
+                <p className="text-muted-foreground">신고 건수</p>
+                <p className="font-semibold">{user.reportedCount}건</p>
+              </div>
+              <div className="mt-3">
+                <Button variant="ghost" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); router.push(href); }}>
+                  상세보기 <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: table view */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>

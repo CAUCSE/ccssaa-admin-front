@@ -63,8 +63,8 @@ UI 테이블을 그대로 유지하되, 일정 min-width 이하(모바일)에서
 
 **Phase 2 — 카드뷰 도입 (70점 → 90점 목표)**
 6. `UserTable` + `AdmissionTable` mobile card view 도입
-7. 나머지 테이블도 패턴에 맞춰 전환
-8. 필터 접기/펼치기
+7. 게시판·경조사·사물함·캘린더·신고·탈퇴회원 카드뷰 도입
+8. 필터 접기/펼치기 (추후)
 
 ## 구현 결과 검증 방법
 
@@ -80,16 +80,29 @@ UI 테이블을 그대로 유지하되, 일정 min-width 이하(모바일)에서
 - [x] Phase 1-4. asChild Slot 버그 수정 (button.tsx → @radix-ui/react-slot Slot 적용)
 - [x] Phase 1-5. 페이지네이션 버튼 최소 크기 (min-w[40px] min-h[40px] 일괄 적용)
 - [x] Phase 2-1. UserTable + AdmissionTable mobile card view 도입
-- [ ] Phase 2-2. 나머지 테이블 card view (DeletedUserTable 등 추후)
+- [x] Phase 2-2. 게시판·경조사·사물함(LockerTable)·사물함로그·캘린더·신고·탈퇴회원 카드뷰
 - [ ] Phase 2-3. 필터 접기/펼치기 (추후)
 - [x] Final. 모바일 재검증 및 commit/push
 
 ## 작업 완료 일지
 
 - 브랜치: `feat/mobile-admin-usability-plan`
-- 모든 Phase 1 항목 완료
-- Phase 2-1 (UserTable/AdmissionTable 카드뷰) 완료
+- 모든 Phase 1 항목 + Phase 2-1, 2-2 완료
 - Build 통과, Playwright 모바일(390x844) 검증 완료
   - 모든 페이지 overflow 없음
   - asChild React warning 제거됨
-  - UserTable/AdmissionTable 모바일에서 카드형 렌더링 확인
+  - 전체 페이지 모바일 카드뷰 렌더링 확인
+
+### 모바일 카드뷰 적용된 페이지 (Phase 2-2)
+- `/users` → UserTable (Phase 2-1)
+- `/users/pending` → AdmissionTable (Phase 2-1)
+- `/users/deleted` → DeletedUserTable
+- `/content/boards` → boards page inline card
+- `/events` → events page inline card
+- `/lockers` → LockerTable
+- `/lockers/logs` → lockers logs page inline card
+- `/reports` → ReportTable
+- `/calendar` → CalendarTable
+
+### 모바일 힌트 적용된 페이지 (Phase 1-1)
+- `AdmissionTable`, `ReportTable`, `CalendarTable`, `events/page`, `ReportedPostsTable`, `ReportedCommentsTable`, `DeletedUserTable`
