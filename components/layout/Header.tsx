@@ -139,7 +139,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={onMenuClick}
-            className="shrink-0 rounded-md p-1.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))] lg:hidden"
+            className="shrink-0 rounded-md p-3 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_hsl(var(--focus-ring-soft))] lg:hidden"
             aria-label="메뉴 열기"
           >
             <Menu className="h-5 w-5" />

@@ -108,7 +108,49 @@ export function AdmissionTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
+      {/* Mobile: card view */}
+      <div className="block md:hidden space-y-3">
+        {data.map((item, index) => {
+          const statusBadge = getStatusBadge(item.userState)
+          return (
+            <div
+              key={item.id}
+              className="rounded-lg border bg-card p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={() => router.push(`/users/pending/${item.id}`)}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <p className="font-semibold text-base">{item.userName}</p>
+                  <p className="text-sm text-muted-foreground">{item.requestedStudentId}</p>
+                </div>
+                <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <p className="text-muted-foreground">학과</p>
+                <p>{DEPARTMENT_CONFIG[item.requestedDepartment] ?? item.requestedDepartment}</p>
+                <p className="text-muted-foreground">신청일</p>
+                <p>{formatDate(item.createdAt)}</p>
+              </div>
+              <div className="mt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    router.push(`/users/pending/${item.id}`)
+                  }}
+                >
+                  상세보기 <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: table view */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -195,7 +237,7 @@ export function AdmissionTable({
                   >
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="sm" className="min-w-[40px] min-h-[40px]"
                       onClick={() => router.push(`/users/pending/${item.id}`)}
                     >
                       상세보기 <ArrowRight className="ml-1 h-4 w-4" />
@@ -217,7 +259,7 @@ export function AdmissionTable({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -239,7 +281,7 @@ export function AdmissionTable({
                 <Button
                   key={pageNum}
                   variant={currentPage === pageNum ? "default" : "outline"}
-                  size="sm"
+                  size="sm" className="min-w-[40px] min-h-[40px]"
                   onClick={() => onPageChange(pageNum)}
                 >
                   {pageNum}
@@ -249,7 +291,7 @@ export function AdmissionTable({
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
           >

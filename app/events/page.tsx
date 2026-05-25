@@ -200,6 +200,9 @@ function EventsPageContent() {
         </div>
       ) : (
         <div className="space-y-4">
+          <p className="text-xs text-muted-foreground md:hidden">
+            표가 길어 좌우로 스크롤할 수 있습니다.
+          </p>
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
@@ -245,7 +248,7 @@ function EventsPageContent() {
                       <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="sm" className="min-w-[40px] min-h-[40px]"
                           onClick={() => router.push(`/events/${event.id}`)}
                         >
                           상세보기 <ArrowRight className="ml-1 h-4 w-4" />
@@ -266,7 +269,7 @@ function EventsPageContent() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                size="sm" className="min-w-[40px] min-h-[40px]"
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
               >
@@ -288,7 +291,7 @@ function EventsPageContent() {
                     <Button
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
-                      size="sm"
+                      size="sm" className="min-w-[40px] min-h-[40px]"
                       onClick={() => handlePageChange(pageNum)}
                     >
                       {pageNum}
@@ -298,7 +301,7 @@ function EventsPageContent() {
               </div>
               <Button
                 variant="outline"
-                size="sm"
+                size="sm" className="min-w-[40px] min-h-[40px]"
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === data.totalPages}
               >

@@ -88,6 +88,9 @@ export function CalendarTable({
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground md:hidden">
+        표가 길어 좌우로 스크롤할 수 있습니다.
+      </p>
       <div className="rounded-md border max-h-[600px] overflow-y-auto overflow-x-auto">
         <Table>
           <TableHeader>

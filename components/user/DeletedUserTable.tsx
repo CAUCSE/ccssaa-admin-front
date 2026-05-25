@@ -152,7 +152,7 @@ export function DeletedUserTable({
                   >
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="sm" className="min-w-[40px] min-h-[40px]"
                       onClick={() => router.push(`/users/${user.id}`)}
                     >
                       상세보기 <ArrowRight className="ml-1 h-4 w-4" />
@@ -172,7 +172,7 @@ export function DeletedUserTable({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -195,7 +195,7 @@ export function DeletedUserTable({
                 <Button
                   key={pageNum}
                   variant={currentPage === pageNum ? "default" : "outline"}
-                  size="sm"
+                  size="sm" className="min-w-[40px] min-h-[40px]"
                   onClick={() => onPageChange(pageNum)}
                 >
                   {pageNum}
@@ -205,7 +205,7 @@ export function DeletedUserTable({
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >

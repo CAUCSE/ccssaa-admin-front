@@ -233,7 +233,7 @@ export function LockerTable({
                       {!isDisabled && usageStatus === "EMPTY" && (
                         <Button
                           variant="outline"
-                          size="sm"
+                          size="sm" className="min-w-[40px] min-h-[40px]"
                           onClick={() => onAssignClick?.(locker)}
                         >
                           배정
@@ -243,14 +243,14 @@ export function LockerTable({
                         <>
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="sm" className="min-w-[40px] min-h-[40px]"
                             onClick={() => onExtendClick?.(locker)}
                           >
                             연장
                           </Button>
                           <Button
                             variant="destructive"
-                            size="sm"
+                            size="sm" className="min-w-[40px] min-h-[40px]"
                             onClick={() => onRevokeClick?.(locker)}
                           >
                             회수
@@ -260,7 +260,7 @@ export function LockerTable({
                       {!isDisabled && usageStatus === "EXPIRED" && (
                         <Button
                           variant="outline"
-                          size="sm"
+                          size="sm" className="min-w-[40px] min-h-[40px]"
                           onClick={() => onCleanupClick?.(locker)}
                         >
                           정리
@@ -320,7 +320,7 @@ export function LockerTable({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -342,7 +342,7 @@ export function LockerTable({
                 <Button
                   key={pageNum}
                   variant={currentPage === pageNum ? "default" : "outline"}
-                  size="sm"
+                  size="sm" className="min-w-[40px] min-h-[40px]"
                   onClick={() => onPageChange(pageNum)}
                 >
                   {pageNum}
@@ -352,7 +352,7 @@ export function LockerTable({
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >

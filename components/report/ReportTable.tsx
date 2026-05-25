@@ -77,6 +77,9 @@ export function ReportTable({
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground md:hidden">
+        표가 길어 좌우로 스크롤할 수 있습니다.
+      </p>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -137,7 +140,7 @@ export function ReportTable({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -160,7 +163,7 @@ export function ReportTable({
                 <Button
                   key={pageNum}
                   variant={currentPage === pageNum ? "default" : "outline"}
-                  size="sm"
+                  size="sm" className="min-w-[40px] min-h-[40px]"
                   onClick={() => onPageChange(pageNum)}
                 >
                   {pageNum}
@@ -170,7 +173,7 @@ export function ReportTable({
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
