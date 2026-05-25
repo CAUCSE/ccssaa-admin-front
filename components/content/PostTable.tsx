@@ -152,7 +152,7 @@ export function PostTable({
                 <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="sm" className="min-w-[40px] min-h-[40px]"
                     onClick={() => router.push(`/content/${post.id}`)}
                   >
                     상세보기 <ArrowRight className="ml-1 h-4 w-4" />
@@ -172,7 +172,7 @@ export function PostTable({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -194,7 +194,7 @@ export function PostTable({
                 <Button
                   key={pageNum}
                   variant={currentPage === pageNum ? "default" : "outline"}
-                  size="sm"
+                  size="sm" className="min-w-[40px] min-h-[40px]"
                   onClick={() => onPageChange(pageNum)}
                 >
                   {pageNum}
@@ -204,7 +204,7 @@ export function PostTable({
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="sm" className="min-w-[40px] min-h-[40px]"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >

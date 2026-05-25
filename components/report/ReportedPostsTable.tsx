@@ -73,6 +73,9 @@ export function ReportedPostsTable({
           </div>
         ) : (
           <>
+            <p className="text-xs text-muted-foreground md:hidden">
+              표가 길어 좌우로 스크롤할 수 있습니다.
+            </p>
             <div className="rounded-md border overflow-x-auto">
               <Table className="min-w-[920px]">
                 <TableHeader>
@@ -121,7 +124,7 @@ export function ReportedPostsTable({
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="sm" className="min-w-[40px] min-h-[40px]"
                   onClick={() => onPageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -144,7 +147,7 @@ export function ReportedPostsTable({
                       <Button
                         key={pageNum}
                         variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
+                        size="sm" className="min-w-[40px] min-h-[40px]"
                         onClick={() => onPageChange(pageNum)}
                       >
                         {pageNum}
@@ -154,7 +157,7 @@ export function ReportedPostsTable({
                 </div>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="sm" className="min-w-[40px] min-h-[40px]"
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >

@@ -200,7 +200,41 @@ function EventsPageContent() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-md border overflow-x-auto">
+
+          {/* Mobile: card view */}
+          <div className="block md:hidden space-y-3">
+            {data.content.map((event, index) => (
+              <div
+                key={event.id}
+                className="rounded-lg border bg-card p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => router.push(`/events/${event.id}`)}
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="font-semibold text-base">{event.applicantName}</p>
+                    <p className="text-sm text-muted-foreground">{event.applicantStudentId}</p>
+                  </div>
+                  <Badge variant={getStatusBadgeVariant(event.state)}>{getStatusLabel(event.state)}</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <p className="text-muted-foreground">종류</p>
+                  <p>{getCeremonyTypeLabel(event.category)}</p>
+                  <p className="text-muted-foreground">경조사일</p>
+                  <p>{formatDate(event.startDate)}</p>
+                  <p className="text-muted-foreground">신청일</p>
+                  <p>{formatDate(event.createdAt)}</p>
+                </div>
+                <div className="mt-3">
+                  <Button variant="ghost" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); router.push(`/events/${event.id}`); }}>
+                    상세보기 <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table view */}
+          <div className="hidden md:block rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -245,7 +279,7 @@ function EventsPageContent() {
                       <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="sm" className="min-w-[40px] min-h-[40px]"
                           onClick={() => router.push(`/events/${event.id}`)}
                         >
                           상세보기 <ArrowRight className="ml-1 h-4 w-4" />
@@ -266,7 +300,7 @@ function EventsPageContent() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                size="sm" className="min-w-[40px] min-h-[40px]"
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
               >
@@ -288,7 +322,7 @@ function EventsPageContent() {
                     <Button
                       key={pageNum}
                       variant={page === pageNum ? "default" : "outline"}
-                      size="sm"
+                      size="sm" className="min-w-[40px] min-h-[40px]"
                       onClick={() => handlePageChange(pageNum)}
                     >
                       {pageNum}
@@ -298,7 +332,7 @@ function EventsPageContent() {
               </div>
               <Button
                 variant="outline"
-                size="sm"
+                size="sm" className="min-w-[40px] min-h-[40px]"
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === data.totalPages}
               >

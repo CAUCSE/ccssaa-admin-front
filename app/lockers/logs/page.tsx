@@ -280,7 +280,34 @@ function LockerLogsPageContent() {
               )}
             </p>
           </div>
-          <div className="rounded-lg border overflow-x-auto">
+
+          {/* Mobile: card view */}
+          <div className="block md:hidden space-y-3">
+            {data.content.map((log) => {
+              const actionBadge = getActionBadgeVariant(log.action)
+              return (
+                <div key={log.id} className="rounded-lg border bg-card p-4">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-sm font-medium tabular-nums">{formatDateTime(log.createdAt)}</p>
+                    <Badge variant={actionBadge} className="whitespace-nowrap font-normal shrink-0">
+                      {getActionLabel(log.action)}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <p className="text-muted-foreground">사용자</p>
+                    <p className="font-medium truncate">{log.userName || "—"}</p>
+                    <p className="text-muted-foreground">사물함</p>
+                    <p className="tabular-nums">{log.lockerLocationName} {log.lockerNumber}번</p>
+                    {log.userEmail && (<><p className="text-muted-foreground">이메일</p><p className="truncate text-xs">{log.userEmail}</p></>)}
+                  </div>
+                  {log.message && <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{log.message}</p>}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Desktop: table view */}
+          <div className="hidden md:block rounded-lg border overflow-x-auto">
             <Table className="table-fixed">
               <TableHeader>
                 <TableRow>

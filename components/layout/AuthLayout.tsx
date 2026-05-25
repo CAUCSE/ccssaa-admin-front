@@ -69,7 +69,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
           />
           <div className="flex flex-1 flex-col overflow-hidden">
             <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-            <main className="flex-1 overflow-y-auto p-6 lg:p-6 md:p-4">
+            <main className="flex-1 overflow-y-auto p-4 lg:p-6">
               {children}
             </main>
           </div>
