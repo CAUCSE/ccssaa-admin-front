@@ -21,7 +21,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMeState] = useState(true)
+  const [rememberMe, setRememberMeState] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {

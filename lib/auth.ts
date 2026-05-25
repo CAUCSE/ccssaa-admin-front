@@ -82,8 +82,8 @@ const readLegacySessionFrom = (storage: Storage): AuthSession | null => {
 }
 
 export const getRememberMe = (): boolean => {
-  if (typeof window === "undefined") return true
-  return localStorage.getItem(REMEMBER_ME_KEY) !== "false"
+  if (typeof window === "undefined") return false
+  return localStorage.getItem(REMEMBER_ME_KEY) === "true"
 }
 
 export const setRememberMe = (value: boolean): void => {
