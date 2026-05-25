@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Card,
   CardContent,
@@ -13,13 +14,19 @@ import {
 } from "@/components/ui/card"
 import { BrandLogo } from "@/components/layout/BrandLogo"
 import { login } from "@/lib/api/auth"
+import { getRememberMe, setRememberMe } from "@/lib/auth"
 import { toast } from "sonner"
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMeState] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    setRememberMeState(getRememberMe())
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,6 +36,7 @@ export default function LoginPage() {
     }
     setIsLoading(true)
     try {
+      setRememberMe(rememberMe)
       await login({ email: email.trim(), password })
       toast.success("로그인 성공. 대시보드로 이동합니다.")
       router.replace("/dashboard")
@@ -77,6 +85,22 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 disabled={isLoading}
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember-me"
+                checked={rememberMe}
+                onCheckedChange={(checked) =>
+                  setRememberMeState(checked === true)
+                }
+                disabled={isLoading}
+              />
+              <Label
+                htmlFor="remember-me"
+                className="text-sm font-normal leading-none cursor-pointer"
+              >
+                로그인 유지
+              </Label>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "로그인 중..." : "로그인"}
