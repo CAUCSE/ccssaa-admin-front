@@ -90,9 +90,14 @@ export default function LoginPage() {
               <Checkbox
                 id="remember-me"
                 checked={rememberMe}
-                onCheckedChange={(checked) =>
+                onCheckedChange={(checked) => {
+                  if (checked && !rememberMe) {
+                    alert(
+                      "로그인 유지는 개인 기기에서만 사용해주세요.\n공용 PC나 타인 접근 가능한 기기에서는 체크를 해제해주세요."
+                    )
+                  }
                   setRememberMeState(checked === true)
-                }
+                }}
                 disabled={isLoading}
               />
               <Label
