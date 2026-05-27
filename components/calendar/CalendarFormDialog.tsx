@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { fromDatetimeLocal } from "@/lib/utils/datetime"
 import type {
   CalendarEvent,
   CreateCalendarEventRequest,
@@ -127,12 +128,12 @@ export function CalendarFormDialog({
     }
 
     setErrorMessage(null)
-    
+
     const data: CreateCalendarEventRequest | UpdateCalendarEventRequest = {
       title: title.trim(),
       type,
-      start: start.toISOString(),
-      end: end.toISOString(),
+      start: fromDatetimeLocal(`${startDate}T${startTime}`),
+      end: fromDatetimeLocal(`${endDate}T${endTime}`),
       ...(targetPostId.trim() !== "" && { targetPostId: targetPostId.trim() }),
     }
 
