@@ -22,6 +22,7 @@ const pageTitles: Record<string, string> = {
   "/lockers/policies/new": "정책 등록",
   "/lockers/logs": "로그 조회",
   "/users/push": "알림 발송",
+  "/admin/audit-logs": "감사 로그",
   "/settings": "시스템 설정",
   "/settings/roles": "권한 및 역할 관리",
   "/settings/design": "디자인 / 배너 관리",
@@ -74,6 +75,7 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "로그 조회", href: "/lockers/logs" },
   ],
   "/users/push": [{ label: "알림 발송", href: "/users/push" }],
+  "/admin/audit-logs": [{ label: "감사 로그", href: "/admin/audit-logs" }],
   "/settings": [{ label: "시스템 설정", href: "/settings" }],
   "/settings/roles": [
     { label: "시스템 설정", href: "/settings" },
