@@ -17,6 +17,7 @@ import {
   Lock,
   CalendarDays,
   Bell,
+  ScrollText,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -141,6 +142,11 @@ const getSidebarItems = (
     href: "/users/push",
     icon: <Bell className="h-5 w-5" />,
     isUnimplemented: false,
+  },
+  {
+    title: "감사 로그",
+    href: "/admin/audit-logs",
+    icon: <ScrollText className="h-5 w-5" />,
   },
   {
     title: "시스템 설정 (미구현)",
