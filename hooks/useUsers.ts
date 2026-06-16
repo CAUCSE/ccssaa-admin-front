@@ -10,6 +10,7 @@ import type {
 } from "@/types/user"
 import { toast } from "sonner"
 import { useApiErrorDialog } from "@/components/ApiErrorDialog"
+import { ADMIN_AUDIT_LOGS_QUERY_KEY } from "@/hooks/useAdminAuditLogs"
 
 // 회원 리스트 조회
 export function useUsers(params: UserListParams) {
@@ -106,6 +107,7 @@ export function useBanUser() {
       queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
       queryClient.invalidateQueries({ queryKey: ["deleted-users"] })
       queryClient.invalidateQueries({ queryKey: ["reported-users"] })
+      queryClient.invalidateQueries({ queryKey: [ADMIN_AUDIT_LOGS_QUERY_KEY] })
       queryClient.invalidateQueries({
         queryKey: ["reported-user-posts", variables.userId],
       })
@@ -143,6 +145,7 @@ export function useRestoreUser() {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
       queryClient.invalidateQueries({ queryKey: ["deleted-users"] })
+      queryClient.invalidateQueries({ queryKey: [ADMIN_AUDIT_LOGS_QUERY_KEY] })
       toast.success("복구가 완료되었습니다.")
     },
     onError: (error) => {
@@ -179,6 +182,7 @@ export function useUpdateUserRole() {
       )
       queryClient.invalidateQueries({ queryKey: ["admin-users"] })
       queryClient.invalidateQueries({ queryKey: ["admin-users-search"] })
+      queryClient.invalidateQueries({ queryKey: [ADMIN_AUDIT_LOGS_QUERY_KEY] })
       toast.success("역할이 변경되었습니다.")
     },
     onError: (error) => {
