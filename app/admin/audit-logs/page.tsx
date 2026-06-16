@@ -1,15 +1,27 @@
 "use client"
 
 import { Suspense, useCallback, useMemo, useState } from "react"
+import type { ReactNode } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { FileText, RotateCcw, Search } from "lucide-react"
+import { Eye, FileText, RotateCcw, Search } from "lucide-react"
 import { useAdminAuditLogs } from "@/hooks/useAdminAuditLogs"
-import type { AdminAuditLogActionType } from "@/types/admin-audit-log"
+import type {
+  AdminAuditLog,
+  AdminAuditLogActionType,
+  AdminAuditLogCategory,
+} from "@/types/admin-audit-log"
 import { formatDateTime, fromDatetimeLocal } from "@/lib/utils/datetime"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { Input } from "@/components/ui/input"
 import {
@@ -32,18 +44,55 @@ import {
 const ACTION_OPTIONS: Array<{
   value: "" | AdminAuditLogActionType
   label: string
+  category?: AdminAuditLogCategory
   variant: "default" | "secondary" | "outline" | "destructive"
 }> = [
   { value: "", label: "전체 액션", variant: "outline" },
-  { value: "DROP", label: "유저 추방", variant: "destructive" },
-  { value: "RESTORE", label: "추방 유저 복구", variant: "secondary" },
-  { value: "ROLE_CHANGE", label: "유저 역할 변경", variant: "outline" },
+  { value: "DROP", label: "유저 추방", category: "USER", variant: "destructive" },
+  { value: "RESTORE", label: "추방 유저 복구", category: "USER", variant: "secondary" },
+  { value: "ROLE_CHANGE", label: "유저 역할 변경", category: "USER", variant: "outline" },
+  { value: "ASSIGN", label: "사물함 배정", category: "LOCKER", variant: "default" },
+  { value: "EXTEND", label: "사물함 연장", category: "LOCKER", variant: "secondary" },
+  { value: "RELEASE", label: "사물함 회수", category: "LOCKER", variant: "outline" },
+  { value: "ENABLE", label: "사물함 활성화", category: "LOCKER", variant: "secondary" },
+  { value: "DISABLE", label: "사물함 비활성화", category: "LOCKER", variant: "destructive" },
+  { value: "RELEASE_EXPIRED", label: "만료 사물함 회수", category: "LOCKER", variant: "outline" },
+  { value: "ADMISSION_ACCEPT", label: "재학 인증 승인", category: "ACADEMIC", variant: "default" },
+  { value: "ADMISSION_REJECT", label: "재학 인증 거절", category: "ACADEMIC", variant: "destructive" },
+  { value: "ACADEMIC_RECORD_ACCEPT", label: "학적 변경 승인", category: "ACADEMIC", variant: "default" },
+  { value: "ACADEMIC_RECORD_REJECT", label: "학적 변경 거절", category: "ACADEMIC", variant: "destructive" },
+]
+
+const CATEGORY_OPTIONS: Array<{
+  value: "" | AdminAuditLogCategory
+  label: string
+}> = [
+  { value: "", label: "전체 카테고리" },
+  { value: "USER", label: "사용자" },
+  { value: "LOCKER", label: "사물함" },
+  { value: "ACADEMIC", label: "학적" },
 ]
 
 const ACTION_LABEL: Record<string, string> = {
   DROP: "유저 추방",
   RESTORE: "추방 유저 복구",
   ROLE_CHANGE: "유저 역할 변경",
+  ASSIGN: "사물함 배정",
+  EXTEND: "사물함 연장",
+  RELEASE: "사물함 회수",
+  ENABLE: "사물함 활성화",
+  DISABLE: "사물함 비활성화",
+  RELEASE_EXPIRED: "만료 사물함 회수",
+  ADMISSION_ACCEPT: "재학 인증 승인",
+  ADMISSION_REJECT: "재학 인증 거절",
+  ACADEMIC_RECORD_ACCEPT: "학적 변경 승인",
+  ACADEMIC_RECORD_REJECT: "학적 변경 거절",
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+  USER: "사용자",
+  LOCKER: "사물함",
+  ACADEMIC: "학적",
 }
 
 const ACTION_BADGE_VARIANT: Record<
@@ -53,6 +102,16 @@ const ACTION_BADGE_VARIANT: Record<
   DROP: "destructive",
   RESTORE: "secondary",
   ROLE_CHANGE: "outline",
+  ASSIGN: "default",
+  EXTEND: "secondary",
+  RELEASE: "outline",
+  ENABLE: "secondary",
+  DISABLE: "destructive",
+  RELEASE_EXPIRED: "outline",
+  ADMISSION_ACCEPT: "default",
+  ADMISSION_REJECT: "destructive",
+  ACADEMIC_RECORD_ACCEPT: "default",
+  ACADEMIC_RECORD_REJECT: "destructive",
 }
 
 function toDatetimeLocal(value: string | null): string {
@@ -77,22 +136,200 @@ function getActionVariant(
   return ACTION_BADGE_VARIANT[actionType] ?? "outline"
 }
 
-function formatMetadataValue(value?: string | null): string {
-  if (!value) return "-"
-  return value
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .join(", ")
+function formatMetadataValue(
+  value: string | number | boolean | string[] | null | undefined
+): string {
+  if (value == null || value === "") return "-"
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ") || "-"
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(", ") || "-"
+  }
+  return String(value)
 }
 
-function buildKoreanSummary(
-  actionType: string,
-  actorEmail: string,
-  targetEmail: string
-): string {
-  const action = getActionLabel(actionType)
-  return `${actorEmail} 관리자가 ${targetEmail} 사용자의 ${action} 작업을 수행했습니다.`
+function getPersonLabel(person: { email: string | null; name?: string | null; studentId?: string | null }): string {
+  if (person.name && person.studentId) return `${person.name} (${person.studentId})`
+  if (person.name) return person.name
+  return person.email ?? "-"
+}
+
+function buildKoreanSummary(log: AdminAuditLog): string {
+  if (log.summary) return log.summary
+  const action = getActionLabel(log.actionType, log.actionDescription)
+  return `${getPersonLabel(log.actor)} 관리자가 ${getPersonLabel(log.target)} 대상의 ${action} 작업을 수행했습니다.`
+}
+
+function getCategoryLabel(category: string): string {
+  return CATEGORY_LABEL[category] ?? category
+}
+
+const ACTION_METADATA_KEYS: Record<string, string[]> = {
+  DROP: ["beforeState", "afterState", "beforeRoles", "afterRoles", "reason"],
+  RESTORE: ["beforeState", "afterState", "beforeRoles", "afterRoles", "reason"],
+  ROLE_CHANGE: ["beforeState", "afterState", "beforeRoles", "afterRoles", "reason"],
+  ASSIGN: ["lockerLocationName", "lockerNumber", "expireDate", "expiredAt", "lockerId"],
+  EXTEND: ["lockerLocationName", "lockerNumber", "expireDate", "expiredAt", "lockerId"],
+  RELEASE: ["lockerLocationName", "lockerNumber", "expireDate", "lockerId"],
+  ENABLE: ["lockerLocationName", "lockerNumber", "expireDate", "lockerId"],
+  DISABLE: ["lockerLocationName", "lockerNumber", "expireDate", "releasedUserId", "lockerId"],
+  RELEASE_EXPIRED: ["lockerLocationName", "lockerNumber", "expireDate", "lockerId"],
+  ADMISSION_ACCEPT: [
+    "admissionId",
+    "requestedAcademicStatus",
+    "requestedStudentId",
+    "requestedAdmissionYear",
+    "requestedDepartment",
+    "requestedGraduationYear",
+    "rejectReason",
+  ],
+  ADMISSION_REJECT: [
+    "admissionId",
+    "requestedAcademicStatus",
+    "requestedStudentId",
+    "requestedAdmissionYear",
+    "requestedDepartment",
+    "requestedGraduationYear",
+    "rejectReason",
+  ],
+  ACADEMIC_RECORD_ACCEPT: [
+    "applicationId",
+    "beforeAcademicStatus",
+    "targetAcademicStatus",
+    "note",
+    "rejectReason",
+  ],
+  ACADEMIC_RECORD_REJECT: [
+    "applicationId",
+    "beforeAcademicStatus",
+    "targetAcademicStatus",
+    "note",
+    "rejectReason",
+  ],
+}
+
+function getMetadataRows(log: AdminAuditLog) {
+  const preferredKeys = ACTION_METADATA_KEYS[log.actionType] ?? []
+  const unknownKeys = Object.keys(log.metadata).filter((key) => !preferredKeys.includes(key))
+
+  return [...preferredKeys, ...unknownKeys]
+    .filter((key) => log.metadata[key] != null && log.metadata[key] !== "")
+    .map((key) => ({
+      key,
+      label: key,
+      value: formatMetadataValue(log.metadata[key]),
+    }))
+}
+
+function DetailItem({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <div className="text-sm text-foreground">{value}</div>
+    </div>
+  )
+}
+
+function AuditLogDetailDialog({
+  log,
+  open,
+  onOpenChange,
+}: {
+  log: AdminAuditLog | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  if (!log) return null
+
+  const actionLabel = getActionLabel(log.actionType, log.actionDescription)
+  const summary = buildKoreanSummary(log)
+  const metadataRows = getMetadataRows(log)
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>감사 로그 상세</DialogTitle>
+          <DialogDescription>
+            {formatDateTime(log.createdAt ?? "")}에 기록된 관리자 작업입니다.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5">
+          <div className="rounded-lg border bg-muted/30 p-4">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <Badge variant={getActionVariant(log.actionType)} className="font-normal">
+                {actionLabel}
+              </Badge>
+              <Badge variant="outline" className="font-normal">
+                {getCategoryLabel(log.category)}
+              </Badge>
+              <span className="text-xs text-muted-foreground">ID: {log.id}</span>
+            </div>
+            <p className="text-sm leading-6">{summary}</p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border p-4">
+              <p className="mb-3 text-sm font-medium">수행자</p>
+              <div className="space-y-3">
+                <DetailItem label="이메일" value={log.actor.email} />
+                <DetailItem label="이름" value={log.actor.name ?? "-"} />
+                <DetailItem label="학번" value={log.actor.studentId ?? "-"} />
+                <DetailItem label="사용자 ID" value={log.actor.userId} />
+              </div>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="mb-3 text-sm font-medium">대상</p>
+              <div className="space-y-3">
+                <DetailItem
+                  label="대상"
+                  value={
+                    log.target.type === "USER" && log.target.email ? (
+                      <Link href={`/users/${log.target.id}`} className="text-primary hover:underline">
+                        {getPersonLabel(log.target)}
+                      </Link>
+                    ) : (
+                      getPersonLabel(log.target)
+                    )
+                  }
+                />
+                <DetailItem label="이메일" value={log.target.email ?? "-"} />
+                <DetailItem label="이름" value={log.target.name ?? "-"} />
+                <DetailItem label="학번" value={log.target.studentId ?? "-"} />
+                <DetailItem label="대상 ID" value={log.target.id} />
+                <DetailItem label="대상 유형" value={getCategoryLabel(log.target.type)} />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border">
+            <div className="border-b px-4 py-3">
+              <p className="text-sm font-medium">변경 내용</p>
+            </div>
+            {metadataRows.length > 0 ? (
+              <div className="divide-y">
+                {metadataRows.map((row) => (
+                  <div
+                    key={row.key}
+                    className="grid gap-1 px-4 py-3 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-4"
+                  >
+                    <p className="text-sm text-muted-foreground">{row.label}</p>
+                    <p className="whitespace-pre-wrap break-words text-sm">{row.value}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="px-4 py-5 text-sm text-muted-foreground">표시할 변경 내용이 없습니다.</p>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function AuditLogsPageContent() {
@@ -103,41 +340,60 @@ function AuditLogsPageContent() {
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1)
   const [from, setFrom] = useState(toDatetimeLocal(searchParams.get("from")))
   const [to, setTo] = useState(toDatetimeLocal(searchParams.get("to")))
+  const [category, setCategory] = useState<"" | AdminAuditLogCategory>(
+    (searchParams.get("category") as "" | AdminAuditLogCategory) ?? ""
+  )
   const [actionType, setActionType] = useState<"" | AdminAuditLogActionType>(
     (searchParams.get("actionType") as "" | AdminAuditLogActionType) ?? ""
   )
   const [keyword, setKeyword] = useState(searchParams.get("keyword") ?? "")
   const [validationMessage, setValidationMessage] = useState("")
+  const [selectedLog, setSelectedLog] = useState<AdminAuditLog | null>(null)
+
+  const actionOptions = useMemo(
+    () =>
+      ACTION_OPTIONS.filter((option) => !option.category || !category || option.category === category),
+    [category]
+  )
+  const effectiveActionType = useMemo(() => {
+    if (!actionType) return ""
+    const selectedOption = ACTION_OPTIONS.find((option) => option.value === actionType)
+    if (!selectedOption?.category || !category || selectedOption.category === category) {
+      return actionType
+    }
+    return ""
+  }, [actionType, category])
 
   const queryParams = useMemo(
     () => ({
       from: from ? fromDatetimeLocal(from).replace("Z", "") : undefined,
       to: to ? fromDatetimeLocal(to).replace("Z", "") : undefined,
-      category: "USER" as const,
-      actionType: actionType || undefined,
+      category: category || undefined,
+      actionType: effectiveActionType || undefined,
       keyword: keyword.trim() || undefined,
       page: page - 1,
       size: 10,
     }),
-    [actionType, from, keyword, page, to]
+    [category, effectiveActionType, from, keyword, page, to]
   )
 
   const { data, isLoading, error, refetch } = useAdminAuditLogs(queryParams)
 
-  const hasActiveFilters = !!(from || to || actionType || keyword.trim())
+  const hasActiveFilters = !!(from || to || category || actionType || keyword.trim())
 
   const syncUrl = useCallback(
     (nextPage: number) => {
       const params = new URLSearchParams()
       if (from) params.set("from", fromDatetimeLocal(from).replace("Z", ""))
       if (to) params.set("to", fromDatetimeLocal(to).replace("Z", ""))
-      if (actionType) params.set("actionType", actionType)
+      if (category) params.set("category", category)
+      if (effectiveActionType) params.set("actionType", effectiveActionType)
       if (keyword.trim()) params.set("keyword", keyword.trim())
       if (nextPage > 1) params.set("page", String(nextPage))
       const query = params.toString()
       router.push(query ? `/admin/audit-logs?${query}` : "/admin/audit-logs")
     },
-    [actionType, from, keyword, router, to]
+    [category, effectiveActionType, from, keyword, router, to]
   )
 
   const validateRange = useCallback(() => {
@@ -158,12 +414,23 @@ function AuditLogsPageContent() {
   const handleReset = useCallback(() => {
     setFrom("")
     setTo("")
+    setCategory("")
     setActionType("")
     setKeyword("")
     setValidationMessage("")
     setPage(1)
     router.push("/admin/audit-logs")
   }, [router])
+
+  const handleCategoryChange = useCallback((value: string) => {
+    const nextCategory = value === "all" ? "" : (value as AdminAuditLogCategory)
+    setCategory(nextCategory)
+
+    const selectedOption = ACTION_OPTIONS.find((option) => option.value === actionType)
+    if (selectedOption?.category && nextCategory && selectedOption.category !== nextCategory) {
+      setActionType("")
+    }
+  }, [actionType])
 
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage)
@@ -188,7 +455,7 @@ function AuditLogsPageContent() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">감사 로그</h1>
         <p className="mt-1 text-muted-foreground">
-          회원 추방, 복구, 역할 변경 등 관리자 작업 이력을 조회합니다.
+          사용자, 사물함, 학적 승인 등 관리자 작업 이력을 조회합니다.
         </p>
       </div>
 
@@ -205,7 +472,7 @@ function AuditLogsPageContent() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-[minmax(150px,1fr)_minmax(150px,1fr)_160px_minmax(180px,1fr)_auto] md:items-end">
+          <div className="grid gap-3 md:grid-cols-[minmax(150px,1fr)_minmax(150px,1fr)_160px_180px_minmax(180px,1fr)_auto] md:items-end">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">시작 시각</label>
               <Input type="datetime-local" value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -213,6 +480,21 @@ function AuditLogsPageContent() {
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">종료 시각</label>
               <Input type="datetime-local" value={to} onChange={(e) => setTo(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">카테고리</label>
+              <Select value={category || "all"} onValueChange={handleCategoryChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="전체" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value || "all"} value={option.value || "all"}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">액션</label>
@@ -226,7 +508,7 @@ function AuditLogsPageContent() {
                   <SelectValue placeholder="전체" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ACTION_OPTIONS.map((option) => (
+                  {actionOptions.map((option) => (
                     <SelectItem key={option.value || "all"} value={option.value || "all"}>
                       {option.label}
                     </SelectItem>
@@ -235,9 +517,9 @@ function AuditLogsPageContent() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">이메일 검색</label>
+              <label className="text-xs font-medium text-muted-foreground">키워드</label>
               <Input
-                placeholder="관리자 또는 대상 이메일"
+                placeholder="이메일, 이름, 학번"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -308,26 +590,37 @@ function AuditLogsPageContent() {
               <div key={log.id} className="rounded-lg border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-sm font-medium tabular-nums">{formatDateTime(log.createdAt ?? "")}</p>
-                  <Badge variant={getActionVariant(log.actionType)} className="font-normal">
-                    {getActionLabel(log.actionType, log.actionDescription)}
-                  </Badge>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Badge variant="outline" className="font-normal">
+                      {getCategoryLabel(log.category)}
+                    </Badge>
+                    <Badge variant={getActionVariant(log.actionType)} className="font-normal">
+                      {getActionLabel(log.actionType, log.actionDescription)}
+                    </Badge>
+                  </div>
                 </div>
                 <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-3 gap-y-1 text-sm">
                   <span className="text-muted-foreground">수행자</span>
-                  <span className="truncate">{log.actor.email}</span>
+                  <span className="truncate">{getPersonLabel(log.actor)}</span>
                   <span className="text-muted-foreground">대상</span>
-                  <Link href={`/users/${log.target.id}`} className="truncate text-primary hover:underline">
-                    {log.target.email}
-                  </Link>
-                  <span className="text-muted-foreground">상태</span>
-                  <span>{formatMetadataValue(log.metadata.beforeState)} → {formatMetadataValue(log.metadata.afterState)}</span>
+                  {log.target.type === "USER" && log.target.email ? (
+                    <Link href={`/users/${log.target.id}`} className="truncate text-primary hover:underline">
+                      {getPersonLabel(log.target)}
+                    </Link>
+                  ) : (
+                    <span className="truncate">{getPersonLabel(log.target)}</span>
+                  )}
+                  <span className="text-muted-foreground">변경 내용</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-fit gap-1.5"
+                    onClick={() => setSelectedLog(log)}
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    상세보기
+                  </Button>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {buildKoreanSummary(log.actionType, log.actor.email, log.target.email)}
-                </p>
-                {log.metadata.reason && (
-                  <p className="mt-1 text-sm text-muted-foreground">사유: {log.metadata.reason}</p>
-                )}
               </div>
             ))}
           </div>
@@ -337,10 +630,10 @@ function AuditLogsPageContent() {
               <TableHeader>
                 <TableRow>
                   <TableHead className={headClass} style={{ width: "14%" }}>시간</TableHead>
-                  <TableHead className={headClass} style={{ width: "12%" }}>액션</TableHead>
-                  <TableHead className={headClass} style={{ width: "20%" }}>수행자</TableHead>
-                  <TableHead className={headClass} style={{ width: "20%" }}>대상</TableHead>
-                  <TableHead className={headClass} style={{ width: "34%" }}>변경 내용</TableHead>
+                  <TableHead className={headClass} style={{ width: "16%" }}>구분</TableHead>
+                  <TableHead className={headClass} style={{ width: "24%" }}>수행자</TableHead>
+                  <TableHead className={headClass} style={{ width: "24%" }}>대상</TableHead>
+                  <TableHead className={headClass} style={{ width: "22%" }}>변경 내용</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -350,39 +643,43 @@ function AuditLogsPageContent() {
                       {formatDateTime(log.createdAt ?? "")}
                     </TableCell>
                     <TableCell className={cellClass}>
-                      <Badge variant={getActionVariant(log.actionType)} className="font-normal">
-                        {getActionLabel(log.actionType, log.actionDescription)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className={cellClass}>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{log.actor.email}</p>
-                        <p className="truncate text-xs text-muted-foreground">{log.actor.userId}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge variant="outline" className="font-normal">
+                          {getCategoryLabel(log.category)}
+                        </Badge>
+                        <Badge variant={getActionVariant(log.actionType)} className="font-normal">
+                          {getActionLabel(log.actionType, log.actionDescription)}
+                        </Badge>
                       </div>
                     </TableCell>
                     <TableCell className={cellClass}>
                       <div className="min-w-0">
-                        <Link href={`/users/${log.target.id}`} className="truncate font-medium text-primary hover:underline">
-                          {log.target.email}
-                        </Link>
+                        <p className="truncate font-medium">{getPersonLabel(log.actor)}</p>
+                        <p className="truncate text-xs text-muted-foreground">{log.actor.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className={cellClass}>
+                      <div className="min-w-0">
+                        {log.target.type === "USER" && log.target.email ? (
+                          <Link href={`/users/${log.target.id}`} className="truncate font-medium text-primary hover:underline">
+                            {getPersonLabel(log.target)}
+                          </Link>
+                        ) : (
+                          <p className="truncate font-medium">{getPersonLabel(log.target)}</p>
+                        )}
                         <p className="truncate text-xs text-muted-foreground">{log.target.id}</p>
                       </div>
                     </TableCell>
                     <TableCell className={cellClass}>
-                      <div className="space-y-1 text-muted-foreground">
-                        <p className="line-clamp-2 text-foreground">
-                          {buildKoreanSummary(log.actionType, log.actor.email, log.target.email)}
-                        </p>
-                        <p className="text-xs">
-                          상태: {formatMetadataValue(log.metadata.beforeState)} → {formatMetadataValue(log.metadata.afterState)}
-                        </p>
-                        <p className="text-xs">
-                          권한: {formatMetadataValue(log.metadata.beforeRoles)} → {formatMetadataValue(log.metadata.afterRoles)}
-                        </p>
-                        {log.metadata.reason && (
-                          <p className="text-xs">사유: {log.metadata.reason}</p>
-                        )}
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 whitespace-nowrap"
+                        onClick={() => setSelectedLog(log)}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        상세보기
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -413,6 +710,14 @@ function AuditLogsPageContent() {
           </div>
         </div>
       )}
+
+      <AuditLogDetailDialog
+        log={selectedLog}
+        open={!!selectedLog}
+        onOpenChange={(open) => {
+          if (!open) setSelectedLog(null)
+        }}
+      />
     </div>
   )
 }
@@ -434,4 +739,3 @@ export default function AdminAuditLogsPage() {
     </Suspense>
   )
 }
-
