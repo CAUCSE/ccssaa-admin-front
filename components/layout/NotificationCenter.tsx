@@ -73,9 +73,9 @@ export function NotificationCenter() {
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="left-auto right-0 top-0 h-full max-w-md translate-x-0 translate-y-0 rounded-none border-l p-0 pr-12 sm:max-w-md">
+        <DialogContent className="left-auto right-0 top-0 h-dvh max-w-md translate-x-0 translate-y-0 overflow-hidden rounded-none border-l p-0 sm:max-w-md">
           <div className="flex h-full flex-col">
-            <DialogHeader className="border-b px-5 py-4 pr-4 text-left">
+            <DialogHeader className="shrink-0 border-b px-5 py-4 pr-4 text-left">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <DialogTitle>알림 센터</DialogTitle>
@@ -89,7 +89,7 @@ export function NotificationCenter() {
               </div>
             </DialogHeader>
 
-            <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
               <section className="space-y-2">
                 <div className="text-sm font-medium">최신 알림</div>
                 {isLatestLoading ? (
