@@ -1,6 +1,7 @@
 import axios from "axios"
 import {
   getAccessToken,
+  getRefreshToken,
   setAuthSession,
   removeTokens,
 } from "@/lib/auth"
@@ -35,9 +36,9 @@ const realAuthApi = {
     return unwrapV2(response)
   },
   refresh: async (): Promise<AuthSession> => {
-    const accessToken = getAccessToken()
-    if (!accessToken) {
-      throw new Error("accessToken이 없습니다.")
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) {
+      throw new Error("refreshToken이 없습니다.")
     }
 
     const response = await authClient.post<ApiResponse<AuthSession>>(
@@ -45,7 +46,8 @@ const realAuthApi = {
       undefined,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: "Bearer t",
+          "Refresh-Authorization": `Bearer ${refreshToken}`,
         },
       }
     )
@@ -54,11 +56,17 @@ const realAuthApi = {
   },
   signOut: async (): Promise<void> => {
     const accessToken = getAccessToken()
-    if (!accessToken) return
+    const refreshToken = getRefreshToken()
+    if (!accessToken && !refreshToken) return
 
     await authClient.post("/auth/logout", undefined, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        ...(accessToken
+          ? { Authorization: `Bearer ${accessToken}` }
+          : {}),
+        ...(refreshToken
+          ? { "Refresh-Authorization": `Bearer ${refreshToken}` }
+          : {}),
       },
     })
   },
@@ -66,9 +74,12 @@ const realAuthApi = {
 
 const authApi = USE_MOCK_API ? mockAuthApi : realAuthApi
 
-export async function login(params: LoginParams): Promise<AuthSession> {
+export async function login(
+  params: LoginParams,
+  rememberMe: boolean
+): Promise<AuthSession> {
   const res = await authApi.signIn(params)
-  setAuthSession(res)
+  setAuthSession(res, rememberMe)
   return res
 }
 

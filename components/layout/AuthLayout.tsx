@@ -9,33 +9,57 @@ import { ApiErrorDialogProvider } from "@/components/ApiErrorDialog"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Header } from "@/components/layout/Header"
 import { Toaster } from "@/components/ui/toaster"
-import { isAuthenticated } from "@/lib/auth"
+import {
+  getRefreshToken,
+  isAccessTokenValid,
+  removeTokens,
+} from "@/lib/auth"
+import { refreshTokens } from "@/lib/api/auth"
+
+type AuthStatus = "checking" | "authenticated" | "unauthenticated"
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [authStatus, setAuthStatus] = useState<AuthStatus>("checking")
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    let active = true
 
-  useEffect(() => {
-    if (!mounted) return
-    if (pathname === "/login") return
-    if (!isAuthenticated()) {
-      router.replace("/login")
+    const restoreSession = async () => {
+      if (pathname === "/login") {
+        if (active) setAuthStatus("unauthenticated")
+        return
+      }
+
+      if (isAccessTokenValid()) {
+        if (active) setAuthStatus("authenticated")
+        return
+      }
+
+      if (getRefreshToken()) {
+        const session = await refreshTokens()
+        if (session && isAccessTokenValid()) {
+          if (active) setAuthStatus("authenticated")
+          return
+        }
+      }
+
+      removeTokens()
+      if (active) {
+        setAuthStatus("unauthenticated")
+        router.replace("/login")
+      }
     }
-  }, [mounted, pathname, router])
 
-  if (!mounted) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-muted/30">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    )
-  }
+    setAuthStatus("checking")
+    void restoreSession()
+
+    return () => {
+      active = false
+    }
+  }, [pathname, router])
 
   // 로그인 페이지: 사이드바/헤더 없이 전체 화면
   if (pathname === "/login") {
@@ -47,8 +71,8 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // 인증되지 않은 상태에서 리다이렉트 대기
-  if (!isAuthenticated()) {
+  // 저장된 인증 확인 또는 토큰 재발급을 기다리는 동안 보호 화면을 숨긴다.
+  if (authStatus !== "authenticated") {
     return (
       <div className="flex h-screen items-center justify-center bg-muted/30">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />

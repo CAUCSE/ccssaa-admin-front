@@ -7,10 +7,14 @@ export interface LoginParams {
   password: string
 }
 
-const mockToken = () =>
-  "mock-jwt-" + Math.random().toString(36).slice(2) + "-" + Date.now()
+const mockToken = () => {
+  const payload = btoa(
+    JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 60 * 60 })
+  )
+  return `mock.${payload}.signature`
+}
 
-const MOCK_SESSION_BASE: Omit<AuthSession, "accessToken"> = {
+const MOCK_SESSION_BASE: Omit<AuthSession, "accessToken" | "refreshToken"> = {
   email: "admin@example.com",
   name: "관리자",
   profileImage: null,
@@ -29,6 +33,7 @@ export const mockAuthApi = {
 
     return {
       accessToken: mockToken(),
+      refreshToken: mockToken(),
       ...MOCK_SESSION_BASE,
       email,
     }
@@ -39,6 +44,7 @@ export const mockAuthApi = {
 
     return {
       accessToken: mockToken(),
+      refreshToken: mockToken(),
       ...MOCK_SESSION_BASE,
     }
   },

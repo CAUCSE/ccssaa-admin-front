@@ -5,6 +5,7 @@ export interface AuthProfileImage {
 
 export interface AuthSession {
   accessToken: string
+  refreshToken: string
   name: string
   email: string
   profileImage: AuthProfileImage | null
