@@ -1,19 +1,20 @@
 import type { AuthSession } from "@/types/auth"
 
 const ACCESS_TOKEN_KEY = "accessToken"
+const REFRESH_TOKEN_KEY = "refreshToken"
 const AUTH_SESSION_KEY = "authSession"
 const REMEMBER_ME_KEY = "rememberMe"
 const LEGACY_SESSION_KEYS = ["me", "userInfo", "user"]
-const LEGACY_TOKEN_KEYS = ["refreshToken"]
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null
 }
 
-const isAuthSession = (value: unknown): value is AuthSession => {
+type StoredAuthProfile = Omit<AuthSession, "accessToken" | "refreshToken">
+
+const isStoredAuthProfile = (value: unknown): value is StoredAuthProfile => {
   return (
     isRecord(value) &&
-    typeof value.accessToken === "string" &&
     typeof value.name === "string" &&
     typeof value.email === "string" &&
     typeof value.onboardingStatus === "string" &&
@@ -23,9 +24,9 @@ const isAuthSession = (value: unknown): value is AuthSession => {
 
 const removeLegacy = (storage: Storage): void => {
   storage.removeItem(ACCESS_TOKEN_KEY)
+  storage.removeItem(REFRESH_TOKEN_KEY)
   storage.removeItem(AUTH_SESSION_KEY)
   LEGACY_SESSION_KEYS.forEach((key) => storage.removeItem(key))
-  LEGACY_TOKEN_KEYS.forEach((key) => storage.removeItem(key))
 }
 
 const removeLegacyAuthKeys = (): void => {
@@ -35,7 +36,8 @@ const removeLegacyAuthKeys = (): void => {
 
 const readLegacySessionFrom = (storage: Storage): AuthSession | null => {
   const accessToken = storage.getItem(ACCESS_TOKEN_KEY)
-  if (!accessToken) return null
+  const refreshToken = storage.getItem(REFRESH_TOKEN_KEY)
+  if (!accessToken || !refreshToken) return null
 
   for (const key of LEGACY_SESSION_KEYS) {
     const raw = storage.getItem(key)
@@ -44,17 +46,10 @@ const readLegacySessionFrom = (storage: Storage): AuthSession | null => {
     try {
       const parsed = JSON.parse(raw) as unknown
 
-      if (isAuthSession(parsed)) return parsed
-
-      if (
-        isRecord(parsed) &&
-        typeof parsed.name === "string" &&
-        typeof parsed.email === "string" &&
-        typeof parsed.onboardingStatus === "string" &&
-        typeof parsed.academicStatus === "string"
-      ) {
+      if (isStoredAuthProfile(parsed)) {
         return {
           accessToken,
+          refreshToken,
           name: parsed.name,
           email: parsed.email,
           profileImage: isRecord(parsed.profileImage)
@@ -108,15 +103,33 @@ export const getAccessToken = (): string | null => {
   return fallback || null
 }
 
+export const getRefreshToken = (): string | null => {
+  if (typeof window === "undefined") return null
+  const active = sessionStore().getItem(REFRESH_TOKEN_KEY)
+  if (active) return active
+  return (getRememberMe() ? sessionStorage : localStorage).getItem(
+    REFRESH_TOKEN_KEY
+  )
+}
+
 export const getAuthSession = (): AuthSession | null => {
   if (typeof window === "undefined") return null
+  const accessToken = getAccessToken()
+  const refreshToken = getRefreshToken()
+  if (!accessToken || !refreshToken) return null
+
+  const hydrateSession = (value: unknown): AuthSession | null =>
+    isStoredAuthProfile(value)
+      ? { ...value, accessToken, refreshToken }
+      : null
 
   // Try active storage first
   const activeRaw = sessionStore().getItem(AUTH_SESSION_KEY)
   if (activeRaw) {
     try {
       const parsed = JSON.parse(activeRaw) as unknown
-      if (isAuthSession(parsed)) return parsed
+      const session = hydrateSession(parsed)
+      if (session) return session
     } catch {
       // fall through
     }
@@ -128,10 +141,11 @@ export const getAuthSession = (): AuthSession | null => {
   if (fallbackRaw) {
     try {
       const parsed = JSON.parse(fallbackRaw) as unknown
-      if (isAuthSession(parsed)) {
+      const session = hydrateSession(parsed)
+      if (session) {
         // Migrate to active storage
-        setAuthSession(parsed)
-        return parsed
+        setAuthSession(session)
+        return session
       }
     } catch {
       // fall through
@@ -151,11 +165,14 @@ export const getAuthSession = (): AuthSession | null => {
 export const setAuthSession = (session: AuthSession): void => {
   if (typeof window === "undefined") return
   const storage = sessionStore()
-  storage.setItem(ACCESS_TOKEN_KEY, session.accessToken)
-  storage.setItem(AUTH_SESSION_KEY, JSON.stringify(session))
+  const { accessToken, refreshToken, ...profile } = session
+  storage.setItem(ACCESS_TOKEN_KEY, accessToken)
+  storage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+  storage.setItem(AUTH_SESSION_KEY, JSON.stringify(profile))
   // Clear the other storage to avoid stale tokens
   const other = getRememberMe() ? sessionStorage : localStorage
   other.removeItem(ACCESS_TOKEN_KEY)
+  other.removeItem(REFRESH_TOKEN_KEY)
   other.removeItem(AUTH_SESSION_KEY)
 }
 
@@ -165,5 +182,32 @@ export const removeTokens = (): void => {
 }
 
 export const isAuthenticated = (): boolean => {
-  return getAccessToken() !== null
+  return getAccessToken() !== null && getRefreshToken() !== null
+}
+
+const getJwtExpiration = (token: string): number | null => {
+  const payload = token.split(".")[1]
+  if (!payload) return null
+
+  try {
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/")
+    const normalized = base64.padEnd(
+      base64.length + ((4 - (base64.length % 4)) % 4),
+      "="
+    )
+    const decoded = JSON.parse(atob(normalized)) as unknown
+    return isRecord(decoded) && typeof decoded.exp === "number"
+      ? decoded.exp
+      : null
+  } catch {
+    return null
+  }
+}
+
+export const isAccessTokenValid = (): boolean => {
+  const accessToken = getAccessToken()
+  if (!accessToken) return false
+
+  const expiresAt = getJwtExpiration(accessToken)
+  return expiresAt !== null && expiresAt * 1000 > Date.now()
 }

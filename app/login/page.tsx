@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/card"
 import { BrandLogo } from "@/components/layout/BrandLogo"
 import { login } from "@/lib/api/auth"
-import { getRememberMe, setRememberMe } from "@/lib/auth"
 import { toast } from "sonner"
 
 export default function LoginPage() {
@@ -24,10 +23,6 @@ export default function LoginPage() {
   const [rememberMe, setRememberMeState] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    setRememberMeState(getRememberMe())
-  }, [])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim() || !password.trim()) {
@@ -36,8 +31,7 @@ export default function LoginPage() {
     }
     setIsLoading(true)
     try {
-      setRememberMe(rememberMe)
-      await login({ email: email.trim(), password })
+      await login({ email: email.trim(), password }, rememberMe)
       toast.success("로그인 성공. 대시보드로 이동합니다.")
       router.replace("/dashboard")
     } catch (err) {
