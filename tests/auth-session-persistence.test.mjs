@@ -18,28 +18,21 @@ assert.match(
   authTypes,
   /export interface AuthSession \{[\s\S]*refreshToken: string/
 )
-assert.match(authStorage, /const REFRESH_TOKEN_KEY = "refreshToken"/)
 assert.match(
   authStorage,
-  /export const getRefreshToken = \(\): string \| null =>/
+  /const AUTH_SESSION_KEY = "ccssaaAdminSession"/
 )
+assert.doesNotMatch(authStorage, /const ACCESS_TOKEN_KEY/)
+assert.doesNotMatch(authStorage, /const REFRESH_TOKEN_KEY/)
+assert.doesNotMatch(authStorage, /const REMEMBER_ME_KEY/)
 assert.match(
-  authStorage,
-  /storage\.setItem\(REFRESH_TOKEN_KEY, refreshToken\)/
-)
-assert.match(
-  authStorage,
-  /const \{ accessToken, refreshToken, \.\.\.profile \} = session/
-)
-assert.match(
-  authStorage,
-  /storage\.setItem\(AUTH_SESSION_KEY, JSON\.stringify\(profile\)\)/
-)
-assert.doesNotMatch(
   authStorage,
   /storage\.setItem\(AUTH_SESSION_KEY, JSON\.stringify\(session\)\)/
 )
-assert.match(authStorage, /other\.removeItem\(REFRESH_TOKEN_KEY\)/)
+assert.match(
+  authStorage,
+  /other\.removeItem\(AUTH_SESSION_KEY\)/
+)
 assert.match(mockAuth, /refreshToken: mockToken\(\)/)
 
 assert.match(authApi, /const refreshToken = getRefreshToken\(\)/)
@@ -47,6 +40,8 @@ assert.match(
   authApi,
   /"Refresh-Authorization": `Bearer \$\{refreshToken\}`/
 )
+assert.match(authApi, /setAuthSession\(res, rememberMe\)/)
+assert.doesNotMatch(authApi, /setRememberMe/)
 assert.doesNotMatch(
   authApi,
   /refresh:[\s\S]*?Authorization: `Bearer \$\{accessToken\}`[\s\S]*?return unwrapV2/

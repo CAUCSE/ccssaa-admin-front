@@ -3,7 +3,6 @@ import {
   getAccessToken,
   getRefreshToken,
   setAuthSession,
-  setRememberMe,
   removeTokens,
 } from "@/lib/auth"
 import { mockAuthApi } from "@/lib/mock/auth"
@@ -80,8 +79,7 @@ export async function login(
   rememberMe: boolean
 ): Promise<AuthSession> {
   const res = await authApi.signIn(params)
-  setRememberMe(rememberMe)
-  setAuthSession(res)
+  setAuthSession(res, rememberMe)
   return res
 }
 
