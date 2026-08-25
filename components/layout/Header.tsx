@@ -16,6 +16,7 @@ const pageTitles: Record<string, string> = {
   "/users/deleted": "탈퇴/추방 회원",
   "/content": "게시판 관리",
   "/content/boards": "게시판 관리",
+  "/content/system-notices": "시스템 공지 관리",
   "/reports": "신고 관리",
   "/lockers": "사물함 현황",
   "/lockers/policies": "신청 정책 관리",
@@ -59,6 +60,10 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
   "/content/boards": [
     { label: "게시판 관리", href: "/content" },
     { label: "게시판 목록", href: "/content/boards" },
+  ],
+  "/content/system-notices": [
+    { label: "게시판 관리", href: "/content" },
+    { label: "시스템 공지", href: "/content/system-notices" },
   ],
   "/reports": [{ label: "신고 관리", href: "/reports" }],
   "/lockers": [{ label: "사물함 현황", href: "/lockers" }],

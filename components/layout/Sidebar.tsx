@@ -96,6 +96,11 @@ const getSidebarItems = (
         href: "/content/boards",
         icon: <ChevronRight className="h-4 w-4" />,
       },
+      {
+        title: "시스템 공지",
+        href: "/content/system-notices",
+        icon: <ChevronRight className="h-4 w-4" />,
+      },
     ],
   },
   {
