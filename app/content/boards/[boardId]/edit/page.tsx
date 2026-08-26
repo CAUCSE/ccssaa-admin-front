@@ -29,6 +29,9 @@ import {
   READ_SCOPES,
   WRITE_SCOPES,
   VISIBILITIES,
+  DEPARTMENT_SELECTION_OPTIONS,
+  departmentsToSelection,
+  selectionToDepartments,
 } from "@/lib/constants/board-v2-form"
 import type {
   BoardAdminInfo,
@@ -55,7 +58,10 @@ export default function BoardEditPage() {
 
   const [formData, setFormData] = useState<Omit<BoardCreateRequestV2, "boardId">>(defaultV2Form)
   const [admins, setAdmins] = useState<BoardAdminInfo[]>([])
-  const [formSynced, setFormSynced] = useState(false)
+  // 폼이 동기화된 boardId. board 데이터가 캐시에 있어 마운트 즉시 동기화되는 경우와
+  // boardId 변경 시 재동기화가 필요한 경우를 하나의 상태로 다뤄 두 이펙트 간 경쟁을 없앤다.
+  const [syncedBoardId, setSyncedBoardId] = useState<string | null>(null)
+  const formSynced = syncedBoardId === boardId
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState("")
   const [adminModalOpen, setAdminModalOpen] = useState(false)
@@ -65,7 +71,7 @@ export default function BoardEditPage() {
   const DELETE_CONFIRM_PHRASE = "삭제하겠습니다"
 
   useEffect(() => {
-    if (!board || formSynced) return
+    if (!board || syncedBoardId === boardId) return
     const writeScope: BoardWriteScope = WRITE_SCOPES.some((o) => o.value === board.writeScope)
       ? board.writeScope
       : defaultV2Form.writeScope
@@ -86,16 +92,12 @@ export default function BoardEditPage() {
       visibility,
       officialNickname: board.officialNickname ?? "",
       officialProfileImageId: board.officialProfileImageId ?? null,
+      departments: board.departments ?? [],
     })
     setAdmins(board.admins ?? [])
     setOfficialProfileFile(null)
-    setFormSynced(true)
-  }, [board, formSynced])
-
-  // boardId가 바뀌면 동기화 플래그 리셋 (다른 게시판으로 이동 시)
-  useEffect(() => {
-    setFormSynced(false)
-  }, [boardId])
+    setSyncedBoardId(boardId)
+  }, [board, boardId, syncedBoardId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -388,6 +390,32 @@ export default function BoardEditPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>노출 대상 학과</Label>
+              <div className="flex flex-wrap gap-x-4 gap-y-3 rounded-md border bg-muted/20 px-3 py-3">
+                {DEPARTMENT_SELECTION_OPTIONS.map((opt) => {
+                  const selected = departmentsToSelection(formData.departments)
+                  return (
+                    <label
+                      key={opt.value}
+                      className="flex items-center gap-2 rounded-md text-sm text-foreground"
+                    >
+                      <Checkbox
+                        checked={selected === opt.value}
+                        onCheckedChange={(checked) => {
+                          if (checked !== true) return
+                          setFormData({
+                            ...formData,
+                            departments: selectionToDepartments(opt.value),
+                          })
+                        }}
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  )
+                })}
+              </div>
             </div>
             <div className="flex gap-2 pt-4">
               <Button
