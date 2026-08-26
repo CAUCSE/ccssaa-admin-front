@@ -3,7 +3,7 @@
  * POST /api/v2/admin/boards (생성/수정)
  */
 
-import type { UserIdV2 } from "@/types/user"
+import type { Department, UserIdV2 } from "@/types/user"
 
 /** BoardReadScope — 읽기 권한 범위 */
 export type BoardReadScope = "ENROLLED" | "GRADUATED" | "BOTH"
@@ -79,6 +79,8 @@ export interface BoardDetailV2 {
   /** 공지글 마스킹용 공식 프로필 이미지 (storage file id) */
   officialProfileImageId?: string | null
   admins: BoardAdminInfo[]
+  /** 노출 대상 학과 목록 (빈 배열이면 전체 학과) */
+  departments: Department[]
 }
 
 /** v2 게시판 생성/수정 요청 Body */
@@ -105,4 +107,6 @@ export interface BoardCreateRequestV2 {
   officialNickname?: string | null
   /** 공지글 마스킹용 공식 프로필 이미지 (storage file id) */
   officialProfileImageId?: string | null
+  /** 노출 대상 학과 목록 (빈 배열이면 전체 학과) */
+  departments: Department[]
 }
