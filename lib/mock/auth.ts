@@ -20,6 +20,7 @@ const MOCK_SESSION_BASE: Omit<AuthSession, "accessToken" | "refreshToken"> = {
   profileImage: null,
   onboardingStatus: "COMPLETED",
   academicStatus: "UNDETERMINED",
+  roles: ["SYSTEM_ADMIN"],
 }
 
 export const mockAuthApi = {

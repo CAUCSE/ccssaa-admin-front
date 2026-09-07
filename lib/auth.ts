@@ -1,4 +1,4 @@
-import type { AuthSession } from "@/types/auth"
+import type { AuthSession, Role } from "@/types/auth"
 
 const AUTH_SESSION_KEY = "ccssaaAdminSession"
 const LEGACY_AUTH_KEYS = [
@@ -15,6 +15,40 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null
 }
 
+const ROLES: readonly Role[] = [
+  "SYSTEM_ADMIN",
+  "ADMIN",
+  "PRESIDENT",
+  "VICE_PRESIDENT",
+  "COUNCIL",
+  "LEADER_1",
+  "LEADER_2",
+  "LEADER_3",
+  "LEADER_4",
+  "LEADER_ALUMNI",
+  "ALUMNI_MANAGER",
+  "COMMON",
+  "NONE",
+  "LEADER_CIRCLE",
+  "PROFESSOR",
+]
+
+const isRole = (value: unknown): value is Role =>
+  typeof value === "string" && ROLES.includes(value as Role)
+
+export const hasAdminAccess = (roles: readonly Role[]): boolean =>
+  roles.includes("ADMIN") || roles.includes("SYSTEM_ADMIN")
+
+export const isSystemAdmin = (roles: readonly Role[]): boolean =>
+  roles.includes("SYSTEM_ADMIN")
+
+export const assertAdminSession = (session: AuthSession): AuthSession => {
+  if (!hasAdminAccess(session.roles)) {
+    throw new Error("관리자 권한이 없습니다.")
+  }
+  return session
+}
+
 const isAuthSession = (value: unknown): value is AuthSession => {
   return (
     isRecord(value) &&
@@ -23,7 +57,9 @@ const isAuthSession = (value: unknown): value is AuthSession => {
     typeof value.name === "string" &&
     typeof value.email === "string" &&
     typeof value.onboardingStatus === "string" &&
-    typeof value.academicStatus === "string"
+    typeof value.academicStatus === "string" &&
+    Array.isArray(value.roles) &&
+    value.roles.every(isRole)
   )
 }
 
