@@ -17,6 +17,7 @@ import {
   Lock,
   CalendarDays,
   Bell,
+  Mail,
   ScrollText,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -160,6 +161,12 @@ const getSidebarItems = (
     href: "/users/push",
     icon: <Bell className="h-5 w-5" />,
     isUnimplemented: false,
+    requiresSystemAdmin: true,
+  },
+  {
+    title: "이메일 캠페인",
+    href: "/admin/email-campaigns",
+    icon: <Mail className="h-5 w-5" />,
     requiresSystemAdmin: true,
   },
   {

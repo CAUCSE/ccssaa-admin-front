@@ -24,6 +24,8 @@ const pageTitles: Record<string, string> = {
   "/lockers/logs": "로그 조회",
   "/users/push": "알림 발송",
   "/admin/audit-logs": "감사 로그",
+  "/admin/email-campaigns": "이메일 캠페인",
+  "/admin/email-campaigns/new": "이메일 캠페인 작성",
   "/settings": "시스템 설정",
   "/settings/roles": "권한 및 역할 관리",
   "/settings/design": "디자인 / 배너 관리",
@@ -41,6 +43,9 @@ const getPageTitle = (pathname: string): string => {
   }
   if (pathname.match(/^\/lockers\/policies\/\d+\/edit$/)) {
     return "정책 수정"
+  }
+  if (pathname.startsWith("/admin/email-campaigns/") && pathname !== "/admin/email-campaigns/new") {
+    return "이메일 캠페인 상세"
   }
   return pageTitles[pathname] || "관리자 페이지"
 }
@@ -81,6 +86,11 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
   ],
   "/users/push": [{ label: "알림 발송", href: "/users/push" }],
   "/admin/audit-logs": [{ label: "감사 로그", href: "/admin/audit-logs" }],
+  "/admin/email-campaigns": [{ label: "이메일 캠페인", href: "/admin/email-campaigns" }],
+  "/admin/email-campaigns/new": [
+    { label: "이메일 캠페인", href: "/admin/email-campaigns" },
+    { label: "새 캠페인", href: "/admin/email-campaigns/new" },
+  ],
   "/settings": [{ label: "시스템 설정", href: "/settings" }],
   "/settings/roles": [
     { label: "시스템 설정", href: "/settings" },
@@ -116,6 +126,12 @@ const getBreadcrumbForPath = (pathname: string): { label: string; href: string }
     return [
       { label: "신청 정책 관리", href: "/lockers/policies" },
       { label: "정책 수정", href: pathname },
+    ]
+  }
+  if (pathname.startsWith("/admin/email-campaigns/") && pathname !== "/admin/email-campaigns/new") {
+    return [
+      { label: "이메일 캠페인", href: "/admin/email-campaigns" },
+      { label: "상세", href: pathname },
     ]
   }
   return breadcrumbMap[pathname] || []
