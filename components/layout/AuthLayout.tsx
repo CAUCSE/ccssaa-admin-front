@@ -11,6 +11,8 @@ import { Header } from "@/components/layout/Header"
 import { Toaster } from "@/components/ui/toaster"
 import {
   getRefreshToken,
+  getAuthSession,
+  hasAdminAccess,
   isAccessTokenValid,
   removeTokens,
 } from "@/lib/auth"
@@ -33,7 +35,10 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         return
       }
 
-      if (isAccessTokenValid()) {
+      if (
+        isAccessTokenValid() &&
+        hasAdminAccess(getAuthSession()?.roles ?? [])
+      ) {
         if (active) setAuthStatus("authenticated")
         return
       }

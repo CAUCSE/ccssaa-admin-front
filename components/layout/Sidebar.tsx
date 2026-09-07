@@ -20,6 +20,8 @@ import {
   ScrollText,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { useMe } from "@/context/MeContext"
+import { isSystemAdmin } from "@/lib/auth"
 
 interface SidebarItem {
   title: string
@@ -28,17 +30,27 @@ interface SidebarItem {
   badge?: number | (() => number | undefined)
   children?: SidebarItem[]
   isUnimplemented?: boolean
+  requiresSystemAdmin?: boolean
 }
 
 const SHOW_UNIMPLEMENTED_MENU =
   process.env.NEXT_PUBLIC_SHOW_UNIMPLEMENTED_MENU === "true"
 
-const filterSidebarItems = (items: SidebarItem[]): SidebarItem[] =>
+const filterSidebarItems = (
+  items: SidebarItem[],
+  hasSystemAdminRole: boolean
+): SidebarItem[] =>
   items
-    .filter((item) => SHOW_UNIMPLEMENTED_MENU || !item.isUnimplemented)
+    .filter(
+      (item) =>
+        (SHOW_UNIMPLEMENTED_MENU || !item.isUnimplemented) &&
+        (!item.requiresSystemAdmin || hasSystemAdminRole)
+    )
     .map((item) => ({
       ...item,
-      children: item.children ? filterSidebarItems(item.children) : undefined,
+      children: item.children
+        ? filterSidebarItems(item.children, hasSystemAdminRole)
+        : undefined,
     }))
     .filter((item) => !item.children || item.children.length > 0 || !item.isUnimplemented)
 
@@ -84,6 +96,7 @@ const getSidebarItems = (
     title: "게시판 관리",
     href: "/content",
     icon: <FileText className="h-5 w-5" />,
+    requiresSystemAdmin: true,
     children: [
       {
         title: "게시글 (미구현)",
@@ -147,6 +160,7 @@ const getSidebarItems = (
     href: "/users/push",
     icon: <Bell className="h-5 w-5" />,
     isUnimplemented: false,
+    requiresSystemAdmin: true,
   },
   {
     title: "감사 로그",
@@ -193,9 +207,11 @@ interface SidebarProps {
  */
 export function Sidebar({ isOpen = true, onClose, isMobile = false }: SidebarProps) {
   const pathname = usePathname()
+  const { me } = useMe()
 
   const sidebarItems = filterSidebarItems(
-    getSidebarItems(undefined, undefined)
+    getSidebarItems(undefined, undefined),
+    isSystemAdmin(me?.roles ?? [])
   )
 
   const isActive = (href: string) => {

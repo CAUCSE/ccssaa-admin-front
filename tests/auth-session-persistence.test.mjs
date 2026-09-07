@@ -40,7 +40,7 @@ assert.match(
   authApi,
   /"Refresh-Authorization": `Bearer \$\{refreshToken\}`/
 )
-assert.match(authApi, /setAuthSession\(res, rememberMe\)/)
+assert.match(authApi, /setAuthSession\(adminSession, rememberMe\)/)
 assert.doesNotMatch(authApi, /setRememberMe/)
 assert.doesNotMatch(
   authApi,

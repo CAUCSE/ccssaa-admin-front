@@ -2,6 +2,7 @@ import axios from "axios"
 import {
   getAccessToken,
   getRefreshToken,
+  assertAdminSession,
   setAuthSession,
   removeTokens,
 } from "@/lib/auth"
@@ -79,15 +80,17 @@ export async function login(
   rememberMe: boolean
 ): Promise<AuthSession> {
   const res = await authApi.signIn(params)
-  setAuthSession(res, rememberMe)
-  return res
+  const adminSession = assertAdminSession(res)
+  setAuthSession(adminSession, rememberMe)
+  return adminSession
 }
 
 export async function refreshTokens(): Promise<AuthSession | null> {
   try {
     const res = await authApi.refresh()
-    setAuthSession(res)
-    return res
+    const adminSession = assertAdminSession(res)
+    setAuthSession(adminSession)
+    return adminSession
   } catch {
     return null
   }
