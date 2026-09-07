@@ -4,12 +4,15 @@ interface CampaignDraftInput {
   subject: string
   htmlText: string
   admissionYears: number[]
+  targetMode?: "FILTER" | "EMAILS" | null
+  recipientEmails?: string[]
 }
 
 export interface CampaignDraftErrors {
   subject?: string
   html?: string
   admissionYears?: string
+  recipientEmails?: string
 }
 
 export function getCampaignDraftErrors(input: CampaignDraftInput): CampaignDraftErrors {
@@ -21,7 +24,14 @@ export function getCampaignDraftErrors(input: CampaignDraftInput): CampaignDraft
   if (input.admissionYears.some((year) => year < 1900 || year > 2100)) {
     errors.admissionYears = "입학연도는 1900년부터 2100년까지 입력할 수 있습니다."
   }
+  if (input.targetMode === "EMAILS" && !input.recipientEmails?.length) {
+    errors.recipientEmails = "대상 이메일을 한 개 이상 입력해 주세요."
+  }
   return errors
+}
+
+export function normalizeRecipientEmails(value: string): string[] {
+  return [...new Set(value.split(/[\n,]/).map((email) => email.trim().toLowerCase()).filter(Boolean))]
 }
 
 export const isCampaignInProgress = (status: EmailCampaignStatus): boolean =>

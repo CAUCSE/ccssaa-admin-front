@@ -76,6 +76,14 @@ export interface CreateEmailCampaignRequest {
   subject: string
   html: string
   filter: EmailCampaignFilter
+  recipientEmails?: string[] | null
+}
+
+export type UpdateEmailCampaignRequest = CreateEmailCampaignRequest
+
+export interface EmailCampaignTargetRequest {
+  filter: EmailCampaignFilter
+  recipientEmails?: string[] | null
 }
 
 export interface SendEmailCampaignRequest {

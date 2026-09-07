@@ -45,7 +45,7 @@ const getPageTitle = (pathname: string): string => {
     return "정책 수정"
   }
   if (pathname.startsWith("/admin/email-campaigns/") && pathname !== "/admin/email-campaigns/new") {
-    return "이메일 캠페인 상세"
+    return pathname.endsWith("/edit") ? "이메일 캠페인 수정" : "이메일 캠페인 상세"
   }
   return pageTitles[pathname] || "관리자 페이지"
 }
@@ -131,7 +131,7 @@ const getBreadcrumbForPath = (pathname: string): { label: string; href: string }
   if (pathname.startsWith("/admin/email-campaigns/") && pathname !== "/admin/email-campaigns/new") {
     return [
       { label: "이메일 캠페인", href: "/admin/email-campaigns" },
-      { label: "상세", href: pathname },
+      { label: pathname.endsWith("/edit") ? "수정" : "상세", href: pathname },
     ]
   }
   return breadcrumbMap[pathname] || []

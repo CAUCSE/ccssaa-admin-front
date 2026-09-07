@@ -1,4 +1,4 @@
-import type { CreateEmailCampaignRequest, EmailCampaign, EmailCampaignFilter, EmailCampaignListParams, EmailCampaignRecipient, EmailCampaignRecipientListParams, EmailCampaignTargetPreview, PageResponse, SendEmailCampaignRequest } from "@/types/email-campaign"
+import type { CreateEmailCampaignRequest, EmailCampaign, EmailCampaignListParams, EmailCampaignRecipient, EmailCampaignRecipientListParams, EmailCampaignTargetPreview, EmailCampaignTargetRequest, PageResponse, SendEmailCampaignRequest, UpdateEmailCampaignRequest } from "@/types/email-campaign"
 
 let campaigns: EmailCampaign[] = [{
   id: "campaign-demo-1", subject: "2026 동문회 행사 안내", sanitizedHtml: "<h2>동문회 행사 안내</h2><p>많은 참여 바랍니다.</p>",
@@ -15,18 +15,34 @@ const pageOf = <T,>(items: T[], page = 0, size = 10): PageResponse<T> => ({
 })
 
 export const mockEmailCampaignApi = {
-  async preview(filter: EmailCampaignFilter): Promise<EmailCampaignTargetPreview> {
+  async preview(data: EmailCampaignTargetRequest): Promise<EmailCampaignTargetPreview> {
     await delay()
-    const years = filter.admissionYears?.length ? filter.admissionYears : [2020, 2021]
-    const count = years.length * 34
+    const years = data.filter.admissionYears?.length ? data.filter.admissionYears : [2020, 2021]
+    const count = data.recipientEmails?.length || years.length * 34
     return { recipientCount: count, admissionYearDistribution: Object.fromEntries(years.map((year) => [String(year), 34])), departmentDistribution: { SCHOOL_OF_SW: count }, academicStatusDistribution: { ENROLLED: count } }
   },
   async create(data: CreateEmailCampaignRequest): Promise<EmailCampaign> {
     await delay()
-    const recipientCount = (data.filter.admissionYears?.length || 2) * 34
+    const recipientCount = data.recipientEmails?.length || (data.filter.admissionYears?.length || 2) * 34
     const campaign: EmailCampaign = { id: `campaign-${Date.now()}`, subject: data.subject, sanitizedHtml: data.html, filterJson: JSON.stringify(data.filter), status: "DRAFT", recipientCount, pendingCount: recipientCount, sentCount: 0, failedCount: 0, skippedCount: 0, createdAt: new Date().toISOString(), completedAt: null }
     campaigns = [campaign, ...campaigns]
     return { ...campaign }
+  },
+  async update(id: string, data: UpdateEmailCampaignRequest): Promise<EmailCampaign> {
+    await delay()
+    const campaign = campaigns.find((item) => item.id === id)
+    if (!campaign) throw new Error("캠페인을 찾을 수 없습니다.")
+    if (campaign.status !== "DRAFT") throw new Error("초안 상태의 캠페인만 수정할 수 있습니다.")
+    const recipientCount = data.recipientEmails?.length || (data.filter.admissionYears?.length || 2) * 34
+    Object.assign(campaign, { subject: data.subject, sanitizedHtml: data.html, filterJson: JSON.stringify(data.filter), recipientCount, pendingCount: recipientCount })
+    return { ...campaign }
+  },
+  async remove(id: string): Promise<void> {
+    await delay()
+    const campaign = campaigns.find((item) => item.id === id)
+    if (!campaign) throw new Error("캠페인을 찾을 수 없습니다.")
+    if (campaign.status !== "DRAFT") throw new Error("초안 상태의 캠페인만 삭제할 수 있습니다.")
+    campaigns = campaigns.filter((item) => item.id !== id)
   },
   async send(id: string, data: SendEmailCampaignRequest): Promise<EmailCampaign> {
     await delay()

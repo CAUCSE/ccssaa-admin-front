@@ -10,16 +10,30 @@ import type {
   EmailCampaignRecipient,
   EmailCampaignRecipientListParams,
   EmailCampaignTargetPreview,
+  EmailCampaignTargetRequest,
   PageResponse,
   SendEmailCampaignRequest,
+  UpdateEmailCampaignRequest,
 } from "@/types/email-campaign"
 
 const USE_MOCK_API = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 
-export async function previewEmailCampaignTargets(filter: EmailCampaignFilter): Promise<EmailCampaignTargetPreview> {
-  if (USE_MOCK_API) return mockEmailCampaignApi.preview(filter)
-  const response = await apiV2.post<ApiResponse<EmailCampaignTargetPreview>>("/admin/email-campaigns/target-preview", { filter })
+export async function previewEmailCampaignTargets(data: EmailCampaignTargetRequest): Promise<EmailCampaignTargetPreview> {
+  if (USE_MOCK_API) return mockEmailCampaignApi.preview(data)
+  const response = await apiV2.post<ApiResponse<EmailCampaignTargetPreview>>("/admin/email-campaigns/target-preview", data)
   return unwrapV2(response)
+}
+
+export async function updateEmailCampaign(id: string, data: UpdateEmailCampaignRequest): Promise<EmailCampaign> {
+  if (USE_MOCK_API) return mockEmailCampaignApi.update(id, data)
+  const response = await apiV2.put<ApiResponse<EmailCampaign>>(`/admin/email-campaigns/${encodeURIComponent(id)}`, data)
+  return unwrapV2(response)
+}
+
+export async function deleteEmailCampaign(id: string): Promise<void> {
+  if (USE_MOCK_API) return mockEmailCampaignApi.remove(id)
+  const response = await apiV2.delete<ApiResponse<void>>(`/admin/email-campaigns/${encodeURIComponent(id)}`)
+  unwrapV2(response)
 }
 
 export async function createEmailCampaign(data: CreateEmailCampaignRequest): Promise<EmailCampaign> {
