@@ -9,7 +9,7 @@ import { Table } from "@tiptap/extension-table"
 import TableRow from "@tiptap/extension-table-row"
 import TableHeader from "@tiptap/extension-table-header"
 import TableCell from "@tiptap/extension-table-cell"
-import { Bold, Italic, Link2, List, ListOrdered, Redo2, Table2, Undo2, ImageIcon } from "lucide-react"
+import { Bold, Heading2, Heading3, ImageIcon, Italic, Link2, List, ListOrdered, Quote, Redo2, Strikethrough, Table2, Undo2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -18,10 +18,11 @@ interface Props { value: string; onChange: (html: string, text: string) => void;
 export function EmailHtmlEditor({ value, onChange, error, disabled }: Props) {
   const editor = useEditor({
     immediatelyRender: false,
+    shouldRerenderOnTransaction: true,
     editable: !disabled,
-    extensions: [StarterKit, Link.configure({ openOnClick: false, protocols: ["https"] }), Image.configure({ allowBase64: false }), Table.configure({ resizable: true }), TableRow, TableHeader, TableCell],
+    extensions: [StarterKit, Link.configure({ openOnClick: false, protocols: ["https"] }), Image.configure({ allowBase64: false, resize: { enabled: true, directions: ["bottom-left", "bottom-right"], minWidth: 80, minHeight: 40, alwaysPreserveAspectRatio: true } }), Table.configure({ resizable: true }), TableRow, TableHeader, TableCell],
     content: value,
-    editorProps: { attributes: { class: "min-h-[300px] px-4 py-3 text-sm outline-none prose prose-sm max-w-none" } },
+    editorProps: { attributes: { class: "email-content email-editor-content min-h-[300px] px-4 py-3 text-sm outline-none" } },
     onUpdate: ({ editor: instance }) => onChange(instance.getHTML(), instance.getText()),
   })
 
@@ -36,8 +37,12 @@ export function EmailHtmlEditor({ value, onChange, error, disabled }: Props) {
       {tool("다시 실행", false, () => editor?.chain().focus().redo().run(), <Redo2 className="h-4 w-4"/>)}
       {tool("굵게", !!editor?.isActive("bold"), () => editor?.chain().focus().toggleBold().run(), <Bold className="h-4 w-4"/>)}
       {tool("기울임", !!editor?.isActive("italic"), () => editor?.chain().focus().toggleItalic().run(), <Italic className="h-4 w-4"/>)}
+      {tool("취소선", !!editor?.isActive("strike"), () => editor?.chain().focus().toggleStrike().run(), <Strikethrough className="h-4 w-4"/>)}
+      {tool("제목 2", !!editor?.isActive("heading", { level: 2 }), () => editor?.chain().focus().toggleHeading({ level: 2 }).run(), <Heading2 className="h-4 w-4"/>)}
+      {tool("제목 3", !!editor?.isActive("heading", { level: 3 }), () => editor?.chain().focus().toggleHeading({ level: 3 }).run(), <Heading3 className="h-4 w-4"/>)}
       {tool("글머리 목록", !!editor?.isActive("bulletList"), () => editor?.chain().focus().toggleBulletList().run(), <List className="h-4 w-4"/>)}
       {tool("번호 목록", !!editor?.isActive("orderedList"), () => editor?.chain().focus().toggleOrderedList().run(), <ListOrdered className="h-4 w-4"/>)}
+      {tool("인용문", !!editor?.isActive("blockquote"), () => editor?.chain().focus().toggleBlockquote().run(), <Quote className="h-4 w-4"/>)}
       {tool("링크", !!editor?.isActive("link"), addLink, <Link2 className="h-4 w-4"/>)}
       {tool("이미지", false, addImage, <ImageIcon className="h-4 w-4"/>)}
       {tool("표", !!editor?.isActive("table"), () => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), <Table2 className="h-4 w-4"/>)}
