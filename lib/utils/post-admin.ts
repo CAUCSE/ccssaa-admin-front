@@ -30,3 +30,7 @@ export function getPostWriterLabel(writer: {
 export function getPostImageAlt(title: string | null, index: number): string {
   return `${title?.trim() || "게시물"} 이미지 ${index + 1}`
 }
+
+export function shouldRenderPostHtml(isCrawled: boolean): boolean {
+  return isCrawled
+}
