@@ -5,6 +5,7 @@ import { Eye, EyeOff, RotateCcw, Trash2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 
 import { PageHeader } from "@/components/layout/PageHeader"
+import { PostImageGallery } from "@/components/content/PostImageGallery"
 import { AlertDialog } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -62,7 +63,7 @@ export default function PostDetailPage() {
         <div className="flex flex-wrap items-center gap-3"><span className="text-sm font-medium">카테고리</span>{post.isCrawled ? <Select value={post.category ?? "UNCATEGORIZED"} disabled={updateCategory.isPending} onValueChange={(value) => updateCategory.mutate({ postId: post.postId, category: value === "UNCATEGORIZED" ? null : value as typeof post.category })}><SelectTrigger className="w-44"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="UNCATEGORIZED">미분류</SelectItem>{POST_CATEGORIES.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select> : <Badge variant="outline">{getPostCategoryLabel(post.category)}</Badge>}<span className="text-xs text-muted-foreground">{post.isCrawled ? "크롤링 게시물" : "일반 게시물"}</span></div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground"><span>댓글 {post.commentCount}</span><span>좋아요 {post.likeCount}</span><span>조회 {post.viewCount}</span><span>수정 {new Date(post.updatedAt).toLocaleString("ko-KR")}</span></div>
         <div className="min-h-32 whitespace-pre-wrap border-t pt-5">{post.content}</div>
-        {post.imageUrls.length > 0 && <div className="border-t pt-4"><p className="mb-2 text-sm font-medium">첨부 이미지</p><div className="flex flex-wrap gap-2">{post.imageUrls.map((url, index) => <a key={url} href={url} target="_blank" rel="noreferrer" className="text-sm text-primary underline">이미지 {index + 1} 열기</a>)}</div></div>}
+        <PostImageGallery imageUrls={post.imageUrls} postTitle={post.title} />
       </CardContent>
     </Card>
     <Card>

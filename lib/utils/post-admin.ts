@@ -26,3 +26,7 @@ export function getPostWriterLabel(writer: {
   const nickname = writer.writerNickname ? ` (${writer.writerNickname})` : ""
   return `${writer.writerName}${nickname}${writer.isAnonymous ? " · 익명 작성" : ""}`
 }
+
+export function getPostImageAlt(title: string | null, index: number): string {
+  return `${title?.trim() || "게시물"} 이미지 ${index + 1}`
+}
