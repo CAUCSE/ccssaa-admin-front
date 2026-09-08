@@ -96,23 +96,23 @@ const getSidebarItems = (
     title: "게시판 관리",
     href: "/content",
     icon: <FileText className="h-5 w-5" />,
-    requiresSystemAdmin: true,
     children: [
       {
-        title: "게시글 (미구현)",
+        title: "게시물 관리",
         href: "/content",
         icon: <ChevronRight className="h-4 w-4" />,
-        isUnimplemented: true,
       },
       {
         title: "게시판",
         href: "/content/boards",
         icon: <ChevronRight className="h-4 w-4" />,
+        requiresSystemAdmin: true,
       },
       {
         title: "시스템 공지",
         href: "/content/system-notices",
         icon: <ChevronRight className="h-4 w-4" />,
+        requiresSystemAdmin: true,
       },
     ],
   },

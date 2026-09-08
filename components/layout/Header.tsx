@@ -14,7 +14,7 @@ const pageTitles: Record<string, string> = {
   "/users": "회원 관리",
   "/users/pending": "승인 대기 요청",
   "/users/deleted": "탈퇴/추방 회원",
-  "/content": "게시판 관리",
+  "/content": "게시물 관리",
   "/content/boards": "게시판 관리",
   "/content/system-notices": "시스템 공지 관리",
   "/reports": "신고 관리",
@@ -33,7 +33,7 @@ const getPageTitle = (pathname: string): string => {
   if (pathname.startsWith("/users/") && pathname !== "/users" && pathname !== "/users/pending") {
     return "회원 상세"
   }
-  if (pathname.startsWith("/content/") && pathname !== "/content" && pathname !== "/content/boards") {
+  if (/^\/content\/[^/]+$/.test(pathname) && pathname !== "/content/boards" && pathname !== "/content/system-notices") {
     return "게시글 상세"
   }
   if (pathname.startsWith("/reports/") && pathname !== "/reports") {
@@ -56,7 +56,10 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "회원 관리", href: "/users" },
     { label: "탈퇴/추방 회원", href: "/users/deleted" },
   ],
-  "/content": [{ label: "게시판 관리", href: "/content" }],
+  "/content": [
+    { label: "게시판 관리", href: "/content" },
+    { label: "게시물 관리", href: "/content" },
+  ],
   "/content/boards": [
     { label: "게시판 관리", href: "/content" },
     { label: "게시판 목록", href: "/content/boards" },
@@ -99,9 +102,9 @@ const getBreadcrumbForPath = (pathname: string): { label: string; href: string }
       { label: "회원 상세", href: pathname },
     ]
   }
-  if (pathname.startsWith("/content/") && pathname !== "/content" && pathname !== "/content/boards") {
+  if (/^\/content\/[^/]+$/.test(pathname) && pathname !== "/content/boards" && pathname !== "/content/system-notices") {
     return [
-      { label: "게시판 관리", href: "/content" },
+      { label: "게시물 관리", href: "/content" },
       { label: "게시글 상세", href: pathname },
     ]
   }
