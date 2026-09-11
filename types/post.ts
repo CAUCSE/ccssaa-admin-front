@@ -1,54 +1,70 @@
-export type PostStatus = "PUBLIC" | "HIDDEN" | "DELETED"
-export type PostTargetType = "POST" | "COMMENT" | "USER"
+export type PostAdminStatus = "VISIBLE" | "HIDDEN" | "DELETED"
+export type CommentAdminStatus = "VISIBLE" | "DELETED"
+export type PostCategory =
+  | "RECRUIT"
+  | "ACADEMIC"
+  | "EVENT_LECTURE"
+  | "EXTERNAL_ACTIVITY"
+  | "RESEARCH"
+  | "ETC"
 
-export interface Post {
-  id: number
-  title: string
-  content: string
-  author: string
-  authorId?: number
-  boardId: number
+export interface AdminPostSummary {
+  postId: string
+  title: string | null
+  contentPreview: string
+  category: PostCategory | null
+  boardId: string
   boardName: string
+  writerId: string
+  writerName: string
+  writerNickname: string
+  isAnonymous: boolean
+  status: PostAdminStatus
+  commentCount: number
+  likeCount: number
+  viewCount: number
   createdAt: string
   updatedAt: string
-  status: PostStatus
-  isPinned?: boolean
-  attachments?: string[]
 }
 
-export interface Comment {
-  id: number
-  postId: number
+export interface AdminPostDetail extends Omit<AdminPostSummary, "contentPreview"> {
   content: string
-  author: string
-  authorId?: number
+  isCrawled: boolean
+  imageUrls: string[]
+}
+
+export interface AdminComment {
+  commentId: string
+  parentCommentId: string | null
+  postId: string
+  content: string
+  status: CommentAdminStatus
+  writerId: string
+  writerName: string
+  writerNickname: string
+  isAnonymous: boolean
   createdAt: string
   updatedAt: string
-  status: PostStatus
+  children: AdminComment[]
 }
 
-export interface Board {
-  id: number
-  name: string
-  description: string
-  postCount: number
-  createdAt: string
+export interface PageResponse<T> {
+  content: T[]
+  currentPage: number
+  size: number
+  totalPages: number
+  totalElements: number
+  hasNext: boolean
+  hasPrev: boolean
 }
 
-export interface PostListParams {
+export interface AdminPostListParams {
   page?: number
   size?: number
-  boardId?: number
+  boardId?: string
+  category?: PostCategory
   keyword?: string
-  author?: string
-  status?: PostStatus
+  writerKeyword?: string
+  status?: PostAdminStatus
+  sort?: string
 }
-
-export interface PostListResponse {
-  content: Post[]
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
-}
-

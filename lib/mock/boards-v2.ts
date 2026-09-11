@@ -42,6 +42,7 @@ const createMockBoard = (
     displayOrder: 0,
     officialNickname: null,
     officialProfileImageId: null,
+    departments: [],
     admins,
   }
 
@@ -65,6 +66,7 @@ const mockBoards: BoardDetailV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 0,
+    departments: [],
     admins: [],
   },
   {
@@ -77,6 +79,7 @@ const mockBoards: BoardDetailV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 1,
+    departments: [],
     admins: [],
   },
   {
@@ -89,6 +92,7 @@ const mockBoards: BoardDetailV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 2,
+    departments: [],
     admins: [],
   },
   {
@@ -101,6 +105,7 @@ const mockBoards: BoardDetailV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 3,
+    departments: [],
     admins: [],
   },
   {
@@ -113,6 +118,7 @@ const mockBoards: BoardDetailV2[] = [
     isNotice: false,
     visibility: "VISIBLE",
     displayOrder: 4,
+    departments: [],
     admins: [],
   },
 ]
@@ -181,6 +187,7 @@ export const mockBoardsV2Api = {
         displayOrder: mockBoards.length,
         officialNickname: data.officialNickname ?? null,
         officialProfileImageId: data.officialProfileImageId ?? null,
+        departments: data.departments ?? [],
       },
       admins
     )
@@ -206,6 +213,7 @@ export const mockBoardsV2Api = {
       visibility: data.visibility,
       officialNickname: data.officialNickname ?? null,
       officialProfileImageId: data.officialProfileImageId ?? null,
+      departments: data.departments ?? [],
       admins,
     }
     return mockBoards[idx]

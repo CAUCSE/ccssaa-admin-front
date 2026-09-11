@@ -15,6 +15,7 @@ type StorageImageProps = {
   sizes?: string
   unoptimized?: boolean
   onClick?: (e: React.MouseEvent<HTMLElement>) => void
+  onError?: () => void
 }
 
 export function StorageImage({
@@ -27,6 +28,7 @@ export function StorageImage({
   sizes,
   unoptimized,
   onClick,
+  onError,
 }: StorageImageProps) {
   const trimmed = src?.trim() ?? ""
   const useNextImage = canUseNextImageSrc(trimmed)
@@ -47,6 +49,7 @@ export function StorageImage({
           unoptimized={unoptimized}
           className={className}
           onClick={onClick}
+          onError={onError}
         />
       )
     }
@@ -61,6 +64,7 @@ export function StorageImage({
         unoptimized={unoptimized}
         className={className}
         onClick={onClick}
+        onError={onError}
       />
     )
   }
@@ -96,6 +100,7 @@ export function StorageImage({
       height={fill ? undefined : height}
       className={cn(fill && "absolute inset-0 h-full w-full", className)}
       onClick={onClick}
+      onError={onError}
     />
   )
 }
