@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
   "/content/boards": "게시판 관리",
   "/content/system-notices": "시스템 공지 관리",
   "/reports": "신고 관리",
+  "/home-events": "홈 이벤트 관리",
   "/lockers": "사물함 현황",
   "/lockers/policies": "신청 정책 관리",
   "/lockers/policies/new": "정책 등록",
@@ -69,6 +70,7 @@ const breadcrumbMap: Record<string, { label: string; href: string }[]> = {
     { label: "시스템 공지", href: "/content/system-notices" },
   ],
   "/reports": [{ label: "신고 관리", href: "/reports" }],
+  "/home-events": [{ label: "홈 이벤트 관리", href: "/home-events" }],
   "/lockers": [{ label: "사물함 현황", href: "/lockers" }],
   "/lockers/policies": [
     { label: "사물함 관리", href: "/lockers" },

@@ -18,6 +18,7 @@ import {
   CalendarDays,
   Bell,
   ScrollText,
+  Megaphone,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useMe } from "@/context/MeContext"
@@ -122,6 +123,11 @@ const getSidebarItems = (
     icon: <AlertTriangle className="h-5 w-5" />,
     badge: pendingReports,
     isUnimplemented: false,
+  },
+  {
+    title: "홈 이벤트",
+    href: "/home-events",
+    icon: <Megaphone className="h-5 w-5" />,
   },
   {
     title: "경조사",
