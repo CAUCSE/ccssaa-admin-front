@@ -59,7 +59,6 @@ export default function HomeEventsPage() {
   const [editingEvent, setEditingEvent] = useState<HomeEvent | null>(null)
   const [orderOpen, setOrderOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<HomeEvent | null>(null)
-  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const activeCount = events.filter((e) => e.isActive).length
 
@@ -82,20 +81,19 @@ export default function HomeEventsPage() {
   /** PUT 은 전체 필드를 받으므로 기존 제목·링크를 함께 전송 */
   const handleToggleActive = (event: HomeEvent) => {
     const isActive = !event.isActive
-    setTogglingId(event.id)
-    updateEvent.mutate(
-      {
-        id: event.id,
-        data: { title: event.title, landingUrl: event.landingUrl, isActive },
-        message: isActive ? "홈 화면에 노출합니다." : "홈 화면에서 숨겼습니다.",
-      },
-      { onSettled: () => setTogglingId(null) }
-    )
+    updateEvent.mutate({
+      id: event.id,
+      data: { title: event.title, landingUrl: event.landingUrl, isActive },
+      message: isActive ? "홈 화면에 노출합니다." : "홈 화면에서 숨겼습니다.",
+    })
   }
 
   const handleSaveOrder = (eventIds: string[]) => {
     updateOrders.mutate(eventIds, { onSuccess: () => setOrderOpen(false) })
   }
+
+  /** 같은 수정 mutation 이 겹치지 않도록 요청 중에는 노출 전환·수정 진입을 막음 */
+  const isUpdating = updateEvent.isPending
 
   const renderActions = (event: HomeEvent, fullWidth = false) => (
     <div className={fullWidth ? "grid grid-cols-3 gap-2" : "flex justify-end gap-2"}>
@@ -103,7 +101,7 @@ export default function HomeEventsPage() {
         variant="outline"
         size="sm"
         onClick={() => handleToggleActive(event)}
-        disabled={togglingId === event.id}
+        disabled={isUpdating}
         className="whitespace-nowrap"
       >
         {event.isActive ? (
@@ -118,7 +116,13 @@ export default function HomeEventsPage() {
           </>
         )}
       </Button>
-      <Button variant="outline" size="sm" onClick={() => openEdit(event)} className="whitespace-nowrap">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => openEdit(event)}
+        disabled={isUpdating}
+        className="whitespace-nowrap"
+      >
         <Pencil className="mr-1 h-4 w-4" />
         수정
       </Button>
@@ -269,7 +273,7 @@ export default function HomeEventsPage() {
         open={formOpen}
         onOpenChange={setFormOpen}
         event={editingEvent}
-        isLoading={createEvent.isPending || (updateEvent.isPending && togglingId === null)}
+        isLoading={createEvent.isPending || updateEvent.isPending}
         onSubmit={handleSubmit}
       />
 
