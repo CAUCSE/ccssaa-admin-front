@@ -36,11 +36,12 @@ function useHomeEventMutation<T>(
   const showError = useApiErrorDialog()
   return useMutation({
     mutationFn,
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: homeEventsKey })
+    // 재조회가 끝날 때까지 pending 을 유지해, 오래된 캐시 값으로 후속 요청을 보내지 않도록 함
+    onSuccess: async (_, variables) => {
       toast.success(
         typeof successMessage === "function" ? successMessage(variables) : successMessage
       )
+      await queryClient.invalidateQueries({ queryKey: homeEventsKey })
     },
     onError: (error) => showError?.(error),
   })

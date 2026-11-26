@@ -67,7 +67,9 @@ export function HomeEventOrderDialog({
       return
     }
     const latestIds = events.map((e) => e.id)
-    setOrderIds((cur) => (initializedRef.current ? reconcileOrder(cur, latestIds) : latestIds))
+    // updater 는 나중에 실행될 수 있으므로 ref 값을 미리 읽어 둠
+    const wasInitialized = initializedRef.current
+    setOrderIds((cur) => (wasInitialized ? reconcileOrder(cur, latestIds) : latestIds))
     initializedRef.current = true
   }, [open, events])
 
@@ -95,7 +97,7 @@ export function HomeEventOrderDialog({
 
   /** 드래그 중인 항목을 hover 위치로 실시간 이동 (항목 절반을 넘었을 때만 → 떨림 방지) */
   const handleDragOver = (e: React.DragEvent<HTMLLIElement>, overIndex: number) => {
-    if (!draggingId) return // 외부에서 끌어온 드래그는 허용하지 않음
+    if (isSaving || !draggingId) return // 저장 중이거나 외부에서 끌어온 드래그는 허용하지 않음
     e.preventDefault()
     e.dataTransfer.dropEffect = "move"
     const fromIndex = orderIds.indexOf(draggingId)
@@ -133,7 +135,7 @@ export function HomeEventOrderDialog({
                   if (el) itemRefs.current.set(id, el)
                   else itemRefs.current.delete(id)
                 }}
-                draggable
+                draggable={!isSaving}
                 onDragStart={(e) => {
                   e.dataTransfer.effectAllowed = "move"
                   e.dataTransfer.setData("text/plain", id) // Firefox 드래그 시작용
@@ -167,7 +169,7 @@ export function HomeEventOrderDialog({
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0"
-                    disabled={index === 0}
+                    disabled={isSaving || index === 0}
                     onClick={() => move(index, -1)}
                     aria-label="위로 이동"
                   >
@@ -178,7 +180,7 @@ export function HomeEventOrderDialog({
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0"
-                    disabled={index === orderIds.length - 1}
+                    disabled={isSaving || index === orderIds.length - 1}
                     onClick={() => move(index, 1)}
                     aria-label="아래로 이동"
                   >
@@ -193,7 +195,10 @@ export function HomeEventOrderDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
             취소
           </Button>
-          <Button onClick={() => onSave(orderIds)} disabled={isSaving || orderIds.length === 0}>
+          <Button
+            onClick={() => onSave(reconcileOrder(orderIds, events.map((e) => e.id)))}
+            disabled={isSaving || orderIds.length === 0}
+          >
             {isSaving ? "저장 중..." : "저장"}
           </Button>
         </DialogFooter>
